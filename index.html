@@ -2,552 +2,532 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <meta name="theme-color" content="#101010">
-  <meta name="description" content="Crypto Maker - Complete tasks, explore crypto and track your rewards.">
+  <meta name="description" content="Crypto Maker - Tasks, rewards and community">
   <title>Crypto Maker Bot</title>
 
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
   <style>
     :root {
-      --bg: #101010;
-      --card: #1a1a1a;
-      --card2: #222222;
-      --orange: #ff7900;
-      --orange2: #ff9d35;
-      --green: #28d17c;
-      --text: #ffffff;
-      --muted: #999999;
-      --border: #303030;
-      --red: #ff5757;
+      --bg:#101010;
+      --card:#1a1a1a;
+      --card2:#222;
+      --orange:#ff7900;
+      --orange2:#ff9d35;
+      --green:#28d17c;
+      --text:#fff;
+      --muted:#999;
+      --border:#303030;
+      --red:#ff5757;
     }
 
     * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      -webkit-tap-highlight-color: transparent;
+      box-sizing:border-box;
+      margin:0;
+      padding:0;
+      -webkit-tap-highlight-color:transparent;
     }
 
     body {
-      font-family: Arial, Helvetica, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      padding-bottom: 95px;
+      font-family:Arial,Helvetica,sans-serif;
+      background:var(--bg);
+      color:var(--text);
+      min-height:100vh;
+      padding-bottom:95px;
     }
 
-    button, input {
-      font: inherit;
-    }
-
-    button {
-      cursor: pointer;
-    }
+    button,input { font:inherit; }
+    button { cursor:pointer; }
 
     .app {
-      width: 100%;
-      max-width: 520px;
-      min-height: 100vh;
-      margin: auto;
-      overflow: hidden;
+      width:100%;
+      max-width:520px;
+      min-height:100vh;
+      margin:auto;
+      overflow:hidden;
     }
 
     .header {
-      padding: 22px 18px 16px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid var(--border);
-      background: #131313;
+      padding:20px 18px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      border-bottom:1px solid var(--border);
+      background:#131313;
+      gap:10px;
     }
 
     .brand {
-      display: flex;
-      align-items: center;
-      gap: 11px;
+      display:flex;
+      align-items:center;
+      gap:11px;
     }
 
     .logo {
-      width: 45px;
-      height: 45px;
-      display: grid;
-      place-items: center;
-      border-radius: 14px;
-      background: linear-gradient(135deg, #ff9d35, #ff6500);
-      font-size: 25px;
-      box-shadow: 0 5px 20px #ff790025;
+      width:45px;
+      height:45px;
+      display:grid;
+      place-items:center;
+      border-radius:14px;
+      background:linear-gradient(135deg,#ff9d35,#ff6500);
+      font-size:25px;
+      flex-shrink:0;
     }
 
     .brand h1 {
-      font-size: 19px;
-      font-weight: 800;
-      letter-spacing: .4px;
+      font-size:18px;
+      font-weight:800;
     }
 
     .brand p {
-      font-size: 11px;
-      color: var(--muted);
-      margin-top: 4px;
+      font-size:11px;
+      color:var(--muted);
+      margin-top:4px;
     }
 
     .status {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      color: var(--green);
-      font-size: 11px;
-      background: #28d17c12;
-      padding: 8px 10px;
-      border: 1px solid #28d17c35;
-      border-radius: 20px;
+      display:flex;
+      align-items:center;
+      gap:6px;
+      color:var(--orange2);
+      font-size:10px;
+      background:#ff790012;
+      padding:8px 10px;
+      border:1px solid #ff790035;
+      border-radius:20px;
+      white-space:nowrap;
     }
 
     .dot {
-      width: 7px;
-      height: 7px;
-      background: var(--green);
-      border-radius: 50%;
+      width:7px;
+      height:7px;
+      background:currentColor;
+      border-radius:50%;
     }
 
     .page {
-      display: none;
-      padding: 18px;
-      animation: fade .2s ease;
+      display:none;
+      padding:18px;
+      animation:fade .2s ease;
     }
 
-    .page.active {
-      display: block;
-    }
+    .page.active { display:block; }
 
     @keyframes fade {
-      from { opacity: 0; transform: translateY(5px); }
-      to { opacity: 1; transform: translateY(0); }
+      from { opacity:0; transform:translateY(5px); }
+      to { opacity:1; transform:translateY(0); }
     }
 
-    .welcome {
-      margin-bottom: 20px;
-    }
+    .welcome { margin-bottom:20px; }
 
     .welcome .sub {
-      color: var(--muted);
-      font-size: 13px;
-      margin-bottom: 7px;
+      color:var(--muted);
+      font-size:13px;
+      margin-bottom:7px;
     }
 
     .welcome h2 {
-      font-size: 25px;
-      font-weight: 800;
-    }
-
-    .welcome h2 span {
-      color: var(--orange2);
+      font-size:25px;
+      font-weight:800;
+      overflow-wrap:anywhere;
     }
 
     .hero {
-      padding: 23px 20px;
-      border-radius: 22px;
+      padding:23px 20px;
+      border-radius:22px;
       background:
-        radial-gradient(circle at top right, #ff790027, transparent 45%),
-        linear-gradient(135deg, #27201a, #191919 70%);
-      border: 1px solid #ff790044;
-      margin-bottom: 17px;
+        radial-gradient(circle at top right,#ff790027,transparent 45%),
+        linear-gradient(135deg,#27201a,#191919 70%);
+      border:1px solid #ff790044;
+      margin-bottom:17px;
     }
 
     .hero-label {
-      font-size: 12px;
-      color: #bbbbbb;
-      margin-bottom: 10px;
+      font-size:12px;
+      color:#bbb;
+      margin-bottom:10px;
     }
 
     .balance {
-      font-size: 34px;
-      font-weight: 800;
-      letter-spacing: -.8px;
+      font-size:34px;
+      font-weight:800;
+      overflow-wrap:anywhere;
     }
 
     .balance small {
-      color: var(--orange2);
-      font-size: 14px;
-      letter-spacing: 0;
+      color:var(--orange2);
+      font-size:14px;
     }
 
     .hero-bottom {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 18px;
-      padding-top: 15px;
-      border-top: 1px solid #ffffff13;
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      margin-top:18px;
+      padding-top:15px;
+      border-top:1px solid #ffffff13;
     }
 
     .hero-bottom span {
-      font-size: 11px;
-      color: var(--muted);
+      font-size:11px;
+      color:var(--muted);
     }
 
     .hero-bottom strong {
-      display: block;
-      margin-top: 5px;
-      font-size: 14px;
+      display:block;
+      margin-top:5px;
+      font-size:14px;
     }
 
-    .green {
-      color: var(--green) !important;
-    }
+    .green { color:var(--green)!important; }
 
     .section-title {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin: 24px 0 13px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      margin:24px 0 13px;
+      gap:8px;
     }
 
-    .section-title h3 {
-      font-size: 16px;
-    }
+    .section-title h3 { font-size:16px; }
 
     .section-title button {
-      border: none;
-      background: transparent;
-      color: var(--orange2);
-      font-size: 12px;
+      border:none;
+      background:transparent;
+      color:var(--orange2);
+      font-size:12px;
     }
 
     .stats {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:12px;
     }
 
     .stat-card {
-      padding: 17px;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 17px;
+      padding:17px;
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:17px;
+      min-width:0;
     }
 
     .stat-icon {
-      font-size: 23px;
-      margin-bottom: 12px;
+      font-size:23px;
+      margin-bottom:12px;
     }
 
     .stat-label {
-      font-size: 12px;
-      color: var(--muted);
+      font-size:12px;
+      color:var(--muted);
     }
 
     .stat-value {
-      font-size: 21px;
-      font-weight: 800;
-      margin-top: 7px;
+      font-size:21px;
+      font-weight:800;
+      margin-top:7px;
+      overflow-wrap:anywhere;
     }
 
     .mining-card {
-      padding: 20px;
-      margin-top: 17px;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      text-align: center;
+      padding:20px;
+      margin-top:17px;
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:20px;
+      text-align:center;
     }
 
     .mining-orb {
-      width: 105px;
-      height: 105px;
-      border-radius: 50%;
-      margin: 5px auto 18px;
-      display: grid;
-      place-items: center;
-      font-size: 42px;
-      background: radial-gradient(circle, #ff9d3530, #ff790008);
-      border: 2px solid #ff790065;
-      box-shadow: 0 0 30px #ff790015;
+      width:105px;
+      height:105px;
+      border-radius:50%;
+      margin:5px auto 18px;
+      display:grid;
+      place-items:center;
+      font-size:42px;
+      background:radial-gradient(circle,#ff9d3530,#ff790008);
+      border:2px solid #ff790065;
     }
 
-    .mining-orb.running {
-      animation: pulse 1.5s infinite;
-    }
+    .mining-orb.running { animation:pulse 1.5s infinite; }
 
     @keyframes pulse {
-      0%, 100% { box-shadow: 0 0 15px #ff790020; }
-      50% { box-shadow: 0 0 35px #ff790065; }
+      0%,100% { box-shadow:0 0 15px #ff790020; }
+      50% { box-shadow:0 0 35px #ff790065; }
     }
 
     .mining-card h3 {
-      font-size: 19px;
-      margin-bottom: 8px;
+      font-size:19px;
+      margin-bottom:8px;
     }
 
     .mining-card p {
-      font-size: 12px;
-      color: var(--muted);
-      line-height: 1.6;
+      font-size:12px;
+      color:var(--muted);
+      line-height:1.6;
     }
 
     .mining-rate {
-      color: var(--orange2);
-      font-size: 15px;
-      font-weight: bold;
-      margin: 13px 0;
+      color:var(--orange2);
+      font-size:14px;
+      font-weight:bold;
+      margin:13px 0;
     }
 
     .primary-btn {
-      border: none;
-      border-radius: 13px;
-      background: linear-gradient(135deg, var(--orange2), #ff6900);
-      color: #17100a;
-      padding: 15px;
-      width: 100%;
-      font-size: 14px;
-      font-weight: 800;
-      box-shadow: 0 5px 18px #ff790020;
+      border:none;
+      border-radius:13px;
+      background:linear-gradient(135deg,var(--orange2),#ff6900);
+      color:#17100a;
+      padding:15px;
+      width:100%;
+      font-size:14px;
+      font-weight:800;
     }
 
     .primary-btn:disabled {
-      opacity: .5;
-      cursor: not-allowed;
+      opacity:.5;
+      cursor:not-allowed;
     }
 
     .secondary-btn {
-      background: var(--card2);
-      color: white;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 12px 15px;
-      font-size: 12px;
-      font-weight: bold;
+      background:var(--card2);
+      color:white;
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:12px 15px;
+      font-size:12px;
+      font-weight:bold;
     }
 
     .notice {
-      padding: 13px;
-      background: #ff790010;
-      border: 1px solid #ff790025;
-      border-radius: 12px;
-      color: #d7c1ad;
-      font-size: 11px;
-      line-height: 1.6;
-      margin-top: 15px;
+      padding:13px;
+      background:#ff790010;
+      border:1px solid #ff790025;
+      border-radius:12px;
+      color:#d7c1ad;
+      font-size:11px;
+      line-height:1.6;
+      margin-top:15px;
     }
 
     .list {
-      display: flex;
-      flex-direction: column;
-      gap: 11px;
+      display:flex;
+      flex-direction:column;
+      gap:11px;
     }
 
     .item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 15px;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 15px;
+      display:flex;
+      align-items:center;
+      gap:12px;
+      padding:15px;
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:15px;
+      min-width:0;
     }
 
     .item-icon {
-      width: 43px;
-      height: 43px;
-      border-radius: 13px;
-      display: grid;
-      place-items: center;
-      font-size: 21px;
-      flex-shrink: 0;
-      background: #ff790015;
+      width:43px;
+      height:43px;
+      border-radius:13px;
+      display:grid;
+      place-items:center;
+      font-size:21px;
+      flex-shrink:0;
+      background:#ff790015;
     }
 
     .item-info {
-      flex: 1;
-      min-width: 0;
+      flex:1;
+      min-width:0;
     }
 
     .item-info h4 {
-      font-size: 13px;
-      line-height: 1.4;
+      font-size:13px;
+      line-height:1.4;
     }
 
     .item-info p {
-      color: var(--muted);
-      font-size: 11px;
-      margin-top: 5px;
+      color:var(--muted);
+      font-size:11px;
+      margin-top:5px;
+      line-height:1.5;
     }
 
     .reward {
-      color: var(--green);
-      font-size: 12px;
-      font-weight: 800;
-      margin-bottom: 7px;
-      text-align: right;
+      color:var(--green);
+      font-size:12px;
+      font-weight:800;
+      margin:8px 0;
     }
 
     .small-btn {
-      border: none;
-      border-radius: 9px;
-      background: var(--orange);
-      color: #17100a;
-      font-size: 11px;
-      font-weight: 800;
-      padding: 9px 12px;
+      border:none;
+      border-radius:9px;
+      background:var(--orange);
+      color:#17100a;
+      font-size:11px;
+      font-weight:800;
+      padding:9px 12px;
     }
 
     .small-btn.done {
-      background: #28d17c18;
-      color: var(--green);
+      background:#28d17c18;
+      color:var(--green);
     }
 
     .profile-card {
-      padding: 20px;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      text-align: center;
+      padding:20px;
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:18px;
+      text-align:center;
     }
 
     .avatar {
-      width: 70px;
-      height: 70px;
-      display: grid;
-      place-items: center;
-      margin: 0 auto 13px;
-      border-radius: 50%;
-      font-size: 30px;
-      background: linear-gradient(135deg, #ff9d35, #ff6500);
+      width:70px;
+      height:70px;
+      display:grid;
+      place-items:center;
+      margin:0 auto 13px;
+      border-radius:50%;
+      font-size:30px;
+      background:linear-gradient(135deg,#ff9d35,#ff6500);
     }
 
     .profile-card h3 {
-      font-size: 19px;
+      font-size:19px;
+      overflow-wrap:anywhere;
     }
 
     .profile-card p {
-      color: var(--muted);
-      font-size: 12px;
-      margin-top: 6px;
+      color:var(--muted);
+      font-size:12px;
+      margin-top:6px;
+      overflow-wrap:anywhere;
     }
 
     .ref-box {
-      margin-top: 18px;
-      padding: 17px;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
+      margin-top:18px;
+      padding:17px;
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:16px;
     }
 
     .ref-box label {
-      display: block;
-      color: var(--muted);
-      font-size: 12px;
-      margin-bottom: 10px;
+      display:block;
+      color:var(--muted);
+      font-size:12px;
+      margin-bottom:10px;
     }
 
     .ref-link {
-      overflow-wrap: anywhere;
-      padding: 12px;
-      border-radius: 10px;
-      background: #111111;
-      border: 1px solid var(--border);
-      font-size: 12px;
-      color: var(--orange2);
-      line-height: 1.6;
+      overflow-wrap:anywhere;
+      padding:12px;
+      border-radius:10px;
+      background:#111;
+      border:1px solid var(--border);
+      font-size:12px;
+      color:var(--orange2);
+      line-height:1.6;
     }
 
     .wallet-input {
-      width: 100%;
-      margin: 10px 0 14px;
-      background: #111;
-      border: 1px solid var(--border);
-      color: white;
-      border-radius: 12px;
-      padding: 14px;
-      outline: none;
+      width:100%;
+      margin:10px 0 14px;
+      background:#111;
+      border:1px solid var(--border);
+      color:white;
+      border-radius:12px;
+      padding:14px;
+      outline:none;
     }
 
-    .wallet-input:focus {
-      border-color: var(--orange);
-    }
+    .wallet-input:focus { border-color:var(--orange); }
 
     .bottom-nav {
-      position: fixed;
-      bottom: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 100%;
-      max-width: 520px;
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      padding: 11px 5px calc(11px + env(safe-area-inset-bottom));
-      background: #171717f5;
-      border-top: 1px solid var(--border);
-      backdrop-filter: blur(12px);
-      z-index: 100;
+      position:fixed;
+      bottom:0;
+      left:50%;
+      transform:translateX(-50%);
+      width:100%;
+      max-width:520px;
+      display:grid;
+      grid-template-columns:repeat(5,1fr);
+      padding:11px 5px calc(11px + env(safe-area-inset-bottom));
+      background:#171717f5;
+      border-top:1px solid var(--border);
+      backdrop-filter:blur(12px);
+      z-index:100;
     }
 
     .nav-btn {
-      background: transparent;
-      border: none;
-      color: #858585;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 5px;
-      font-size: 10px;
+      background:transparent;
+      border:none;
+      color:#858585;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:5px;
+      font-size:10px;
     }
 
-    .nav-btn .nav-icon {
-      font-size: 21px;
-    }
-
-    .nav-btn.active {
-      color: var(--orange2);
-    }
+    .nav-icon { font-size:21px; }
+    .nav-btn.active { color:var(--orange2); }
 
     .empty {
-      text-align: center;
-      color: var(--muted);
-      padding: 28px 10px;
-      font-size: 13px;
-      line-height: 1.7;
+      text-align:center;
+      color:var(--muted);
+      padding:28px 10px;
+      font-size:13px;
+      line-height:1.7;
     }
 
     .toast {
-      position: fixed;
-      bottom: 100px;
-      left: 50%;
-      transform: translate(-50%, 20px);
-      background: #292929;
-      border: 1px solid #414141;
-      color: white;
-      padding: 13px 18px;
-      border-radius: 12px;
-      font-size: 12px;
-      opacity: 0;
-      pointer-events: none;
-      transition: .25s;
-      z-index: 200;
-      width: max-content;
-      max-width: 90%;
-      text-align: center;
+      position:fixed;
+      bottom:100px;
+      left:50%;
+      transform:translate(-50%,20px);
+      background:#292929;
+      border:1px solid #414141;
+      color:white;
+      padding:13px 18px;
+      border-radius:12px;
+      font-size:12px;
+      opacity:0;
+      pointer-events:none;
+      transition:.25s;
+      z-index:200;
+      width:max-content;
+      max-width:90%;
+      text-align:center;
     }
 
     .toast.show {
-      opacity: 1;
-      transform: translate(-50%, 0);
+      opacity:1;
+      transform:translate(-50%,0);
     }
 
     .footer {
-      text-align: center;
-      color: #686868;
-      font-size: 10px;
-      padding: 24px 0 10px;
-      line-height: 1.7;
+      text-align:center;
+      color:#686868;
+      font-size:10px;
+      padding:24px 0 10px;
+      line-height:1.7;
     }
 
-    @media (max-width: 360px) {
-      .balance { font-size: 29px; }
-      .page { padding: 14px; }
-      .header { padding: 17px 14px; }
-      .stat-value { font-size: 18px; }
+    @media(max-width:360px) {
+      .balance { font-size:29px; }
+      .page { padding:14px; }
+      .header { padding:17px 14px; }
+      .stat-value { font-size:18px; }
+      .brand h1 { font-size:16px; }
     }
   </style>
 </head>
@@ -564,18 +544,15 @@
       </div>
     </div>
 
-    <div class="status">
-      <span class="dot"></span>
-      Online
+    <div class="status" id="authStatus">
+      <span class="dot"></span> Checking...
     </div>
   </header>
 
-  <!-- DASHBOARD -->
   <main id="home" class="page active">
-
     <div class="welcome">
       <p class="sub">Welcome back,</p>
-      <h2 id="welcomeName">Crypto Explorer 👋</h2>
+      <h2 id="welcomeName">Checking Telegram...</h2>
     </div>
 
     <section class="hero">
@@ -584,7 +561,6 @@
         <span id="balance">0.0000</span>
         <small>USDT*</small>
       </div>
-
       <div class="hero-bottom">
         <div>
           <span>Demo Earnings</span>
@@ -603,19 +579,16 @@
         <div class="stat-label">Mining Status</div>
         <div class="stat-value" id="miningStatus">Inactive</div>
       </div>
-
       <div class="stat-card">
         <div class="stat-icon">👥</div>
         <div class="stat-label">Your Referrals</div>
         <div class="stat-value" id="referralCount">0</div>
       </div>
-
       <div class="stat-card">
         <div class="stat-icon">🎯</div>
         <div class="stat-label">Available Tasks</div>
         <div class="stat-value" id="availableTasks">3</div>
       </div>
-
       <div class="stat-card">
         <div class="stat-icon">🏆</div>
         <div class="stat-label">Total Demo Rewards</div>
@@ -631,18 +604,16 @@
     <section class="mining-card">
       <div class="mining-orb" id="miningOrb">⛏️</div>
       <h3 id="miningTitle">Ready to Explore?</h3>
-      <p id="miningDescription">
-        Start the demo mining session and explore the Crypto Maker interface.
-      </p>
+      <p id="miningDescription">Start the demo mining session and explore Crypto Maker.</p>
       <div class="mining-rate">Demo rate: 0.0001 USDT / minute</div>
       <button class="primary-btn" id="miningButton" onclick="toggleMining()">
         ▶ START DEMO MINING
       </button>
-      <p style="margin-top:12px">This is a simulated session, not real mining.</p>
+      <p style="margin-top:12px">Simulated session only. Not real mining.</p>
     </section>
 
     <div class="notice">
-      ⚠️ Demo mode: All balances and rewards are simulated locally.
+      ⚠️ Demo mode: balances and rewards are stored locally in this browser.
       They have no cash value and cannot be withdrawn as real USDT.
     </div>
 
@@ -650,31 +621,25 @@
       <h3>🎯 Quick Tasks</h3>
       <button onclick="showPage('tasks')">View all →</button>
     </div>
-
     <div id="homeTasks" class="list"></div>
 
     <div class="footer">
       CRYPTO MAKER • DEMO VERSION<br>
-      No guaranteed earnings. Verify all offers independently.
+      No guaranteed earnings. Verify offers independently.
     </div>
   </main>
 
-  <!-- TASKS -->
   <section id="tasks" class="page">
     <div class="welcome">
-      <p class="sub">Complete activities to test the interface</p>
+      <p class="sub">Explore community activities</p>
       <h2>🎯 Daily Tasks</h2>
     </div>
-
     <div class="notice" style="margin:0 0 17px">
-      Task completion in this demo is not verified by Telegram or a server.
-      Rewards are simulated.
+      Tasks and rewards are simulated. Channel membership is not verified.
     </div>
-
     <div id="allTasks" class="list"></div>
   </section>
 
-  <!-- REFERRALS -->
   <section id="referrals" class="page">
     <div class="welcome">
       <p class="sub">Invite friends to explore the app</p>
@@ -700,19 +665,18 @@
 
     <div class="ref-box">
       <label>Your Referral Link</label>
-      <div class="ref-link" id="refLink">Open inside Telegram to create a demo link.</div>
+      <div class="ref-link" id="refLink">Open inside Telegram to create a link.</div>
       <button class="primary-btn" style="margin-top:13px" onclick="copyReferral()">
         📋 COPY REFERRAL LINK
       </button>
     </div>
 
     <div class="notice">
-      Referral counts are not confirmed by a backend. Copying or sharing a link
-      does not automatically register a referral or create a reward.
+      Referral counts are not verified by a backend. Sharing a link does not
+      automatically register a referral or create a reward.
     </div>
   </section>
 
-  <!-- WALLET -->
   <section id="wallet" class="page">
     <div class="welcome">
       <p class="sub">View your simulated balance</p>
@@ -734,38 +698,30 @@
       </div>
     </section>
 
-    <div class="section-title">
-      <h3>Withdrawal Request Demo</h3>
-    </div>
+    <div class="section-title"><h3>Withdrawal Request Demo</h3></div>
 
     <div class="stat-card">
-      <label class="stat-label" for="walletAddress">USDT Wallet Address (demo only)</label>
+      <label class="stat-label" for="walletAddress">Wallet Address (demo only)</label>
       <input id="walletAddress" class="wallet-input" placeholder="Enter a test address">
 
       <label class="stat-label" for="withdrawAmount">Amount (demo USDT)</label>
       <input id="withdrawAmount" class="wallet-input" type="number" min="0.01" step="0.01" placeholder="0.00">
 
-      <button class="primary-btn" onclick="requestWithdrawal()">
-        SUBMIT DEMO REQUEST
-      </button>
+      <button class="primary-btn" onclick="requestWithdrawal()">SUBMIT DEMO REQUEST</button>
 
       <div class="notice">
-        No blockchain transaction will be created. This form only adds a
-        simulated request to this browser's local history.
+        No blockchain transaction will be created. This form only records a
+        simulated request in this browser.
       </div>
     </div>
 
-    <div class="section-title">
-      <h3>📜 Transaction History</h3>
-    </div>
-
+    <div class="section-title"><h3>📜 Transaction History</h3></div>
     <div id="history" class="list"></div>
   </section>
 
-  <!-- PROFILE -->
   <section id="profile" class="page">
     <div class="welcome">
-      <p class="sub">Manage your demo profile</p>
+      <p class="sub">Manage your profile</p>
       <h2>👤 My Profile</h2>
     </div>
 
@@ -775,9 +731,7 @@
       <p id="profileId">Telegram user not verified</p>
     </div>
 
-    <div class="section-title">
-      <h3>Account Details</h3>
-    </div>
+    <div class="section-title"><h3>Account Details</h3></div>
 
     <div class="list">
       <div class="item">
@@ -788,7 +742,6 @@
         </div>
         <strong id="profileBalance">0.0000</strong>
       </div>
-
       <div class="item">
         <div class="item-icon">🎯</div>
         <div class="item-info">
@@ -797,14 +750,13 @@
         </div>
         <strong id="profileTasks">0</strong>
       </div>
-
       <div class="item">
         <div class="item-icon">🔐</div>
         <div class="item-info">
-          <h4>Security</h4>
-          <p>Server verification not configured</p>
+          <h4>Telegram Authentication</h4>
+          <p id="securityText">Checking verification...</p>
         </div>
-        <strong style="color:var(--orange2)">Demo</strong>
+        <strong id="securityStatus" style="color:var(--orange2)">Checking</strong>
       </div>
     </div>
 
@@ -813,8 +765,7 @@
     </button>
 
     <div class="notice">
-      Resetting removes locally stored demo data from this browser.
-      It does not affect any Telegram or blockchain account.
+      Resetting removes demo data stored in this browser only.
     </div>
   </section>
 
@@ -824,19 +775,15 @@
   <button class="nav-btn active" data-page="home" onclick="showPage('home')">
     <span class="nav-icon">🏠</span><span>Home</span>
   </button>
-
   <button class="nav-btn" data-page="tasks" onclick="showPage('tasks')">
     <span class="nav-icon">🎯</span><span>Tasks</span>
   </button>
-
   <button class="nav-btn" data-page="referrals" onclick="showPage('referrals')">
     <span class="nav-icon">👥</span><span>Refer</span>
   </button>
-
   <button class="nav-btn" data-page="wallet" onclick="showPage('wallet')">
     <span class="nav-icon">💳</span><span>Wallet</span>
   </button>
-
   <button class="nav-btn" data-page="profile" onclick="showPage('profile')">
     <span class="nav-icon">👤</span><span>Profile</span>
   </button>
@@ -845,449 +792,534 @@
 <div id="toast" class="toast"></div>
 
 <script>
-  const STORAGE_KEY = "cryptoMakerDemo_v1";
+"use strict";
 
-  const DEFAULT_STATE = {
-    balance: 0,
-    earnings: 0,
-    totalRewards: 0,
-    mining: false,
-    lastMiningTime: null,
-    completedTasks: [],
-    history: [],
-    referrals: 0,
-    referralRewards: 0
-  };
+const STORAGE_KEY = "cryptoMakerDemo_v1";
+const BOT_USERNAME = "CryptoMakerBot_Bot";
 
-  let state = loadState();
-  let toastTimer;
+const DEFAULT_STATE = {
+  balance: 0,
+  earnings: 0,
+  totalRewards: 0,
+  mining: false,
+  lastMiningTime: null,
+  completedTasks: [],
+  history: [],
+  referrals: 0,
+  referralRewards: 0
+};
 
-  const tg = window.Telegram && window.Telegram.WebApp
-    ? window.Telegram.WebApp
-    : null;
+let state = loadState();
+let toastTimer;
+let telegramUser = null;
+let telegramVerified = false;
+let telegramVerificationError = "Checking Telegram authentication...";
 
-  if (tg) {
-    tg.ready();
-    tg.expand();
+const tg = window.Telegram && window.Telegram.WebApp
+  ? window.Telegram.WebApp
+  : null;
 
-    try {
-      tg.setHeaderColor("#131313");
-      tg.setBackgroundColor("#101010");
-    } catch (e) {}
+if (tg) {
+  tg.ready();
+  tg.expand();
+
+  try {
+    tg.setHeaderColor("#131313");
+    tg.setBackgroundColor("#101010");
+  } catch (error) {}
+}
+
+const taskList = [
+  {
+    id: "community",
+    icon: "📢",
+    title: "Explore Official Community",
+    description: "Open the official community channel.",
+    reward: 0.01,
+    url: "https://t.me/cryptomakerofficialchannel"
+  },
+  {
+    id: "crypto",
+    icon: "📚",
+    title: "Explore Crypto Learning Hub",
+    description: "Discover crypto learning content.",
+    reward: 0.01,
+    url: "https://t.me/cryptolearninghubs"
+  },
+  {
+    id: "analysis",
+    icon: "📊",
+    title: "Explore Crypto Analysis",
+    description: "Read market analysis and updates.",
+    reward: 0.01,
+    url: "https://t.me/CryptoAnalysisDesk"
   }
+];
 
-  const telegramUser = tg && tg.initDataUnsafe
-    ? tg.initDataUnsafe.user
-    : null;
-
-  const taskList = [
-    {
-      id: "community",
-      icon: "📢",
-      title: "Explore Official Community",
-      description: "Open the official community channel.",
-      reward: 0.01,
-      url: "https://t.me/cryptomakerofficialchannel"
-    },
-    {
-      id: "crypto",
-      icon: "📚",
-      title: "Explore Crypto Learning Hub",
-      description: "Discover crypto learning content.",
-      reward: 0.01,
-      url: "https://t.me/cryptolearninghubs"
-    },
-    {
-      id: "analysis",
-      icon: "📊",
-      title: "Explore Crypto Analysis",
-      description: "Read market analysis and updates.",
-      reward: 0.01,
-      url: "https://t.me/CryptoAnalysisDesk"
-    }
-  ];
-
-  function loadState() {
-    try {
-      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-      return saved ? { ...DEFAULT_STATE, ...saved } : { ...DEFAULT_STATE };
-    } catch (e) {
-      return { ...DEFAULT_STATE };
-    }
+function loadState() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    return saved ? { ...DEFAULT_STATE, ...saved } : { ...DEFAULT_STATE };
+  } catch (error) {
+    return { ...DEFAULT_STATE };
   }
+}
 
-  function saveState() {
+function saveState() {
+  try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch (error) {
+    console.warn("Could not save local demo state.");
+  }
+}
+
+function formatAmount(value) {
+  return Number(value || 0).toFixed(4);
+}
+
+function showToast(message) {
+  const element = document.getElementById("toast");
+  element.textContent = message;
+  element.classList.add("show");
+
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => element.classList.remove("show"), 2600);
+}
+
+function setAuthStatus(message, color) {
+  const element = document.getElementById("authStatus");
+  element.replaceChildren();
+
+  const dot = document.createElement("span");
+  dot.className = "dot";
+  element.append(dot, document.createTextNode(" " + message));
+  element.style.color = color;
+}
+
+async function verifyTelegramUser() {
+  telegramUser = null;
+  telegramVerified = false;
+
+  if (!tg || !tg.initData) {
+    telegramVerificationError =
+      "Open Crypto Maker using the Telegram Mini App button.";
+    setAuthStatus("Not verified", "var(--orange2)");
+    renderProfile();
+    return;
   }
 
-  function formatAmount(value) {
-    return Number(value || 0).toFixed(4);
-  }
+  setAuthStatus("Verifying...", "var(--orange2)");
+  telegramVerificationError = "Telegram verification is in progress.";
+  renderProfile();
 
-  function showToast(message) {
-    const el = document.getElementById("toast");
-    el.textContent = message;
-    el.classList.add("show");
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => el.classList.remove("show"), 2600);
-  }
-
-  function showPage(pageId) {
-    document.querySelectorAll(".page").forEach(page => {
-      page.classList.toggle("active", page.id === pageId);
+  try {
+    const response = await fetch("/api/auth", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        initData: tg.initData
+      }),
+      cache: "no-store"
     });
 
-    document.querySelectorAll(".nav-btn").forEach(button => {
-      button.classList.toggle("active", button.dataset.page === pageId);
-    });
+    let result;
 
-    if (tg && tg.HapticFeedback) {
-      try { tg.HapticFeedback.selectionChanged(); } catch (e) {}
+    try {
+      result = await response.json();
+    } catch (error) {
+      throw new Error("The authentication server returned an invalid response.");
     }
 
-    render();
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    if (!response.ok || !result || result.ok !== true || !result.user) {
+      throw new Error(
+        result && result.error
+          ? result.error
+          : "Telegram verification failed."
+      );
+    }
+
+    if (!Number.isSafeInteger(result.user.id)) {
+      throw new Error("The server returned an invalid Telegram user.");
+    }
+
+    telegramUser = result.user;
+    telegramVerified = true;
+    telegramVerificationError = "";
+
+    setAuthStatus("Verified", "var(--green)");
+    renderProfile();
+    showToast("Telegram user verified successfully.");
+  } catch (error) {
+    telegramUser = null;
+    telegramVerified = false;
+    telegramVerificationError =
+      error.message || "Telegram verification failed.";
+
+    setAuthStatus("Not verified", "var(--red)");
+    renderProfile();
+
+    console.error("Telegram authentication failed:", error);
+    showToast("Telegram verification failed. Check your Mini App setup.");
+  }
+}
+
+function showPage(pageId) {
+  document.querySelectorAll(".page").forEach(page => {
+    page.classList.toggle("active", page.id === pageId);
+  });
+
+  document.querySelectorAll(".nav-btn").forEach(button => {
+    button.classList.toggle("active", button.dataset.page === pageId);
+  });
+
+  if (tg && tg.HapticFeedback) {
+    try {
+      tg.HapticFeedback.selectionChanged();
+    } catch (error) {}
   }
 
-  function addHistory(title, amount, type) {
-    state.history.unshift({
-      id: Date.now(),
-      title,
-      amount,
-      type,
-      date: new Date().toLocaleString()
-    });
+  render();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
 
-    state.history = state.history.slice(0, 50);
-  }
+function addHistory(title, amount, type) {
+  state.history.unshift({
+    id: Date.now(),
+    title,
+    amount,
+    type,
+    date: new Date().toLocaleString()
+  });
 
-  function renderTasks() {
-    const html = taskList.map(task => {
-      const done = state.completedTasks.includes(task.id);
+  state.history = state.history.slice(0, 50);
+}
 
-      return `
+function renderTasks() {
+  const html = taskList.map(task => {
+    const done = state.completedTasks.includes(task.id);
+
+    return `
+      <div class="item">
+        <div class="item-icon">${task.icon}</div>
+        <div class="item-info">
+          <h4>${task.title}</h4>
+          <p>${task.description}</p>
+          <div class="reward">+${formatAmount(task.reward)} demo USDT</div>
+          <button
+            class="small-btn ${done ? "done" : ""}"
+            ${done ? "disabled" : ""}
+            onclick="completeTask('${task.id}')">
+            ${done ? "✓ Completed (Demo)" : "Open Task"}
+          </button>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  document.getElementById("allTasks").innerHTML = html;
+
+  document.getElementById("homeTasks").innerHTML =
+    taskList.filter(task => !state.completedTasks.includes(task.id))
+      .slice(0, 2)
+      .map(task => `
         <div class="item">
           <div class="item-icon">${task.icon}</div>
           <div class="item-info">
             <h4>${task.title}</h4>
-            <p>${task.description}</p>
-            <div class="reward">+${formatAmount(task.reward)} demo USDT</div>
-            <button
-              class="small-btn ${done ? "done" : ""}"
-              ${done ? "disabled" : ""}
-              onclick="completeTask('${task.id}')">
-              ${done ? "✓ Completed (Demo)" : "Open Task"}
-            </button>
+            <p>Demo reward: ${formatAmount(task.reward)} USDT</p>
           </div>
+          <button class="small-btn" onclick="completeTask('${task.id}')">
+            Open
+          </button>
         </div>
-      `;
-    }).join("");
+      `).join("") || '<div class="empty">All demo tasks completed 🎉</div>';
 
-    document.getElementById("allTasks").innerHTML = html;
-    document.getElementById("homeTasks").innerHTML =
-      taskList.filter(task => !state.completedTasks.includes(task.id))
-        .slice(0, 2)
-        .map(task => `
-          <div class="item">
-            <div class="item-icon">${task.icon}</div>
-            <div class="item-info">
-              <h4>${task.title}</h4>
-              <p>Demo reward: ${formatAmount(task.reward)} USDT</p>
-            </div>
-            <button class="small-btn" onclick="completeTask('${task.id}')">
-              Open
-            </button>
-          </div>
-        `).join("") || `<div class="empty">All demo tasks completed 🎉</div>`;
+  document.getElementById("availableTasks").textContent =
+    taskList.length - state.completedTasks.length;
 
-    document.getElementById("availableTasks").textContent =
-      taskList.length - state.completedTasks.length;
+  document.getElementById("completedCount").textContent =
+    state.completedTasks.length;
+}
 
-    document.getElementById("completedCount").textContent =
-      state.completedTasks.length;
+function completeTask(taskId) {
+  const task = taskList.find(item => item.id === taskId);
+  if (!task) return;
+
+  if (state.completedTasks.includes(taskId)) {
+    showToast("This demo task is already completed.");
+    return;
   }
 
-  function completeTask(taskId) {
-    const task = taskList.find(item => item.id === taskId);
+  // Demo reward only. This does not verify channel membership.
+  state.completedTasks.push(taskId);
+  state.balance += task.reward;
+  state.earnings += task.reward;
+  state.totalRewards += task.reward;
 
-    if (!task) return;
+  addHistory("Demo task: " + task.title, task.reward, "credit");
+  saveState();
+  render();
 
-    if (state.completedTasks.includes(taskId)) {
-      showToast("This demo task is already completed.");
-      return;
-    }
-
-    // Demo only: this does not verify a channel join or task completion.
-    state.completedTasks.push(taskId);
-    state.balance += task.reward;
-    state.earnings += task.reward;
-    state.totalRewards += task.reward;
-
-    addHistory("Demo task: " + task.title, task.reward, "credit");
-    saveState();
-    render();
-
-    if (task.url) {
-      if (tg && tg.openTelegramLink && task.url.includes("t.me/")) {
-        tg.openTelegramLink(task.url);
-      } else {
-        window.open(task.url, "_blank", "noopener,noreferrer");
-      }
-    }
-
-    showToast("Demo task completed. Simulated reward added.");
-  }
-
-  function toggleMining() {
-    if (!state.mining) {
-      state.mining = true;
-      state.lastMiningTime = Date.now();
-      showToast("Demo mining session started.");
+  if (task.url) {
+    if (tg && tg.openTelegramLink) {
+      tg.openTelegramLink(task.url);
     } else {
-      updateMiningRewards();
-      state.mining = false;
-      state.lastMiningTime = null;
-      showToast("Demo mining session stopped.");
+      window.open(task.url, "_blank", "noopener,noreferrer");
     }
+  }
 
+  showToast("Demo task completed. Simulated reward added.");
+}
+
+function toggleMining() {
+  if (!state.mining) {
+    state.mining = true;
+    state.lastMiningTime = Date.now();
+    showToast("Demo mining session started.");
+  } else {
+    updateMiningRewards();
+    state.mining = false;
+    state.lastMiningTime = null;
+    showToast("Demo mining session stopped.");
+  }
+
+  saveState();
+  render();
+}
+
+function updateMiningRewards() {
+  if (!state.mining || !state.lastMiningTime) return;
+
+  const elapsedMinutes =
+    Math.floor((Date.now() - state.lastMiningTime) / 60000);
+
+  if (elapsedMinutes > 0) {
+    const reward = elapsedMinutes * 0.0001;
+
+    state.balance += reward;
+    state.earnings += reward;
+    state.totalRewards += reward;
+
+    addHistory("Demo mining reward", reward, "credit");
+    state.lastMiningTime += elapsedMinutes * 60000;
     saveState();
-    render();
+  }
+}
+
+function requestWithdrawal() {
+  const address = document.getElementById("walletAddress").value.trim();
+  const amount = Number(document.getElementById("withdrawAmount").value);
+
+  if (!address) {
+    showToast("Enter a test wallet address.");
+    return;
   }
 
-  function updateMiningRewards() {
-    if (!state.mining || !state.lastMiningTime) return;
-
-    const elapsedMinutes =
-      Math.floor((Date.now() - state.lastMiningTime) / 60000);
-
-    if (elapsedMinutes > 0) {
-      const reward = elapsedMinutes * 0.0001;
-
-      state.balance += reward;
-      state.earnings += reward;
-      state.totalRewards += reward;
-
-      addHistory("Demo mining reward", reward, "credit");
-      state.lastMiningTime += elapsedMinutes * 60000;
-
-      saveState();
-    }
+  if (!Number.isFinite(amount) || amount <= 0) {
+    showToast("Enter a valid demo amount.");
+    return;
   }
 
-  function requestWithdrawal() {
-    const address = document.getElementById("walletAddress").value.trim();
-    const amount = Number(document.getElementById("withdrawAmount").value);
-
-    if (!address) {
-      showToast("Enter a test wallet address.");
-      return;
-    }
-
-    if (!Number.isFinite(amount) || amount <= 0) {
-      showToast("Enter a valid demo amount.");
-      return;
-    }
-
-    if (amount > state.balance) {
-      showToast("Insufficient demo balance.");
-      return;
-    }
-
-    // This creates a local demo request only. No funds are transferred.
-    state.balance -= amount;
-
-    addHistory("Demo withdrawal request submitted", -amount, "pending");
-    saveState();
-    render();
-
-    document.getElementById("withdrawAmount").value = "";
-    document.getElementById("walletAddress").value = "";
-
-    showToast("Demo request saved locally. No USDT was sent.");
+  if (amount > state.balance) {
+    showToast("Insufficient demo balance.");
+    return;
   }
 
-  function makeReferralLink() {
-    if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
-      const botUsername = "CryptoMakerBot_Bot";
-      return "https://t.me/" + botUsername +
-        "?start=ref_" + encodeURIComponent(tg.initDataUnsafe.user.id);
-    }
+  // Demo only. No funds are transferred.
+  state.balance -= amount;
 
-    return "Open this app through the official Telegram bot to create a demo referral link.";
+  addHistory("Demo withdrawal request submitted", -amount, "pending");
+  saveState();
+  render();
+
+  document.getElementById("withdrawAmount").value = "";
+  document.getElementById("walletAddress").value = "";
+
+  showToast("Demo request saved locally. No USDT was sent.");
+}
+
+function makeReferralLink() {
+  if (telegramVerified && telegramUser) {
+    return "https://t.me/" + BOT_USERNAME +
+      "?start=ref_" + encodeURIComponent(telegramUser.id);
   }
 
-  async function copyReferral() {
-    const link = makeReferralLink();
+  return "Open this Mini App through Telegram and complete verification first.";
+}
 
-    if (!link.startsWith("https://")) {
-      showToast("Open the Mini App through Telegram first.");
-      return;
-    }
+async function copyReferral() {
+  const link = makeReferralLink();
+
+  if (!telegramVerified || !telegramUser) {
+    showToast("Verify your Telegram account first.");
+    return;
+  }
+
+  try {
+    await navigator.clipboard.writeText(link);
+    showToast("Referral link copied.");
+  } catch (error) {
+    const input = document.createElement("textarea");
+    input.value = link;
+    document.body.appendChild(input);
+    input.select();
 
     try {
-      await navigator.clipboard.writeText(link);
-      showToast("Demo referral link copied.");
-    } catch (e) {
-      const input = document.createElement("textarea");
-      input.value = link;
-      document.body.appendChild(input);
-      input.select();
-
-      try {
-        document.execCommand("copy");
-        showToast("Demo referral link copied.");
-      } catch (err) {
-        showToast("Unable to copy. Please copy the link manually.");
-      }
-
-      input.remove();
+      document.execCommand("copy");
+      showToast("Referral link copied.");
+    } catch (copyError) {
+      showToast("Unable to copy. Please copy manually.");
     }
+
+    input.remove();
   }
+}
 
-  function renderHistory() {
-    const history = document.getElementById("history");
+function renderHistory() {
+  const element = document.getElementById("history");
 
-    if (!state.history.length) {
-      history.innerHTML = `
-        <div class="empty">
-          📜 No transactions yet.<br>
-          Demo activities will appear here.
-        </div>
-      `;
-      return;
-    }
-
-    history.innerHTML = state.history.map(item => `
-      <div class="item">
-        <div class="item-icon">
-          ${item.type === "credit" ? "🟢" :
-            item.type === "pending" ? "🕒" : "📋"}
-        </div>
-        <div class="item-info">
-          <h4>${item.title}</h4>
-          <p>${item.date}</p>
-        </div>
-        <strong style="font-size:12px;color:${
-          item.amount >= 0 ? "var(--green)" : "var(--orange2)"
-        }">
-          ${item.amount >= 0 ? "+" : ""}${formatAmount(item.amount)}
-        </strong>
+  if (!state.history.length) {
+    element.innerHTML = `
+      <div class="empty">
+        📜 No transactions yet.<br>
+        Demo activities will appear here.
       </div>
-    `).join("");
+    `;
+    return;
   }
 
-  function renderProfile() {
-    const name = telegramUser
-      ? [telegramUser.first_name, telegramUser.last_name].filter(Boolean).join(" ")
-      : "Guest User";
+  element.innerHTML = state.history.map(item => `
+    <div class="item">
+      <div class="item-icon">
+        ${item.type === "credit" ? "🟢" :
+          item.type === "pending" ? "🕒" : "📋"}
+      </div>
+      <div class="item-info">
+        <h4>${item.title}</h4>
+        <p>${item.date}</p>
+      </div>
+      <strong style="font-size:12px;color:${
+        item.amount >= 0 ? "var(--green)" : "var(--orange2)"
+      }">
+        ${item.amount >= 0 ? "+" : ""}${formatAmount(item.amount)}
+      </strong>
+    </div>
+  `).join("");
+}
 
-    document.getElementById("welcomeName").innerHTML =
-      `${escapeHtml(name)} 👋`;
+function renderProfile() {
+  const name = telegramVerified && telegramUser
+    ? [telegramUser.first_name, telegramUser.last_name]
+        .filter(Boolean).join(" ")
+    : "Guest User";
 
-    document.getElementById("profileName").textContent = name;
+  document.getElementById("welcomeName").textContent = name + " 👋";
+  document.getElementById("profileName").textContent = name;
 
-    document.getElementById("profileId").textContent = telegramUser
-      ? "Telegram ID: " + telegramUser.id + " (not server-verified)"
-      : "Open through Telegram to see your profile";
+  document.getElementById("profileId").textContent =
+    telegramVerified && telegramUser
+      ? "Verified Telegram ID: " + telegramUser.id
+      : telegramVerificationError || "Telegram user not verified";
 
-    document.getElementById("profileAvatar").textContent =
-      telegramUser ? "👤" : "👤";
+  document.getElementById("profileAvatar").textContent = "👤";
 
-    document.getElementById("profileBalance").textContent =
-      formatAmount(state.balance);
+  document.getElementById("profileBalance").textContent =
+    formatAmount(state.balance);
 
-    document.getElementById("profileTasks").textContent =
-      state.completedTasks.length;
-  }
+  document.getElementById("profileTasks").textContent =
+    state.completedTasks.length;
 
-  function escapeHtml(value) {
-    return String(value).replace(/[&<>"']/g, char => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#39;"
-    })[char]);
-  }
+  document.getElementById("securityText").textContent =
+    telegramVerified
+      ? "Telegram initData signature verified by server"
+      : telegramVerificationError || "Not verified";
 
-  function render() {
-    updateMiningRewards();
+  document.getElementById("securityStatus").textContent =
+    telegramVerified ? "Verified" : "Not verified";
 
-    document.getElementById("balance").textContent =
-      formatAmount(state.balance);
+  document.getElementById("securityStatus").style.color =
+    telegramVerified ? "var(--green)" : "var(--red)";
+}
 
-    document.getElementById("earnings").textContent =
-      formatAmount(state.earnings) + " USDT";
+function render() {
+  updateMiningRewards();
 
-    document.getElementById("totalRewards").textContent =
-      formatAmount(state.totalRewards);
+  document.getElementById("balance").textContent =
+    formatAmount(state.balance);
 
-    document.getElementById("walletBalance").textContent =
-      formatAmount(state.balance);
+  document.getElementById("earnings").textContent =
+    formatAmount(state.earnings) + " USDT";
 
-    document.getElementById("walletEarnings").textContent =
-      formatAmount(state.earnings) + " USDT";
+  document.getElementById("totalRewards").textContent =
+    formatAmount(state.totalRewards);
 
-    document.getElementById("referralCount").textContent =
-      state.referrals;
+  document.getElementById("walletBalance").textContent =
+    formatAmount(state.balance);
 
-    document.getElementById("refPageCount").textContent =
-      state.referrals;
+  document.getElementById("walletEarnings").textContent =
+    formatAmount(state.earnings) + " USDT";
 
-    document.getElementById("refRewards").textContent =
-      formatAmount(state.referralRewards);
+  document.getElementById("referralCount").textContent =
+    state.referrals;
 
-    document.getElementById("refLink").textContent =
-      makeReferralLink();
+  document.getElementById("refPageCount").textContent =
+    state.referrals;
 
-    document.getElementById("miningStatus").textContent =
-      state.mining ? "Active" : "Inactive";
+  document.getElementById("refRewards").textContent =
+    formatAmount(state.referralRewards);
 
-    document.getElementById("miningStatus").style.color =
-      state.mining ? "var(--green)" : "var(--muted)";
+  document.getElementById("refLink").textContent =
+    makeReferralLink();
 
-    document.getElementById("miningTitle").textContent =
-      state.mining ? "Demo Mining Active" : "Ready to Explore?";
+  document.getElementById("miningStatus").textContent =
+    state.mining ? "Active" : "Inactive";
 
-    document.getElementById("miningDescription").textContent =
-      state.mining
-        ? "Your simulated mining session is running in this browser."
-        : "Start the demo mining session and explore the Crypto Maker interface.";
+  document.getElementById("miningStatus").style.color =
+    state.mining ? "var(--green)" : "var(--muted)";
 
-    document.getElementById("miningButton").textContent =
-      state.mining ? "■ STOP DEMO MINING" : "▶ START DEMO MINING";
+  document.getElementById("miningTitle").textContent =
+    state.mining ? "Demo Mining Active" : "Ready to Explore?";
 
-    document.getElementById("miningOrb").classList.toggle(
-      "running", state.mining
-    );
+  document.getElementById("miningDescription").textContent =
+    state.mining
+      ? "Your simulated mining session is running in this browser."
+      : "Start the demo mining session and explore Crypto Maker.";
 
-    renderTasks();
-    renderHistory();
-    renderProfile();
-    saveState();
-  }
+  document.getElementById("miningButton").textContent =
+    state.mining ? "■ STOP DEMO MINING" : "▶ START DEMO MINING";
 
-  function resetDemo() {
-    const confirmed = confirm(
-      "Reset all Crypto Maker demo data stored in this browser?"
-    );
+  document.getElementById("miningOrb").classList.toggle(
+    "running", state.mining
+  );
 
-    if (!confirmed) return;
+  renderTasks();
+  renderHistory();
+  renderProfile();
+  saveState();
+}
 
-    state = { ...DEFAULT_STATE };
-    saveState();
-    render();
-    showToast("Local demo data reset.");
-  }
+function resetDemo() {
+  const confirmed = confirm(
+    "Reset all Crypto Maker demo data stored in this browser?"
+  );
 
-  // Update simulated mining rewards while the page remains open.
-  setInterval(() => {
-    if (state.mining) render();
-  }, 15000);
+  if (!confirmed) return;
 
-  // If the browser closes, elapsed time is credited only when this page
-  // is opened again; no server-side/background mining takes place.
+  state = { ...DEFAULT_STATE };
+  saveState();
   render();
+  showToast("Local demo data reset.");
+}
+
+setInterval(() => {
+  if (state.mining) render();
+}, 15000);
+
+// Initial display followed by server-side Telegram verification.
+render();
+verifyTelegramUser();
 </script>
 </body>
 </html>
