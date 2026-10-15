@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#07150f">
+<title>USDT Miner</title>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #07150f;
+  color: #f2fff7;
+}
+
+.app {
+  max-width: 480px;
+  margin: auto;
+  padding: 20px 16px 90px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.logo {
+  color: #39e58c;
+  font-size: 23px;
+  font-weight: 800;
+}
+
+.badge {
+  background: #123b29;
+  color: #64f4a8;
+  padding: 7px 11px;
+  border-radius: 20px;
+  font-size: 12px;
+}
+
+.card {
+  background: linear-gradient(145deg, #123b29, #0c2419);
+  border: 1px solid #20563b;
+  border-radius: 20px;
+  padding: 22px;
+  margin-bottom: 18px;
+}
+
+.label {
+  color: #b1cdbd;
+  font-size: 13px;
+}
+
+.balance {
+  font-size: 34px;
+  font-weight: 800;
+  margin: 12px 0 5px;
+  overflow-wrap: anywhere;
+}
+
+.green {
+  color: #39e58c;
+}
+
+.small {
+  color: #a8c5b4;
+  font-size: 12px;
+}
+
+button {
+  border: 0;
+  border-radius: 12px;
+  padding: 14px;
+  width: 100%;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.primary {
+  background: #39e58c;
+  color: #052113;
+  margin-top: 18px;
+}
+
+.section-title {
+  font-size: 17px;
+  margin: 24px 0 14px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.tile {
+  background: #10251a;
+  border: 1px solid #1e4430;
+  border-radius: 16px;
+  padding: 17px 12px;
+  color: #fff;
+  text-align: left;
+}
+
+.icon {
+  font-size: 25px;
+  display: block;
+  margin-bottom: 12px;
+}
+
+.tile span:last-child {
+  color: #a8c5b4;
+  display: block;
+  font-size: 12px;
+  margin-top: 6px;
+}
+
+.notice {
+  background: #10251a;
+  padding: 14px;
+  border-radius: 12px;
+  color: #b1cdbd;
+  font-size: 12px;
+  line-height: 1.6;
+  margin-top: 20px;
+}
+
+.nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #0c1c13;
+  border-top: 1px solid #234431;
+  display: flex;
+  justify-content: space-around;
+  padding: 12px 4px;
+}
+
+.nav button {
+  width: auto;
+  background: transparent;
+  color: #a8c5b4;
+  font-size: 11px;
+  padding: 7px;
+}
+
+.nav button.active {
+  color: #39e58c;
+}
+
+button:focus-visible {
+  outline: 2px solid #39e58c;
+  outline-offset: 3px;
+}
+</style>
+</head>
+
+<body>
+<main class="app">
+  <header class="header">
+    <div class="logo">₮ USDT MINER</div>
+    <div class="badge">● Mini App</div>
+  </header>
+
+  <section class="card">
+    <div class="label">Your Total Balance</div>
+    <div class="balance"><span id="balance">—</span></div>
+    <div class="small">Account balance will appear after secure integration.</div>
+    <button class="primary" id="miningBtn">⛏️ Mining — Coming Soon</button>
+  </section>
+
+  <h2 class="section-title">Your Dashboard</h2>
+
+  <section class="grid">
+    <button class="tile" data-page="bonus">
+      <span class="icon">🎁</span>
+      Daily Bonus
+      <span>Daily rewards</span>
+    </button>
+
+    <button class="tile" data-page="tasks">
+      <span class="icon">📋</span>
+      Tasks
+      <span>Earn reward points</span>
+    </button>
+
+    <button class="tile" data-page="referral">
+      <span class="icon">👥</span>
+      Referral
+      <span>Invite your friends</span>
+    </button>
+
+    <button class="tile" data-page="leaderboard">
+      <span class="icon">🏆</span>
+      Leaderboard
+      <span>Top community members</span>
+    </button>
+
+    <button class="tile" data-page="withdraw">
+      <span class="icon">💸</span>
+      Withdraw
+      <span>Withdrawal information</span>
+    </button>
+
+    <button class="tile" data-page="profile">
+      <span class="icon">👤</span>
+      Profile
+      <span>Your account</span>
+    </button>
+  </section>
+
+  <div class="notice" id="notice" role="status" aria-live="polite">
+    Welcome to USDT Miner! This is a preview interface.
+    Rewards, balance and withdrawals are not active until
+    the secure backend is connected.
+  </div>
+</main>
+
+<nav class="nav" aria-label="Main navigation">
+  <button class="active" data-page="home">🏠<br>Home</button>
+  <button data-page="tasks">📋<br>Tasks</button>
+  <button data-page="referral">👥<br>Referral</button>
+  <button data-page="profile">👤<br>Profile</button>
+</nav>
+
+<script>
+(function () {
+  const tg = window.Telegram?.WebApp;
+  const notice = document.getElementById("notice");
+
+  if (tg) {
+    tg.ready();
+    tg.expand();
+
+    if (tg.themeParams) {
+      document.documentElement.style.setProperty(
+        "--tg-bg",
+        tg.themeParams.bg_color || "#07150f"
+      );
+    }
+  }
+
+  const messages = {
+    home: "Welcome to USDT Miner! Your dashboard preview is ready.",
+    bonus: "Daily Bonus will be available after backend integration.",
+    tasks: "Tasks and reward verification will be connected later.",
+    referral: "Your personal referral link will appear after integration.",
+    leaderboard: "Leaderboard data will appear after backend integration.",
+    withdraw: "Withdrawals will require verified balances and admin approval.",
+    profile: "Your verified Telegram account details will appear here."
+  };
+
+  function openPage(page) {
+    notice.textContent = messages[page] || messages.home;
+
+    document.querySelectorAll(".nav button").forEach(button => {
+      button.classList.toggle(
+        "active",
+        button.dataset.page === page
+      );
+    });
+
+    if (tg?.HapticFeedback) {
+      tg.HapticFeedback.selectionChanged();
+    }
+  }
+
+  document.querySelectorAll("[data-page]").forEach(button => {
+    button.addEventListener("click", () => {
+      openPage(button.dataset.page);
+    });
+  });
+
+  document.getElementById("miningBtn").addEventListener("click", () => {
+    notice.textContent =
+      "Mining is not active yet. Connect the verified backend before enabling rewards.";
+  });
+})();
+</script>
+</body>
+</html>
