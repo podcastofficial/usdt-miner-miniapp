@@ -1,0 +1,14 @@
+# Launch checklist
+- [ ] New Neon database created and schema applied
+- [ ] Vercel env vars set
+- [ ] Bot token belongs to the new/selected Telegram bot
+- [ ] Admin Telegram IDs verified
+- [ ] Deploy to Vercel
+- [ ] Set HTTPS Mini App URL with BotFather
+- [ ] Test authentication inside Telegram
+- [ ] Test daily claim and duplicate prevention
+- [ ] Test task membership verification
+- [ ] Test withdrawal validation
+- [ ] Keep deposits disabled until on-chain verifier is built and audited
+- [ ] Build referral verification and campaign verification before awarding points
+- [ ] Add privacy policy, terms, backups and monitoring

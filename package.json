@@ -1,0 +1,1 @@
+{"name":"usdt-miner-miniapp","version":"1.0.0","private":true,"type":"module","scripts":{"dev":"vercel dev","check":"node --check api/index.js"},"dependencies":{"@neondatabase/serverless":"^1.0.2"},"devDependencies":{"vercel":"^48.0.0"},"engines":{"node":">=20"}}
