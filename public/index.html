@@ -1,7 +1,34 @@
 <!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>USDT Miner</title><script src="https://telegram.org/js/telegram-web-app.js"></script><style>
-body{margin:0;background:#0b1220;color:#f4f7fb;font:15px system-ui;padding:16px 14px 80px}h1{font-size:22px}.card{background:#152238;border:1px solid #293c58;border-radius:15px;padding:15px;margin:10px 0}.balance{background:linear-gradient(120deg,#12534b,#17314c)}.big{font-size:30px;font-weight:800}button{background:#22c99a;border:0;border-radius:9px;padding:11px;color:#06241c;font-weight:700;width:100%;margin-top:8px}input,select{width:100%;padding:11px;margin:5px 0;background:#0b1729;color:white;border:1px solid #33445e;border-radius:8px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.muted{color:#a7b6ca}section{display:none}section.on{display:block}nav{position:fixed;bottom:0;left:0;right:0;background:#111d30;display:flex;justify-content:space-around;padding:8px}nav button{width:auto;background:transparent;color:white;font-size:11px}
-</style></head><body><h1>⛏️ USDT Miner</h1><div id="msg" class="muted">Connecting to Telegram…</div>
-<section id="home" class="on"><div class="card balance">YOUR POINTS<div id="points" class="big">—</div><small>10,000 Points = 1 USDT</small></div><div class="grid"><div class="card">⛏️ Points Miner<button onclick="go('tasks')">Tasks</button></div><div class="card">🎁 Daily Rewards<button onclick="daily()">Claim</button></div><div class="card">👥 Referral<button onclick="go('ref')">Invite</button></div><div class="card">🏆 Leaderboard<button onclick="go('rank')">View</button></div><div class="card">💸 Withdraw<button onclick="go('withdraw')">Request</button></div><div class="card">📢 Advertise<button onclick="go('ads')">Promote</button></div></div></section>
+:root{color-scheme:dark;--bg:#050607;--panel:#111214;--panel2:#191a1d;--line:#37302a;--orange:#ff8a00;--orange2:#ffb02e;--muted:#a9a9ad}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% -15%,#38200b 0,#11100e 34%,#050607 72%);color:#f7f4ef;font:15px/1.45 system-ui,-apple-system,Segoe UI,sans-serif;padding:20px 14px 100px;max-width:760px;margin-inline:auto}
+h1{font-size:25px;letter-spacing:-.6px;margin:5px 0 2px;font-weight:850;text-shadow:0 2px 14px #ff8a0040}
+h2{font-size:21px;margin:18px 2px;color:#fff}
+#msg{margin:8px 0 16px;padding:9px 12px;border:1px solid #352719;border-radius:12px;background:#17120d;color:#ffbd68;min-height:38px}
+.card{position:relative;overflow:hidden;background:linear-gradient(145deg,#222326 0%,#121315 58%,#0c0d0f 100%);border:1px solid #3a3026;border-radius:20px;padding:16px;margin:12px 0;box-shadow:0 10px 24px #0009,inset 0 1px 0 #ffffff12,inset 0 -3px 8px #0008}
+.card:before{content:"";position:absolute;inset:0 auto auto 12%;width:76%;height:1px;background:linear-gradient(90deg,transparent,#ff9d27aa,transparent)}
+.balance{background:radial-gradient(circle at 90% 15%,#5a2b08 0,transparent 40%),linear-gradient(135deg,#261707,#17191b 70%);border:1px solid #ff9a27;box-shadow:0 0 0 1px #ff8a0020,0 12px 30px #000b,0 0 25px #ff85002b,inset 0 1px 0 #ffd39a55;padding:21px}
+.big{font-size:37px;font-weight:900;letter-spacing:-1px;color:#ff9a18;text-shadow:0 0 18px #ff850077;margin:3px 0 6px}
+small,.muted{color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.grid>.card{min-height:138px;margin:7px 0;display:flex;flex-direction:column;justify-content:space-between;font-size:16px;font-weight:650}
+button{appearance:none;background:linear-gradient(180deg,#ffb12e 0%,#ff8a00 55%,#d96800 100%);border:1px solid #ffc15c;border-radius:12px;padding:12px 14px;color:#211306;font-weight:850;font-size:14px;width:100%;margin-top:10px;box-shadow:0 5px 0 #8b4300,0 8px 16px #0009,inset 0 1px 0 #fff8;cursor:pointer;text-shadow:0 1px #ffffff55;transition:transform .12s,filter .12s}
+button:active{transform:translateY(3px);box-shadow:0 2px 0 #8b4300,0 4px 9px #0009}
+button:hover{filter:brightness(1.08)}
+input,select{width:100%;padding:13px;margin:7px 0;background:#090a0c;color:#fff;border:1px solid #51402e;border-radius:11px;outline:none;box-shadow:inset 0 3px 8px #000a}
+input:focus,select:focus{border-color:#ff9a18;box-shadow:0 0 0 3px #ff8a0022}
+a{color:#ffad3d;font-weight:700}
+section{display:none;animation:rise .22s ease-out}
+section.on{display:block}
+@keyframes rise{from{opacity:.4;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+nav{position:fixed;z-index:5;bottom:0;left:0;right:0;background:linear-gradient(180deg,#191a1c,#090a0b);border-top:1px solid #49331d;display:flex;justify-content:space-around;gap:2px;padding:9px 5px calc(9px + env(safe-area-inset-bottom));box-shadow:0 -8px 24px #000b}
+nav button{width:auto;flex:1;background:transparent;border:0;box-shadow:none;color:#b9b7b3;font-size:11px;padding:6px 2px;margin:0;border-radius:9px;text-shadow:none}
+nav button:active{transform:none;box-shadow:none}
+nav button:first-child{color:#ff9a18;background:#ff8a0015}
+@media(min-width:600px){body{padding-top:28px}.grid{gap:14px}.grid>.card{min-height:155px;padding:20px}}
+@media(max-width:360px){body{padding-inline:10px}.grid{gap:7px}.card{padding:13px}.big{font-size:32px}}
+</style></head><body><header class="brand"><h1>⛏️ USDT Miner</h1><div class="muted">MINE POINTS • EARN USDT</div></header><div id="msg" class="muted">Connecting to Telegram…</div>
+<section id="home" class="on"><div class="card balance">🪙 YOUR POINTS<div id="points" class="big">—</div><small>10,000 Points = 1 USDT</small></div><div class="grid"><div class="card">⛏️ Points Miner<button onclick="go('tasks')">Tasks</button></div><div class="card">🎁 Daily Rewards<button onclick="daily()">Claim</button></div><div class="card">👥 Referral<button onclick="go('ref')">Invite</button></div><div class="card">🏆 Leaderboard<button onclick="go('rank')">View</button></div><div class="card">💸 Withdraw<button onclick="go('withdraw')">Request</button></div><div class="card">📢 Advertise<button onclick="go('ads')">Promote</button></div></div></section>
 <section id="tasks"><h2>📋 Tasks</h2><div id="tasklist"></div></section><section id="ref"><h2>👥 Referral</h2><div class="card"><p id="refurl"></p><button onclick="copyRef()">Copy link</button><p id="refcount"></p></div></section><section id="rank"><h2>🏆 Leaderboard</h2><div id="ranklist"></div></section>
 <section id="withdraw"><h2>💸 Withdraw</h2><div class="card"><input id="amount" type="number" placeholder="USDT amount (min 15)"><input id="wallet" placeholder="BEP-20 wallet address"><button onclick="withdraw()">Submit request</button><small>10% fee applies. Admin review required.</small></div></section>
 <section id="deposit"><h2>Deposit</h2><div class="card"><input id="depamount" type="number" placeholder="USDT amount"><input id="txhash" placeholder="BSC transaction hash"><button onclick="deposit()">Submit hash for review</button><small>Do not send funds until the official deposit wallet is configured and displayed by the operator.</small></div></section>
