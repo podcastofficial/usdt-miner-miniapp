@@ -552,7 +552,13 @@ document.addEventListener('click', (e) => {
   if (!el || el.disabled || el.getAttribute('aria-disabled') === 'true') return;
   if (el.dataset.go) { go(el.dataset.go); return; }
   if (el.dataset.act === 'openCh' || el.dataset.act === 'openTaskLink') e.preventDefault();
-  const fn = ACT[el.dataset.act]; if (fn) Promise.resolve().then(() => fn(el.dataset, el)).catch((err) => say(err.message));
+  const fn = ACT[el.dataset.act];
+  if (fn) {
+    // Invoke immediately inside the trusted click event. Deferring with a
+    // microtask loses Telegram/WebView user activation and can block openLink.
+    try { Promise.resolve(fn(el.dataset, el)).catch((err) => say(err.message)); }
+    catch (err) { say(err.message); }
+  }
 });
 document.addEventListener('input', (e) => { const f = INPUT[e.target.dataset && e.target.dataset.input]; if (f) f(); });
 document.addEventListener('change', (e) => { const f = INPUT[e.target.dataset && e.target.dataset.input]; if (f) f(); });
