@@ -452,8 +452,16 @@ const ACT = {
   async complete(d) { const r = await api('taskComplete', { taskId: Number(d.id) }); delete opened[d.id]; say('✅ Earned ' + N(r.reward) + ' Points'); await boot(); },
   async openTask(d) {
     const id = Number(d.id), t = (data.tasks || []).find((x) => x.id === id); if (!t) return;
-    if (t.type !== 'channel') { const r = await api('taskStart', { taskId: id }); t.started_at = t.started_at || new Date().toISOString(); t.seconds_left = r.seconds_left; t.deadline = Date.now() + r.seconds_left * 1000; } else opened[id] = true;
-    openUrl(t.link); renderTasks();
+    // Open the destination synchronously inside the tap handler. Waiting for the API first
+    // loses Telegram/WebView's user-gesture context and can cause popup blockers to drop it.
+    openUrl(t.link);
+    if (t.type !== 'channel') {
+      const r = await api('taskStart', { taskId: id });
+      t.started_at = t.started_at || new Date().toISOString();
+      t.seconds_left = r.seconds_left;
+      t.deadline = Date.now() + r.seconds_left * 1000;
+    } else opened[id] = true;
+    renderTasks();
   },
   tab(d, el) {
     filter = d.f; document.querySelectorAll('[role=tab]').forEach((b) => { const on = b === el; b.setAttribute('aria-selected', on); b.tabIndex = on ? 0 : -1; });
