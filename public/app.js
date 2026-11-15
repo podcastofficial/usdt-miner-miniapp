@@ -51,11 +51,22 @@ async function api(action, p = {}) {
 function confirmAsk(msg) {
   return new Promise((res) => { if (tg?.showConfirm) { try { tg.showConfirm(msg, (ok) => res(!!ok)); return; } catch (e) {} } res(window.confirm(msg)); });
 }
+/* Fix: links saved as http://, t.me/..., telegram.me/... or @name used to be ignored silently (task "Start" did nothing). Now normalised, always opened. */
+function normUrl(u) {
+  u = String(u || '').trim(); if (!u) return '';
+  if (/^@[A-Za-z0-9_]{4,}$/.test(u)) return 'https://t.me/' + u.slice(1);
+  if (/^(www\.)?(t|telegram)\.me\//i.test(u)) u = 'https://' + u.replace(/^www\./i, '');
+  if (/^http:\/\//i.test(u)) u = 'https://' + u.slice(7);
+  return /^https:\/\//i.test(u) ? u : '';
+}
 function openUrl(u) {
-  u = String(u || ''); if (!/^https:\/\//.test(u)) return;
-  if (/^https:\/\/t\.me\//.test(u) && tg?.openTelegramLink) tg.openTelegramLink(u);
-  else if (tg?.openLink) tg.openLink(u);
-  else window.open(u, '_blank', 'noopener');
+  u = normUrl(u); if (!u) { say('Link is not valid'); return; }
+  const tme = /^https:\/\/(t|telegram)\.me\//i.test(u);
+  try {
+    if (tme && tg?.openTelegramLink) { tg.openTelegramLink(u); return; }
+    if (tg?.openLink) { tg.openLink(u); return; }
+  } catch (e) { /* fall through to window.open */ }
+  window.open(u, '_blank', 'noopener');
 }
 const chUrl = (c) => 'https://t.me/' + String(c).replace('@', '');
 const btn = (label, act, attrs = '', cls = 'btn sm', aria = '') => `<button class="${cls}" data-act="${act}" ${attrs}${aria ? ` aria-label="${esc(aria)}"` : ''}>${label}</button>`;
@@ -418,6 +429,15 @@ async function savePrefs() {
   say(T('prefs.saved', null, 'Saved'));
 }
 
+/* Referral fix: a referred user who already joined the channels used to get nothing until they found and tapped Verify.
+   Now the check runs by itself once per app open (silent when channels are still missing). */
+let autoTried = false;
+async function autoVerify() {
+  if (autoTried || !data.user || !data.user.verify_needed) return;
+  autoTried = true;
+  try { const r = await api('referralVerify'); if (r.verified) { if (r.reward_granted) say('✅ Verified — your inviter was rewarded'); await boot(); } } catch (e) { /* channels missing or check unavailable: the Verify button stays */ }
+}
+
 /* ---------------- boot ---------------- */
 async function boot() {
   try {
@@ -429,6 +449,7 @@ async function boot() {
     await syncLang();
     initTimers(); renderDaily(); renderVerify(); renderTasks(); renderTx(data.transactions || [], false);
     if (data.admin) initAdmin();
+    autoVerify();
   } catch (e) { status(e.message); say(e.message); }
 }
 function initAdmin() {
@@ -452,15 +473,12 @@ const ACT = {
   async complete(d) { const r = await api('taskComplete', { taskId: Number(d.id) }); delete opened[d.id]; say('✅ Earned ' + N(r.reward) + ' Points'); await boot(); },
   async openTask(d) {
     const id = Number(d.id), t = (data.tasks || []).find((x) => x.id === id); if (!t) return;
-    // Open the destination synchronously inside the tap handler. Waiting for the API first
-    // loses Telegram/WebView's user-gesture context and can cause popup blockers to drop it.
-    openUrl(t.link);
-    if (t.type !== 'channel') {
+    openUrl(t.link); // open FIRST, right inside the tap (it used to wait for the server and then did nothing if that call failed)
+    if (t.type === 'channel') { opened[id] = true; renderTasks(); return; }
+    try {
       const r = await api('taskStart', { taskId: id });
-      t.started_at = t.started_at || new Date().toISOString();
-      t.seconds_left = r.seconds_left;
-      t.deadline = Date.now() + r.seconds_left * 1000;
-    } else opened[id] = true;
+      t.started_at = t.started_at || new Date().toISOString(); t.seconds_left = r.seconds_left; t.deadline = Date.now() + r.seconds_left * 1000;
+    } catch (e) { say(e.message); }
     renderTasks();
   },
   tab(d, el) {

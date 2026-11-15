@@ -139,15 +139,7 @@ export default async function handler(req, res) {
     const tg = verifyInitData(req.headers["x-telegram-init-data"] || body.initData,
       { botToken: process.env.BOT_TOKEN, maxAgeSeconds: INITDATA_MAX_AGE });
     const row = await ensureUser(tg.user, tg.startParam);
-    // Capture a referral start parameter whenever the account has no inviter yet, not only
-    // on the exact first insert. Telegram users can open the Mini App once without a link
-    // and later arrive through a referral deep link; the old created-only gate lost that invite.
-    if (row.referrer_id == null && tg.startParam) {
-      try {
-        const captured = await captureReferrer(tg.user.id, tg.startParam);
-        if (captured != null) row.referrer_id = captured;
-      } catch (e) { console.error("referral capture failed:", e.message); }
-    }
+    if (tg.startParam && (row.created || (!row.referrer_id && !row.membership_verified))) { try { row.referrer_id = (await captureReferrer(tg.user.id, tg.startParam, { late: !row.created })) ?? row.referrer_id; } catch (e) { console.error("referral capture failed:", e.message); } }
     if (row.is_blocked) throw new HttpError(403, "account_blocked", "Account unavailable");
 
     const id = String(tg.user.id), role = await roleOf(id), isAdmin = role !== null; // "super" (env) | "support" | "finance" | null
