@@ -554,10 +554,14 @@ document.addEventListener('click', (e) => {
   if (el.dataset.act === 'openCh' || el.dataset.act === 'openTaskLink') e.preventDefault();
   const fn = ACT[el.dataset.act];
   if (fn) {
-    // Invoke immediately inside the trusted click event. Deferring with a
-    // microtask loses Telegram/WebView user activation and can block openLink.
-    try { Promise.resolve(fn(el.dataset, el)).catch((err) => say(err.message)); }
-    catch (err) { say(err.message); }
+    // Keep the action inside the trusted click event. Deferring it to a
+    // microtask loses Telegram WebView user activation and can block links.
+    try {
+      const result = fn(el.dataset, el);
+      Promise.resolve(result).catch((err) => say(err.message));
+    } catch (err) {
+      say(err.message);
+    }
   }
 });
 document.addEventListener('input', (e) => { const f = INPUT[e.target.dataset && e.target.dataset.input]; if (f) f(); });
