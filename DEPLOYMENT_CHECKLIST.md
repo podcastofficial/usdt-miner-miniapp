@@ -14,3 +14,6 @@
 - [ ] Test withdraw → approve → paid flow and reject/cancel refunds with a small amount
 - [ ] Build referral verification and campaign verification before awarding points
 - [ ] Add privacy policy, terms, backups and monitoring
+- [ ] Run db/migrations/005_admin.sql
+- [ ] Open Admin → Settings and confirm withdrawal fee/min, deposit wallet, channels, bot username
+- [ ] Test: campaign approve + reject refund, Points adjust, block/unblock, maintenance mode (as admin you stay in)

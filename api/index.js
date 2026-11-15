@@ -9,6 +9,8 @@ import * as legacy from "../lib/actions/legacy.js";
 import * as earn from "../lib/actions/earn.js";
 import * as ref from "../lib/actions/referral.js";
 import * as fin from "../lib/actions/finance.js";
+import * as adm from "../lib/actions/admin.js";
+import { getConfig } from "../lib/runtime.js";
 import { captureReferrer } from "../lib/referral.js";
 
 // Action registry. write=true -> POST only; admin=true -> server-side admin check on every call.
@@ -43,6 +45,19 @@ const ACTIONS = {
   adminDeposits: { fn: fin.adminDeposits, admin: true },
   adminDepositApprove: { fn: fin.adminDepositApprove, admin: true, write: true },
   adminDepositReject: { fn: fin.adminDepositReject, admin: true, write: true },
+  adminDashboard: { fn: adm.adminDashboard, admin: true },
+  adminUsers: { fn: adm.adminUsers, admin: true },
+  adminUser: { fn: adm.adminUser, admin: true },
+  adminUserBlock: { fn: adm.adminUserBlock, admin: true, write: true },
+  adminUserAdjust: { fn: adm.adminUserAdjust, admin: true, write: true },
+  adminTasks: { fn: adm.adminTasks, admin: true },
+  adminUpdateTask: { fn: adm.adminUpdateTask, admin: true, write: true },
+  adminCampaigns: { fn: adm.adminCampaigns, admin: true },
+  adminCampaignApprove: { fn: adm.adminCampaignApprove, admin: true, write: true },
+  adminCampaignClose: { fn: adm.adminCampaignClose, admin: true, write: true },
+  adminSettings: { fn: adm.adminSettings, admin: true },
+  adminSettingsUpdate: { fn: adm.adminSettingsUpdate, admin: true, write: true },
+  adminAudit: { fn: adm.adminAudit, admin: true },
 };
 
 export default async function handler(req, res) {
@@ -64,6 +79,8 @@ export default async function handler(req, res) {
     if (row.is_blocked) throw new HttpError(403, "account_blocked", "Account unavailable");
 
     const id = String(tg.user.id), isAdmin = isAdminId(id);
+    const cfg = await getConfig();
+    if (cfg.maintenanceMode && !isAdmin) throw new HttpError(503, "maintenance", cfg.announcement || "Under maintenance, please come back soon");
     const action = query.action || body.action || "bootstrap";
     const def = Object.prototype.hasOwnProperty.call(ACTIONS, action) ? ACTIONS[action] : null;
     if (!def) throw new HttpError(404, "unknown_action", "Unknown action");
