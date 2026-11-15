@@ -84,8 +84,8 @@ test("no inline event handlers, inline styles, inline scripts or <style> blocks 
 test("vercel.json CSP forbids unsafe-inline/eval and limits script sources", () => {
   const h = vercel.headers.find((x) => x.source === "/(.*)").headers, get = (k) => (h.find((x) => x.key === k) || {}).value;
   const csp = get("Content-Security-Policy"); assert.ok(csp, "no CSP header");
-  assert.doesNotMatch(csp, /unsafe-inline|unsafe-eval|\*(?!\.telegram\.org)/);
-  assert.match(csp, /default-src 'none'/); assert.match(csp, /script-src 'self' https:\/\/telegram\.org(;|$)/);
+  assert.doesNotMatch(csp, /unsafe-inline|unsafe-eval|\*(?!\.telegram\.org|\.adsgram\.ai)/); // *.adsgram.ai only: popup ads (Adsgram)
+  assert.match(csp, /default-src 'none'/); assert.match(csp, /script-src 'self' https:\/\/telegram\.org( https:\/\/sad\.adsgram\.ai)?(;|$)/);
   assert.match(csp, /connect-src 'self'/); assert.match(csp, /object-src 'none'/); assert.match(csp, /base-uri 'none'/); assert.match(csp, /frame-ancestors [^;]*telegram\.org/);
   assert.equal(get("X-Content-Type-Options"), "nosniff"); assert.equal(get("Referrer-Policy"), "no-referrer");
   assert.match(get("Strict-Transport-Security"), /max-age=\d{7,}/); assert.match(get("Permissions-Policy"), /camera=\(\)/);
