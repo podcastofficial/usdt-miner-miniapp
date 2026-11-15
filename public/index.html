@@ -202,6 +202,11 @@
       <label for="c_link">Link</label>
       <input id="c_link" type="url" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="https://t.me/YourChannel">
       <p id="c_hint" class="hint"></p>
+      <div id="c_botbox" hidden>
+        <p id="c_botmsg" class="hint" role="status">Channel campaigns need our bot as an ADMIN in your channel, so every join can be verified. Tap “Make bot admin”, pick your channel and confirm, then come back.</p>
+        <button class="btn sm" type="button" data-act="botAdd">➕ Make bot admin</button>
+        <button class="btn sm ghost" type="button" data-act="botCheck">🔍 Check</button>
+      </div>
       <label for="c_reward">Points paid to each user</label>
       <input id="c_reward" type="text" inputmode="numeric" autocomplete="off" placeholder="e.g. 50" data-input="adcalc">
       <label for="c_target">Number of completions wanted</label>

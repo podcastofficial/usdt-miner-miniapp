@@ -222,7 +222,7 @@ async function loadRank(page) {
 let ads = null;
 const AD_HINT = { channel: 'Use a link like https://t.me/YourChannel and add this bot as an admin of your channel, so joins can be verified.', bot: 'Use your bot link, like https://t.me/YourBot.', website: 'Use a https:// link. People must stay on the page for the timer before they can claim.' };
 function adcalc() {
-  const t = $('c_type').value; $('c_hint').textContent = AD_HINT[t];
+  const t = $('c_type').value; $('c_hint').textContent = AD_HINT[t]; $('c_botbox').hidden = t !== 'channel';
   $('c_link').placeholder = t === 'channel' ? 'https://t.me/YourChannel' : t === 'bot' ? 'https://t.me/YourBot' : 'https://example.com';
   const r = Number($('c_reward').value), n = Number($('c_target').value), el = $('c_budget'), ppu = Number(data.settings?.points_per_usdt) || 10000;
   if (!Number.isInteger(r) || !Number.isInteger(n) || r < 1 || n < 1) { el.textContent = ''; return; }
@@ -438,6 +438,11 @@ async function savePrefs() {
 
 /* Referral fix: a referred user who already joined the channels used to get nothing until they found and tapped Verify.
    Now the check runs by itself once per app open (silent when channels are still missing). */
+let waitBot = false; // set when the user was sent to Telegram to make the bot admin: check by itself when they come back
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden || !waitBot || !$('c_link') || !$('c_link').value) return;
+  api('channelBotCheck', { link: $('c_link').value }).then((r) => { $('c_botmsg').textContent = r.message; if (r.admin) { waitBot = false; say(r.message); } }).catch(() => {});
+});
 let autoTried = false;
 async function autoVerify(force) {
   if ((autoTried && !force) || !data.user || !data.user.verify_needed) return;
@@ -512,6 +517,8 @@ const ACT = {
   async recheckD(d) { const r = await api('depositRecheck', { id: Number(d.id) }); say(DS(r)); await boot(); await loadDeposit(); },
   async copyDep() { try { await navigator.clipboard.writeText(fin.deposit.wallet); say('Address copied ✅'); } catch (e) { say('Copy failed'); } },
   async rankPage(d) { await loadRank(rankPage + Number(d.d)); window.scrollTo(0, 0); },
+  botAdd() { waitBot = true; openUrl(data.bot_add_url); }, // Telegram's own "add bot as administrator" screen
+  async botCheck() { const r = await api('channelBotCheck', { link: $('c_link').value }); $('c_botmsg').textContent = r.message; say(r.message); },
   async campaign() {
     const r = await api('campaignCreate', { type: $('c_type').value, title: $('c_title').value, link: $('c_link').value, reward: $('c_reward').value.trim(), target: $('c_target').value.trim() });
     say('Campaign #' + r.id + ' submitted for review'); ['c_title', 'c_link', 'c_reward', 'c_target'].forEach((k) => { $(k).value = ''; }); await boot(); await loadAds();
@@ -554,7 +561,8 @@ document.addEventListener('click', (e) => {
   if (el.dataset.act === 'openCh' || el.dataset.act === 'openTaskLink') e.preventDefault();
   const fn = ACT[el.dataset.act];
   if (fn) {
-// Run immediately inside the trusted click event. Deferring can lose Telegram WebView user activation.
+    // Invoke immediately in the trusted click event. Deferring to a microtask
+    // loses Telegram WebView user activation and can block openTelegramLink/openLink.
     try {
       const result = fn(el.dataset, el);
       Promise.resolve(result).catch((err) => say(err.message));

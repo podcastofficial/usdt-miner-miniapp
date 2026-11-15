@@ -42,6 +42,7 @@ const ACTIONS = {
   depositRecheck: { fn: fin.depositRecheck, write: true },
   depositList: { fn: fin.depositList },
   campaignList: { fn: com.campaignList },
+  channelBotCheck: { fn: com.channelBotCheck, write: true },
   campaignCreate: { fn: com.campaignCreate, write: true },
   campaignCancel: { fn: com.campaignCancel, write: true },
   adminOverview: { fn: core.adminOverview, admin: true },
