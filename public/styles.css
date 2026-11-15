@@ -236,3 +236,13 @@ html[data-fsize="large"]{font-size:18px}
 .row .ic.tx-out{border-color:rgba(255,90,80,.55);background:linear-gradient(160deg,rgba(255,110,90,.22),rgba(110,20,15,.35))}
 .botbox{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:4px 0 8px}.botbox .hint{flex:1 1 100%;margin:0}
 [dir="rtl"] .chev{transform:scaleX(-1)}
+
+/* Popup ad (own popup) */
+.popad{position:fixed;inset:0;z-index:120;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.78)}
+.popad[hidden]{display:none}
+.popad-box{position:relative;width:100%;max-width:360px;display:flex;flex-direction:column;gap:10px;padding:22px 18px 16px;border-radius:20px;border:1.5px solid var(--or2);background:linear-gradient(160deg,var(--card-a),var(--card-b));box-shadow:0 14px 40px rgba(0,0,0,.8),0 0 26px rgba(255,122,0,.35);text-align:center}
+.popad-box img{width:100%;max-height:200px;object-fit:cover;border-radius:14px}
+.popad-box h3{margin:0}
+.popad-box p{margin:0}
+.popad-x{position:absolute;top:8px;right:8px;min-width:44px;min-height:44px;border-radius:50%;border:1.5px solid #34353f;background:#1b1c22;color:inherit;font-weight:700}
+.popad-x:disabled{opacity:.6}

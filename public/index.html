@@ -314,6 +314,16 @@
   <button data-go="more"><span class="ic" aria-hidden="true">✨</span><span data-i18n="nav.more">More</span></button>
 </nav>
 
+<div id="popupad" class="popad" role="dialog" aria-modal="true" aria-labelledby="pa_title" hidden>
+  <div class="popad-box">
+    <button id="pa_close" class="popad-x" type="button" aria-label="Close ad" disabled>✕</button>
+    <img id="pa_img" alt="" hidden>
+    <h3 id="pa_title"></h3>
+    <p id="pa_text"></p>
+    <button id="pa_go" class="btn" type="button" hidden></button>
+    <small class="hint">Sponsored</small>
+  </div>
+</div>
 <script src="/i18n.js"></script>
 <script src="/app.js"></script>
 </body>

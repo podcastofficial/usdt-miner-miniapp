@@ -399,6 +399,7 @@ function go(id) {
   const on = NAVOF[id] || id;
   document.querySelectorAll('#nav button').forEach((b) => { if (b.dataset.go === on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
   window.scrollTo(0, 0);
+  showPopupAd(id);
   const h = $(id).querySelector('h2'); if (h) { h.tabIndex = -1; h.focus({ preventScroll: true }); }
   try { if (tg?.BackButton) { if (!backBound) { tg.BackButton.onClick(() => go(PARENT[cur] || 'home')); backBound = true; } if (id === 'home') tg.BackButton.hide(); else tg.BackButton.show(); } } catch (e) {}
   load(id);
@@ -425,6 +426,49 @@ async function load(id) {
     if (id === 'contests') await loadContests();
     if (id === 'prefs') loadPrefs();
   } catch (e) { say(e.message); }
+}
+
+
+/* ---------------- popup ads: Tasks / Ads / Games ---------------- */
+const POPUP_FLAG = { tasks: 'on_tasks', taskproof: 'on_tasks', ads: 'on_ads', games: 'on_games' };
+let popupBusy = false, adsgramLoading = null;
+function loadAdsgram() {
+  if (window.Adsgram) return Promise.resolve();
+  if (!adsgramLoading) adsgramLoading = new Promise((res, rej) => { const s = document.createElement('script'); s.src = 'https://sad.adsgram.ai/js/sad.min.js'; s.onload = res; s.onerror = () => { adsgramLoading = null; rej(new Error('adsgram blocked')); }; document.head.appendChild(s); });
+  return adsgramLoading;
+}
+function showOwnPopup(p) {
+  return new Promise((res) => {
+    const box = $('popupad'), img = normUrl(p.image), link = normUrl(p.link);
+    if (!box || (!p.title && !p.text && !img && !link)) { res(false); return; }
+    $('pa_title').textContent = p.title || ''; $('pa_title').hidden = !p.title;
+    $('pa_text').textContent = p.text || ''; $('pa_text').hidden = !p.text;
+    const im = $('pa_img'); if (img) { im.src = img; im.hidden = false; } else { im.hidden = true; im.removeAttribute('src'); }
+    const goBtn = $('pa_go'), x = $('pa_close');
+    goBtn.hidden = !link; goBtn.textContent = p.button || 'Open';
+    let left = Math.max(0, Number(p.wait) || 0), timer = null;
+    const close = () => { clearInterval(timer); box.hidden = true; res(true); };
+    const tick = () => { if (left > 0) { x.disabled = true; x.textContent = String(left); left -= 1; } else { clearInterval(timer); x.disabled = false; x.textContent = '✕'; } };
+    tick(); if (left > 0) timer = setInterval(tick, 1000);
+    x.onclick = () => { if (!x.disabled) close(); };
+    goBtn.onclick = () => { openUrl(link); close(); };
+    box.hidden = false;
+  });
+}
+async function showPopupAd(section) {
+  const p = data && data.popup_ad, flag = POPUP_FLAG[section];
+  if (!p || !flag || !p.enabled || !p[flag] || popupBusy) return;
+  let last = 0; try { last = Number(localStorage.getItem('popup_ad_at')) || 0; } catch (e) { /* storage blocked: show every time */ }
+  if (Date.now() - last < (Number(p.cooldown) || 120) * 1000) return;
+  popupBusy = true;
+  try {
+    let shown = false;
+    if ((p.type === 'adsgram' || p.type === 'both') && p.adsgram_block_id) {
+      try { await loadAdsgram(); await window.Adsgram.init({ blockId: p.adsgram_block_id }).show(); shown = true; } catch (e) { /* no ad / blocked: fall back below */ }
+    }
+    if (!shown && (p.type === 'own' || p.type === 'both')) shown = await showOwnPopup(p);
+    if (shown) { try { localStorage.setItem('popup_ad_at', String(Date.now())); } catch (e) { /* ignore */ } }
+  } finally { popupBusy = false; }
 }
 
 /* ---------------- settings: language + theme (Phase 2 / Part 5) ---------------- */
