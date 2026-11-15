@@ -483,9 +483,9 @@ const ACT = {
     const r = await api('promoRedeem', { code }); $('promo').value = ''; say('🎟️ +' + N(r.reward) + ' Points added'); await boot(); await loadRewards();
   },
   async complete(d) { const r = await api('taskComplete', { taskId: Number(d.id) }); delete opened[d.id]; say('✅ Earned ' + N(r.reward) + ' Points'); await boot(); },
-  openTaskLink(d, el) { const t = (data.tasks || []).find((x) => x.id === Number(d.id)); if (t) openUrl(t.link); },
+  openTaskLink(d, el) { const t = (data.tasks || []).find((x) => Number(x.id) === Number(d.id)); if (t) openUrl(t.link); },
   async openTask(d) {
-    const id = Number(d.id), t = (data.tasks || []).find((x) => x.id === id); if (!t) return;
+    const id = Number(d.id), t = (data.tasks || []).find((x) => Number(x.id) === id); if (!t) return;
     openUrl(t.link); // open FIRST, right inside the tap (it used to wait for the server and then did nothing if that call failed)
     if (t.type === 'channel') { opened[id] = true; renderTasks(); return; }
     try {
@@ -518,7 +518,7 @@ const ACT = {
   },
   async cancelCamp(d) { if (!(await confirmAsk(d.st === 'active' ? 'Stop this campaign? Only the unused budget is refunded; completions already paid stay paid.' : 'Cancel this campaign? The full budget is refunded.'))) return; const r = await api('campaignCancel', { id: Number(d.id) }); say((d.st === 'active' ? 'Stopped' : 'Cancelled') + ' - ' + N(r.refunded_points) + ' Points refunded'); await boot(); await loadAds(); },
   proofOpen(d) {
-    const t = (data.tasks || []).find((x) => x.id === Number(d.id)); if (!t) return;
+    const t = (data.tasks || []).find((x) => Number(x.id) === Number(d.id)); if (!t) return;
     proofTask = t; $('pf_title').textContent = t.title; $('pf_hint').textContent = t.proof_hint || 'Send what the task asks for (for example your @username).';
     $('pf_note').textContent = t.proof_status === 'rejected' ? 'Your last proof was rejected' + (t.proof_reason ? ': ' + t.proof_reason : '') + '. You can send a new one.' : '';
     $('pf_text').value = ''; go('taskproof');
