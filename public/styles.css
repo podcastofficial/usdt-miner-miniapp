@@ -168,3 +168,21 @@ nav#nav button[aria-current=page]::after{content:"";position:absolute;left:25%;r
 h2[tabindex="-1"]:focus,main:focus{outline:none} /* heading focus is only for screen readers after navigation */
 .hub>span:nth-child(2){flex:1;min-width:0}.hub b,.hub small{display:block}
 #adm .card>b+small,#adm .card>small+small{margin-top:2px}#adm .inl{margin-left:4px}
+
+/* Phase 2 / Part 2: streak ladder, level progress, badges (colours reuse the contrast-checked tokens) */
+h3.sec{margin:16px 2px 8px;font-size:1rem;color:var(--or1)}
+.ladder{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin:10px 0 8px}
+.day{min-height:52px;padding:6px 2px;border-radius:12px;border:1.5px dashed #4a3623;background:var(--field);text-align:center;display:flex;flex-direction:column;justify-content:center}
+.day b{display:block;font-size:.95rem}.day small{display:block;font-size:.72rem}
+.day.done{border-style:solid;border-color:#1f8a68;background:rgba(38,161,123,.15)}
+.day.done b{color:var(--green)}
+.day.next{border-style:solid;border-color:var(--or2);background:linear-gradient(180deg,#4a2300,#26120a);box-shadow:0 0 12px rgba(255,122,0,.5)}
+progress{display:block;width:100%;height:12px;margin:10px 0 6px;border:0;border-radius:999px;background:var(--field);overflow:hidden;-webkit-appearance:none;appearance:none}
+progress::-webkit-progress-bar{background:var(--field);border-radius:999px}
+progress::-webkit-progress-value{background:linear-gradient(90deg,var(--btn-a),var(--btn-b));border-radius:999px}
+progress::-moz-progress-bar{background:linear-gradient(90deg,var(--btn-a),var(--btn-b));border-radius:999px}
+.badges{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.badges .card{margin:0;text-align:center;padding:12px 8px}
+.badges .card .ic{display:block;font-size:2rem}.badges .card b{display:block}.badges .card small{display:block;margin-bottom:6px}
+.bdg{border-style:dashed}.bdg.got{border-style:solid}
+#refmilestones{margin-top:10px}#refmilestones b,#refmilestones small{display:block}

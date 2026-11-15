@@ -39,3 +39,15 @@ Also run once (done in this build): headless Chromium at 390×844 against the st
 | 21 | Friend joins via link and verifies | Inviter gets the "+Points" message once |
 | 22 | Broadcast to "Only me", then to a small segment, press Send next batch until Waiting = 0 | Messages arrive once; blocked users show as Skipped; Cancel stops the rest |
 | 23 | Call `/api?action=cron` without / with wrong secret | 403 both times; with the right `Authorization: Bearer` header 200 |
+| 24 | Settings > Engagement: turn **Daily streak ladder** ON, claim today, claim again | Day 1 pays the ladder's first number once; second claim refused; Home shows the ladder with day 1 ticked |
+| 25 | Next day claim, then skip a whole day and claim | Next day = day 2 (+ladder value). After a skipped day = day 1 again; Best streak is kept |
+| 26 | Daily streak with the ladder OFF | Flat daily reward, no ladder on Home, no errors |
+| 27 | Referral tab with 25+ test referrals (or fewer + page size check) | Names masked (e.g. `Jo***`), filters All / Qualified / Pending work, Load more adds the next 20 |
+| 28 | Turn **Referral milestone bonuses** ON with a test inviter at 5 qualified referrals; open Rewards twice | +bonus once, ledger shows one `Milestone Reward`; second open pays nothing |
+| 29 | Rewards screen: Level, progress bar, badges | Level matches lifetime earned Points (deposits / admin adjustments not counted); streak / referral badges appear once |
+| 30 | Admin > Promo: create code (reward 10, total 2, per user 1); redeem as user A, A again, user B, user C | A +10; A again refused; B +10; C "fully redeemed". Ledger has exactly 2 `Promo Code` rows |
+| 31 | Promo: expired code, disabled code, wrong code x21 | Clear messages; after 20 wrong codes the user is locked out for ~12 h even for a valid code |
+| 32 | Promo with Promo codes setting OFF | Redeem refused, tile hidden on Home |
+| 33 | Admin > Audit filter "promo" | `promo.create` / `promo.enable` / `promo.disable` rows with the admin ID |
+| 34 | Admin > Ledger check after rows 24-33 | Reports no mismatch |
+

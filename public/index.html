@@ -45,6 +45,11 @@
     </div>
     <div class="wallet3d" aria-hidden="true">👛</div>
   </div>
+  <div id="streakbox" class="card" hidden>
+    <h3><span aria-hidden="true">🔥</span> <span id="streaktitle">Daily streak</span></h3>
+    <div id="ladder" class="ladder" role="list" aria-label="7-day streak ladder" hidden></div>
+    <small id="streaknote" class="muted" role="status"></small>
+  </div>
   <div id="verifybox" class="card" hidden>
     <h3>✅ Verify required channels</h3>
     <p id="vtext" class="muted"></p>
@@ -57,6 +62,8 @@
     <article class="card tile"><span class="ic" aria-hidden="true">👥</span><h3>Referral</h3><small>Invite &amp; earn more</small><button class="btn" data-go="ref">Invite ›</button></article>
     <article class="card tile"><span class="ic" aria-hidden="true">🏆</span><h3>Leaderboard</h3><small>Top miners ranking</small><button class="btn" data-go="rank">View ›</button></article>
     <article class="card tile"><span class="ic" aria-hidden="true">💸</span><h3>Withdraw</h3><small>Convert Points to USDT</small><button class="btn" data-go="withdraw">Request ›</button></article>
+    <article class="card tile"><span class="ic" aria-hidden="true">🏅</span><h3>Rewards</h3><small>Level, badges &amp; bonuses</small><button class="btn" data-go="rewards">Open ›</button></article>
+    <article class="card tile" id="promotile" hidden><span class="ic" aria-hidden="true">🎟️</span><h3>Promo Code</h3><small>Redeem a code</small><button class="btn" data-go="rewards">Redeem ›</button></article>
     <article class="card tile"><span class="ic" aria-hidden="true">📢</span><h3>Advertise</h3><small>Promote &amp; get joins</small><button class="btn" data-go="ads">Promote ›</button></article>
   </div>
 </section>
@@ -83,7 +90,32 @@
     <p id="refcount" class="muted"></p>
     <small>You earn <span id="refreward">1,000</span> Points when your invited friend joins and verifies the required channels.</small>
   </div>
-  <div id="reflist"></div>
+  <div class="card" id="refmilestones" hidden></div>
+  <h3 class="sec" id="h-myref">My referrals</h3>
+  <div class="tabs" role="group" aria-labelledby="h-myref">
+    <button class="tab on" id="rf-all" aria-pressed="true" data-act="refFilter" data-f="all">All</button>
+    <button class="tab" id="rf-qualified" aria-pressed="false" data-act="refFilter" data-f="qualified">✅ Qualified</button>
+    <button class="tab" id="rf-pending" aria-pressed="false" data-act="refFilter" data-f="pending">⏳ Pending</button>
+  </div>
+  <div id="reflist" aria-live="polite"></div>
+  <button class="btn" id="moreRef" data-act="moreRef" hidden>Load more</button>
+</section>
+
+<!-- ============ REWARDS (Phase 2 / Part 2) ============ -->
+<section id="rewards" aria-labelledby="h-rewards">
+  <h2 id="h-rewards">🏅 Rewards<small>Level, badges, streak and bonuses</small></h2>
+  <div class="card" id="lvlcard"><div class="empty">Loading…</div></div>
+  <h3 class="sec">Referral milestones</h3>
+  <div id="mslist"></div>
+  <h3 class="sec">Badges</h3>
+  <div id="badgelist" class="badges"></div>
+  <div class="card" id="promocard" hidden>
+    <h3>🎟️ Promo code</h3>
+    <label for="promo">Enter a code</label>
+    <input id="promo" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="24" placeholder="e.g. WELCOME24">
+    <button class="btn" data-act="promo">Redeem ›</button>
+    <p class="hint">Codes are not case-sensitive. Each code has its own limits and expiry.</p>
+  </div>
 </section>
 
 <!-- ============ LEADERBOARD (Part 6) ============ -->
@@ -140,6 +172,7 @@
 <!-- ============ MORE / COMMUNITY HUB (Part 6) ============ -->
 <section id="more" aria-labelledby="h-more">
   <h2 id="h-more">✨ More<small>Community, help and history</small></h2>
+  <button class="card hub" data-go="rewards"><span class="ic" aria-hidden="true">🏅</span><span><b>Rewards</b><small>Level, badges, milestones, promo codes</small></span><span class="chev" aria-hidden="true">›</span></button>
   <button class="card hub" data-go="rank"><span class="ic" aria-hidden="true">🏆</span><span><b>Leaderboard</b><small>See the top miners</small></span><span class="chev" aria-hidden="true">›</span></button>
   <button class="card hub" data-go="ads"><span class="ic" aria-hidden="true">📢</span><span><b>Advertise</b><small>Promote your channel, bot or site</small></span><span class="chev" aria-hidden="true">›</span></button>
   <button class="card hub" data-go="channel"><span class="ic" aria-hidden="true">✈️</span><span><b>Official Channel</b><small>News, updates and support</small></span><span class="chev" aria-hidden="true">›</span></button>

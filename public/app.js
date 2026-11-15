@@ -75,7 +75,56 @@ function renderTx(items, append) {
   const el = $('txlist'); if (append) el.insertAdjacentHTML('beforeend', h); else el.innerHTML = h || empty('No transactions yet');
   txNext = items.length >= 25 ? items[items.length - 1].id : null; $('moreTx').hidden = !txNext;
 }
-function renderDaily() { const b = $('dailybtn'), d = data.daily || {}; b.disabled = !!d.claimed; b.textContent = d.claimed ? 'Claimed ✓' : 'Claim ›'; }
+function renderDaily() { const b = $('dailybtn'), d = data.daily || {}; b.disabled = !!d.claimed; b.textContent = d.claimed ? 'Claimed ✓' : 'Claim ›'; renderStreak(); }
+
+/* ---------------- engagement (Phase 2 / Part 2) ---------------- */
+const lastDayOf = (c) => (c > 0 ? ((c - 1) % 7) + 1 : 0); // mirrors ladderDay() on the server
+function renderStreak() {
+  const st = (data.daily || {}).streak, box = $('streakbox');
+  if (!st) { box.hidden = true; return; }
+  box.hidden = false;
+  $('streaktitle').textContent = st.current > 0 ? st.current + '-day streak' : 'Start your streak';
+  const lad = $('ladder');
+  if (st.enabled && Array.isArray(st.ladder)) {
+    const last = lastDayOf(st.current), restart = st.next_day === 1 && !st.claimed_today;
+    lad.hidden = false;
+    lad.innerHTML = st.ladder.map((r, i) => {
+      const d = i + 1, done = !restart && d <= last, next = d === st.next_day;
+      const cls = 'day' + (done ? ' done' : '') + (next ? ' next' : ''), lbl = 'Day ' + d + ', ' + N(r) + ' Points' + (done ? ', done' : next ? (st.claimed_today ? ', tomorrow' : ', today') : '');
+      return `<div class="${cls}" role="listitem" aria-label="${esc(lbl)}"><b>${done ? '✓' : d}</b><small>${N(r)}</small></div>`;
+    }).join('');
+  } else lad.hidden = true;
+  $('streaknote').textContent = st.claimed_today
+    ? 'Claimed today ✓ Come back tomorrow' + (st.enabled ? ' for day ' + st.next_day + ' (+' + N(st.next_reward) + ' Points)' : ' to keep your streak') + '.'
+    : (st.current > 0 ? 'Claim today to keep your streak alive' : 'Claim today to start a streak') + (st.enabled ? ' — day ' + st.next_day + ' pays +' + N(st.next_reward) + ' Points.' : '.')
+      + (st.best > st.current ? ' Best: ' + st.best + ' days.' : '');
+}
+let refFilter = 'all', refPage = 1;
+async function loadRefs(reset) {
+  if (reset) refPage = 1;
+  const r = await api('referralList', { page: refPage, filter: refFilter });
+  const h = r.items.map((x) => `<div class="card row">${ic(x.qualified ? '✅' : '⏳')}<div class="mid"><b>${esc(x.name)}</b><small>${x.qualified ? 'Verified — reward paid' : 'Waiting for channel verification'} · ${esc(dt(x.joined))}</small></div></div>`).join('');
+  const el = $('reflist'); if (reset) el.innerHTML = h || empty(refFilter === 'all' ? 'No referrals yet. Share your link to get started.' : 'Nothing here yet'); else el.insertAdjacentHTML('beforeend', h);
+  $('moreRef').hidden = !r.has_more; $('refcount').textContent = 'Qualified: ' + r.qualified + ' · Pending: ' + r.pending;
+}
+function renderMilestonesBrief(m) {
+  const box = $('refmilestones'); if (!m || !m.enabled) { box.hidden = true; return; }
+  const nxt = m.items.find((x) => !x.paid);
+  box.hidden = false;
+  box.innerHTML = nxt ? `<b>🎯 Next bonus: ${nxt.milestone} referrals</b><small>${m.qualified} / ${nxt.milestone} qualified · +${N(nxt.reward)} Points</small><progress max="${nxt.milestone}" value="${Math.min(m.qualified, nxt.milestone)}" aria-label="Progress to ${nxt.milestone} referrals"></progress>` : '<b>🏆 All referral milestones collected</b>';
+}
+async function loadRewards() {
+  const e = await api('engagement'), lv = e.level;
+  $('lvlcard').innerHTML = `<div class="row">${ic(lv.icon)}<div class="mid"><b>${esc(lv.name)} miner</b><small>${N(e.lifetime_earned)} Points earned in total</small></div></div>`
+    + (lv.next_at ? `<progress max="100" value="${lv.progress}" aria-label="Progress to ${esc(lv.next_name)}"></progress><small>${N(Math.max(0, lv.next_at - e.lifetime_earned))} more Points to reach ${esc(lv.next_name)}</small>` : '<small>Highest level reached 🎉</small>')
+    + '<small class="hint">Levels count Points you earned from daily rewards, tasks, referrals, bonuses and promo codes. They are for fun and pay nothing.</small>';
+  const m = e.milestones;
+  setHtml('mslist', m.enabled
+    ? m.items.map((x) => `<div class="card row">${ic(x.paid ? '✅' : x.reached ? '🎁' : '🎯')}<div class="mid"><b>${x.milestone} qualified referrals</b><small>${x.paid ? 'Bonus paid' : x.reached ? 'Reached — bonus is added when you open the app' : m.qualified + ' / ' + x.milestone + ' so far'}</small></div><span class="pts">+${N(x.reward)}</span></div>`).join('')
+    : empty('Referral milestone bonuses are not active right now.'));
+  setHtml('badgelist', e.badges.map((b) => `<div class="card bdg${b.earned ? ' got' : ''}">${ic(b.icon)}<b>${esc(b.name)}</b><small>${esc(b.help)}</small>${badge(b.earned ? 'ok' : 'soon', b.earned ? 'Earned' : 'Locked')}</div>`).join(''));
+  $('promocard').hidden = !e.promo_enabled;
+}
 let refLink = '';
 function renderVerify() {
   const box = $('verifybox'), u = data.user || {};
@@ -199,8 +248,8 @@ async function loadHow() {
 }
 
 /* ---------------- navigation ---------------- */
-const PARENT = { deposit: 'withdraw', rank: 'more', ads: 'more', channel: 'more', proof: 'more', howto: 'more', games: 'more', history: 'more' };
-const NAVOF = { deposit: 'withdraw', rank: 'more', ads: 'more', channel: 'more', proof: 'more', howto: 'more', games: 'more', history: 'more' };
+const PARENT = { deposit: 'withdraw', rewards: 'more', rank: 'more', ads: 'more', channel: 'more', proof: 'more', howto: 'more', games: 'more', history: 'more' };
+const NAVOF = { deposit: 'withdraw', rewards: 'more', rank: 'more', ads: 'more', channel: 'more', proof: 'more', howto: 'more', games: 'more', history: 'more' };
 let cur = 'home', backBound = false;
 function go(id) {
   if (!$(id)) return; cur = id;
@@ -221,8 +270,10 @@ async function load(id) {
     if (id === 'history' && !$('txlist').children.length) renderTx(data.transactions || [], false);
     if (id === 'ref') {
       const r = await api('referral'); refLink = r.link; $('refurl').textContent = r.link; $('refreward').textContent = N(r.reward); $('refcount').textContent = 'Qualified: ' + r.qualified + ' · Pending: ' + r.pending;
-      setHtml('reflist', r.referrals.map((x) => `<div class="card row">${ic(x.qualified ? '✅' : '⏳')}<div class="mid"><b>${esc(x.name)}</b><small>${x.qualified ? 'Verified — reward paid' : 'Waiting for channel verification'}</small></div></div>`).join(''));
+      await loadRefs(true);
+      api('engagement').then((e) => renderMilestonesBrief(e.milestones)).catch(() => {}); // optional extra, never blocks the list
     }
+    if (id === 'rewards') await loadRewards();
     if (id === 'rank') await loadRank(1);
     if (id === 'ads') await loadAds();
     if (id === 'channel') await loadChannel();
@@ -238,6 +289,7 @@ async function boot() {
     $('points').textContent = N(data.user.points);
     const s = data.settings || {}; $('rate').textContent = N(s.points_per_usdt || 10000) + ' Points = 1 USDT';
     const bn = $('banner'); bn.textContent = s.announcement || ''; bn.hidden = !s.announcement;
+    $('promotile').hidden = s.promo_enabled !== true;
     initTimers(); renderDaily(); renderVerify(); renderTasks(); renderTx(data.transactions || [], false);
     if (data.admin) initAdmin();
   } catch (e) { status(e.message); say(e.message); }
@@ -250,7 +302,16 @@ function showGate() { $('gate').hidden = false; $('main').hidden = true; $('nav'
 
 /* ---------------- actions ---------------- */
 const ACT = {
-  async daily() { const r = await api('daily'); say('🎁 Claimed ' + N(r.reward) + ' Points'); await boot(); },
+  async daily() { const r = await api('daily'); say('🎁 Claimed ' + N(r.reward) + ' Points' + (r.streak > 1 ? ' · 🔥 ' + r.streak + '-day streak' : '')); await boot(); },
+  async refFilter(d) {
+    refFilter = d.f; document.querySelectorAll('[data-act=refFilter]').forEach((b) => { const on = b.dataset.f === d.f; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); });
+    await loadRefs(true);
+  },
+  async moreRef() { refPage += 1; await loadRefs(false); },
+  async promo() {
+    const code = $('promo').value.trim(); if (!code) { say('Enter a promo code first'); return; }
+    const r = await api('promoRedeem', { code }); $('promo').value = ''; say('🎟️ +' + N(r.reward) + ' Points added'); await boot(); await loadRewards();
+  },
   async complete(d) { const r = await api('taskComplete', { taskId: Number(d.id) }); delete opened[d.id]; say('✅ Earned ' + N(r.reward) + ' Points'); await boot(); },
   async openTask(d) {
     const id = Number(d.id), t = (data.tasks || []).find((x) => x.id === id); if (!t) return;

@@ -13,6 +13,7 @@ import * as adm from "../lib/actions/admin.js";
 import { getConfig } from "../lib/runtime.js";
 import { captureReferrer } from "../lib/referral.js";
 import * as ntf from "../lib/actions/notify.js";
+import * as eng from "../lib/actions/engage.js";
 
 // Action registry. write=true -> POST only; admin=true -> server-side admin check on every call.
 const ACTIONS = {
@@ -70,6 +71,12 @@ const ACTIONS = {
   adminWebhookSetup: { fn: ntf.adminWebhookSetup, admin: true, write: true },
   adminBroadcastCreate: { fn: ntf.adminBroadcastCreate, admin: true, write: true },
   adminBroadcastCancel: { fn: ntf.adminBroadcastCancel, admin: true, write: true },
+  engagement: { fn: eng.engagement },
+  referralList: { fn: eng.referralList },
+  promoRedeem: { fn: eng.promoRedeem, write: true },
+  adminPromoList: { fn: eng.adminPromoList, admin: true },
+  adminPromoCreate: { fn: eng.adminPromoCreate, admin: true, write: true },
+  adminPromoSetActive: { fn: eng.adminPromoSetActive, admin: true, write: true },
 };
 
 export default async function handler(req, res) {

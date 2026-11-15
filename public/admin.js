@@ -5,7 +5,7 @@ const $=id=>document.getElementById(id),E=esc,A=(a,p)=>api(a,p||{}),N=Number;
 const D=x=>x?new Date(x).toLocaleString():'';
 const short=h=>h?String(h).slice(0,10)+'…'+String(h).slice(-6):'';
 const nm=x=>E(x.first_name||x.username||x.telegram_id||x.owner_id);
-const TABS=[['home','📊','Home'],['wd','💸','Withdraw'],['dep','⬇️','Deposits'],['usr','👤','Users'],['tsk','📋','Tasks'],['cmp','📢','Campaigns'],['ntf','🔔','Notify'],['set','⚙️','Settings'],['prf','🧾','Proof'],['aud','🧾','Audit']];
+const TABS=[['home','📊','Home'],['wd','💸','Withdraw'],['dep','⬇️','Deposits'],['usr','👤','Users'],['tsk','📋','Tasks'],['cmp','📢','Campaigns'],['ntf','🔔','Notify'],['pro','🎟️','Promo'],['set','⚙️','Settings'],['prf','🧾','Proof'],['aud','🧾','Audit']];
 let tab='home',cur={f:{},tasks:[],setItems:[],audNext:null,prfNext:null};
 
 function note(m){const n=$('admnote');if(n)n.textContent=m;try{say(m)}catch(e){}}
@@ -51,6 +51,9 @@ const VIEWS={
   <div class="acts"><button class="btn sm" data-adm="sendBatch">Send next batch ›</button></div>
   <div class="card"><h2>New broadcast</h2><label class="sr" for="bc_seg">Who receives it</label><select id="bc_seg"><option value="me">Only me (test)</option><option value="all">All users</option><option value="active7">Active in last 7 days</option><option value="balance">Users with Points</option><option value="new24">New in last 24 hours</option></select><label class="sr" for="bc_text">Message (plain text, max 1000 characters)</label><textarea id="bc_text" maxlength="1000" placeholder="Message (plain text, max 1000 characters)"></textarea><div class="acts"><button class="btn sm" data-adm="bcSend">Queue broadcast</button></div><small class="muted">Always test with “Only me” first. Users who blocked the bot are skipped automatically.</small></div>
   <h2>Recent broadcasts</h2>${(r.broadcasts||[]).map(b=>`<div class="card"><b>#${N(b.id)} · ${E(b.label)} <small class="inl">(${b.cancelled?'cancelled':N(b.waiting)>0?'sending':'done'})</small></b><small>${E(D(b.created_at))} · to ${N(b.total)} · sent ${N(b.sent)} · skipped ${N(b.skipped)} · failed ${N(b.failed)} · waiting ${N(b.waiting)}</small><p>${E(b.preview)}</p>${N(b.waiting)>0&&!b.cancelled?`<div class="acts"><button class="btn sm ghost" data-adm="bcCancel" data-p0="${N(b.id)}">Cancel rest</button></div>`:''}</div>`).join('')||empty('No broadcasts yet')}`},
+ async pro(){const r=await A('adminPromoList');
+  return `<div class="card"><h2>New promo code</h2><label class="sr" for="pf_code">Code (empty = generate)</label><input id="pf_code" maxlength="20" autocapitalize="characters" placeholder="Code (empty = generate one)"><label class="sr" for="pf_reward">Reward per redeem (Points)</label><input id="pf_reward" type="number" placeholder="Reward per redeem (Points)"><label class="sr" for="pf_total">Total redeems allowed</label><input id="pf_total" type="number" placeholder="Total redeems allowed (required)"><label class="sr" for="pf_per">Per-user limit (1-10)</label><input id="pf_per" type="number" placeholder="Per-user limit (default 1)"><label class="sr" for="pf_days">Expires after days (0 = never)</label><input id="pf_days" type="number" placeholder="Expires after days (0 = never)"><label class="sr" for="pf_note">Note</label><input id="pf_note" maxlength="100" placeholder="Note (only you see this)"><div class="acts"><button class="btn sm" data-adm="savePromo">Create</button></div><small class="muted">Worst-case cost = reward × total redeems. Promo codes only work while “Promo codes” is ON in Settings.</small></div>`+
+  (r.items.map(x=>`<div class="card"><b>${E(x.code)} <small class="inl">(${x.expired?'expired':x.active?'active':'off'})</small></b><small>+${N(x.reward).toLocaleString()} Points · used ${N(x.redeemed)}/${N(x.total_limit)} · per user ${N(x.per_user_limit)}${x.expires_at?' · expires '+E(D(x.expires_at)):''}</small>${x.note?`<small>${E(x.note)}</small>`:''}<div class="acts"><button class="btn sm ghost" data-adm="promoOn" data-p0="${E(x.code)}" data-p1="${!x.active}">${x.active?'Disable':'Enable'}</button></div></div>`).join('')||empty('No promo codes yet'))},
  async set(){const r=await A('adminSettings');cur.setItems=r.items;const groups=[...new Set(r.items.map(i=>i.group))];
   return groups.map(g=>`<div class="card"><h2>${E(g)}</h2>${r.items.filter(i=>i.group===g).map(i=>{const id='st_'+i.key,v=i.value;
    const ctl=i.type==='bool'?`<select id="${id}"><option value="true"${v?' selected':''}>ON</option><option value="false"${v?'':' selected'}>OFF</option></select>`
@@ -60,12 +63,12 @@ const VIEWS={
   `<button class="btn" data-adm="saveSettings">Save settings ›</button><div class="card"><small>Secrets stay in Vercel env: ${Object.entries(r.env).map(([k,v])=>E(k)+(v?' ✅':' ❌')).join(' · ')}</small></div>`},
  async prf(){const r=await A('adminProofList');cur.prfNext=r.next;return `<small class="muted">Paid withdrawals shown on the public Payment Proof screen. Hide any you do not want shown.</small><div id="prfl">${prfRows(r.items)}</div>`+(r.next?`<button class="btn" id="prfmore" data-adm="prfMore">Load more</button>`:'')},
  async aud(){const f=cur.f.audf||'';const r=await A('adminAudit',{action:f==='all'?'':f});cur.audNext=r.next;
-  return sel('audf',['all','withdrawal','deposit','user','task','campaign','proof','broadcast','notify','settings'],'aud',f||'all')+`<div id="audl">${audRows(r.items)}</div>`+(r.next?`<button class="btn" id="audmore" data-adm="more">Load more</button>`:'')},
+  return sel('audf',['all','withdrawal','deposit','user','task','campaign','proof','broadcast','notify','promo','settings'],'aud',f||'all')+`<div id="audl">${audRows(r.items)}</div>`+(r.next?`<button class="btn" id="audmore" data-adm="more">Load more</button>`:'')},
 };
 function prfRows(items){return items.map(x=>`<div class="card row"><div class="mid"><b>#${N(x.id)} · ${E(x.amount)} USDT</b><small>${E(x.name)} · ${E(D(x.paid_at))} · ${E(short(x.tx))}</small><small>${x.hidden?'Hidden from users':'Visible to users'}</small></div><button class="btn sm ghost" data-adm="prfHide" data-p0="${N(x.id)}" data-p1="${!x.hidden}">${x.hidden?'Show':'Hide'}</button></div>`).join('')||empty('No paid withdrawals yet')}
 function audRows(items){return items.map(a=>`<div class="card"><b>${E(a.action)}</b><small>#${N(a.id)} · ${E(D(a.created_at))} · by ${E(a.actor_id)}</small><small>${E(a.target_type||'')} ${E(a.target_id||'')}${a.reason?' · '+E(a.reason):''}</small>${a.after_data?`<pre>${E(JSON.stringify(a.after_data)).slice(0,300)}</pre>`:''}</div>`).join('')||empty('Nothing here')}
 
-const NUM=new Set(['w','d','c','editTask','taskOn','prfHide','bcCancel']),BOOL=new Set(['block','taskOn','prfHide']);
+const NUM=new Set(['w','d','c','editTask','taskOn','prfHide','bcCancel']),BOOL=new Set(['block','taskOn','prfHide','promoOn']);
 function call(el,key){const n=el.dataset[key];if(!n||!Object.prototype.hasOwnProperty.call(Admin,n)||typeof Admin[n]!=='function')return;
  const a=[el.dataset.p0,el.dataset.p1].filter(x=>x!==undefined);if(NUM.has(n))a[0]=N(a[0]);if(BOOL.has(n)&&a.length>1)a[1]=a[1]==='true';
  Promise.resolve(Admin[n](...a)).catch(e=>note(e.message))}
@@ -98,11 +101,15 @@ window.Admin={
   if(v('id')){await A('adminUpdateTask',{taskId:v('id'),...b});note('Task updated')}else{await A('adminCreateTask',{type:v('type'),...b});note('Task created')}await show()})},
  async taskOn(id,active){await run(async()=>{await A('adminSetTaskActive',{taskId:id,active});await show()})},
  async saveSettings(){const changes={};for(const i of cur.setItems){const el=$('st_'+i.key);if(!el)continue;let v=el.value;
-   if(i.type==='bool')v=v==='true';else if(i.type==='int'||i.type==='dec')v=Number(v);else if(i.type==='list')v=v.split(/[\s,]+/).filter(Boolean);
+   if(i.type==='bool')v=v==='true';else if(i.type==='int'||i.type==='dec')v=Number(v);else if(i.type==='list'){v=v.split(/[\s,]+/).filter(Boolean);if((i.value||[]).every(x=>typeof x==='number'))v=v.map(Number)}
    if(JSON.stringify(v)!==JSON.stringify(i.value))changes[i.key]=v}
   if(!Object.keys(changes).length){note('No changes');return}
   await run(async()=>{const r=await A('adminSettingsUpdate',{changes});note('Saved '+r.changed.length+' setting(s)'+(r.warnings.length?' ⚠️ '+r.warnings.join(' '):''));await show()})},
 
+
+ async savePromo(){await run(async()=>{const v=k=>$('pf_'+k).value.trim(),b={code:v('code'),reward:v('reward'),totalLimit:v('total'),perUserLimit:v('per'),expiresDays:v('days'),note:v('note')};
+  const r=await A('adminPromoCreate',b);note('Created '+r.code+' · worst-case cost '+N(r.max_liability).toLocaleString()+' Points');await show()})},
+ async promoOn(code,active){await run(async()=>{await A('adminPromoSetActive',{code,active});note(code+(active?' enabled':' disabled'));await show()})},
  async hook(){await run(async()=>{const r=await A('adminWebhookSetup');note('Webhook set: '+r.url);await show()})},
  async sendBatch(){await run(async()=>{const r=await A('adminNotifyProcess');note('Sent '+N(r.sent)+' · skipped '+N(r.skipped)+' · failed '+N(r.failed)+' · remaining '+N(r.remaining));await show()})},
  async bcSend(){const text=$('bc_text').value,segment=$('bc_seg').value;if(text.trim().length<3){note('Write a message first');return}

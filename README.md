@@ -10,7 +10,7 @@ Fresh database and registration. This does NOT connect to or modify the existing
 
 ## Deploy
 1. Create a Neon PostgreSQL database.
-2. Run `db/schema.sql`, then `db/migrations/001_foundation.sql` `002_points_and_tasks.sql` and `003_referrals.sql` … `007_notifications.sql` (in order), in Neon SQL Editor.
+2. Run `db/schema.sql`, then `db/migrations/001_foundation.sql` `002_points_and_tasks.sql` and `003_referrals.sql` … `008_engagement.sql` (in order), in Neon SQL Editor.
 3. Upload this project to a new GitHub repository.
 4. Import repository into Vercel.
 5. Add environment variables from `.env.example`.
@@ -27,13 +27,13 @@ Fresh database and registration. This does NOT connect to or modify the existing
 - Weekly/monthly referral contests are planned in **Part 4** of the next phase (see below).
 
 ## Launch
-See `docs/DEPLOYMENT_GUIDE.md`, `docs/TEST_MATRIX.md` and `DEPLOYMENT_CHECKLIST.md`. Run `npm test` (67 tests).
+See `docs/DEPLOYMENT_GUIDE.md`, `docs/TEST_MATRIX.md` and `DEPLOYMENT_CHECKLIST.md`. Run `npm test` (92 tests).
 
 ## Important before real launch
 This is a functional starter, not a completed audited financial platform. Deposit hashes are queued for admin review; **automatic BEP-20 on-chain verification is not implemented**. Withdrawals create requests and require secure manual payout. Do not place private keys in GitHub or Vercel. Referral rewards are not yet granted because qualifying channel-join verification and referral attribution need a separate Telegram webhook flow. Bot/website task claims need stronger verification before awarding meaningful Points. Games are informational placeholder only. Advertising campaign creation reserves Points, but the full campaign delivery/verification workflow is not yet complete. Add rate limits, idempotent DB transactions, monitoring, backups, terms and privacy policy before production.
 
 ## API actions
-`bootstrap`, `referral`, `leaderboard`, `daily`, `taskComplete`, `withdraw`, `depositSubmit`, `campaignCreate`, `adminOverview`, plus (v1.8.0) `adminNotifyStatus`, `adminNotifyProcess`, `adminWebhookSetup`, `adminBroadcastCreate`, `adminBroadcastCancel`. Server-to-server only: `tgWebhook`, `cron`.
+`bootstrap`, `referral`, `leaderboard`, `daily`, `taskComplete`, `withdraw`, `depositSubmit`, `campaignCreate`, `adminOverview`, plus (v1.8.0) `adminNotifyStatus`, `adminNotifyProcess`, `adminWebhookSetup`, `adminBroadcastCreate`, `adminBroadcastCancel`, plus (v1.9.0) `engagement`, `referralList`, `promoRedeem`, `adminPromoList`, `adminPromoCreate`, `adminPromoSetActive`. Server-to-server only: `tgWebhook`, `cron`.
 
 ## Security
 Only Telegram Mini App signed initData is accepted. Admin IDs are set in `ADMIN_TELEGRAM_IDS`. Never commit `.env`.
@@ -59,12 +59,13 @@ Rule for every part: new options live in Admin > Settings (default OFF where mon
 - Daily cron (`vercel.json`) queues reminders and drains the queue
 - Migration `007_notifications.sql`; new env `TG_WEBHOOK_SECRET`, `CRON_SECRET`
 
-### Part 2 — Engagement & Retention (v1.9.0)
-- Daily streak bonus (day 1-7 ladder, resets on a missed day)
-- "My Referrals" list + referral milestones (5 / 10 / 50 friends bonus)
-- Achievements / badges and user levels (Bronze → Gold)
-- Promo / redeem codes (admin creates; limit per user, total limit, expiry)
-- Migration `008_engagement.sql`
+### Part 2 — Engagement & Retention (v1.9.0) ✅ DONE
+- Daily streak: 7-day ladder (starter 100 / 120 / 140 / 160 / 180 / 200 / 300), a missed day resets to day 1, shown on Home (**OFF** until you enable it)
+- "My Referrals": paginated, masked names, All / Qualified / Pending filter
+- Referral milestones at 5 / 10 / 50 qualified referrals, each paid once through the ledger (**OFF** until you enable it)
+- Levels (Bronze → Silver → Gold, by lifetime earned Points) and 7 badges, on the new Rewards screen
+- Promo codes: admin creates (reward, per-user limit, total limit, expiry), users redeem on the Rewards screen (**OFF** until you enable it)
+- Admin > Promo tab; Admin > Settings > Engagement; Migration `008_engagement.sql`; no new env variables
 
 ### Part 3 — Games & Boosters (v1.10.0)
 - Games screen goes live: Spin Wheel, Scratch Card, Lucky Box (server-side random, never client-side)

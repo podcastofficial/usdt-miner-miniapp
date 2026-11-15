@@ -13,10 +13,10 @@ Defaults are editable in Admin > Settings. Anything touching money/abuse ships *
 | DB | `007_notifications.sql`: `notification_queue` (unique `dedupe_key`), `broadcasts`, `users.bot_blocked`, `withdrawals.proof_posted_at` |
 | Tests | queue idempotency, segment queries, secret-token check, masking |
 
-## Part 2 — Engagement & Retention (v1.9.0)
+## Part 2 — Engagement & Retention (v1.9.0) — DONE
 | Feature | Details |
 |---|---|
-| Daily streak | 7-day ladder (starter: 100, 120, 140, 160, 180, 200, 300), reset after a missed day, uses existing daily time zone |
+| Daily streak | 7-day ladder (starter: 100, 120, 140, 160, 180, 200, 300), reset after a missed day, uses existing daily time zone. Ladder switch `streak_enabled` ships OFF; the streak is tracked either way |
 | My Referrals | paginated list (masked names), qualified vs pending |
 | Milestones | 5 / 10 / 50 qualified referrals, each paid once via ledger reference |
 | Levels & badges | Bronze → Gold by lifetime earned Points; badge list on profile |

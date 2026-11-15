@@ -52,3 +52,11 @@ Vercel → Deployments → previous deployment → **Promote to Production**. Da
 3. **Admin → Settings → Notifications**: withdrawal and referral messages are ON; daily reminder and auto-post to the payments channel start **OFF**. For auto-post the bot must be an admin of the payments channel.
 4. Test a broadcast with **Only me** first. Large broadcasts are sent in batches: press **Send next batch** until Waiting is 0. The daily cron (03:30 UTC) also sends up to 100 waiting messages and queues reminders. Vercel Hobby allows one cron run per day; on Pro you can change the schedule in `vercel.json`.
 5. Telegram only lets a bot message users who started it. Others are marked Skipped and are not tried again until they press Start.
+
+## 11. Engagement & Retention (v1.9.0)
+1. Neon SQL Editor: run `db/migrations/008_engagement.sql` (safe to run twice). No new Vercel env variables. Redeploy.
+2. **Admin → Settings → Engagement**. Streak ladder, Referral milestone bonuses and Promo codes all start **OFF**; Levels and badges are always on (they pay nothing).
+3. Before enabling, confirm the starter numbers (they are suggestions, not decisions): ladder 100/120/140/160/180/200/300, milestone bonuses 500 / 1,500 / 10,000 Points, Silver at 10,000 and Gold at 50,000 lifetime earned Points.
+4. Turning **Referral milestone bonuses** ON also pays inviters who already passed 5 / 10 / 50 qualified referrals (once, the next time they open the app). Check your numbers first.
+5. **Admin → Promo**: a total redeem cap is required. Worst-case cost = reward × total redeems, shown when you create the code. Run rows 24-34 of `docs/TEST_MATRIX.md` with tiny numbers before announcing anything.
+
