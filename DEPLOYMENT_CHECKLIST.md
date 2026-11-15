@@ -36,6 +36,8 @@ Tick in order. Anything marked **STOP** blocks launch.
 - [ ] Check the rules for operating a rewards/payout service in your country and for Telegram's Mini App terms
 - [ ] Support contact monitored; someone is on call for the first week
 
+- [ ] Part 4: migration `010` run; **Task proofs** and **Contests** still OFF until rows 51-66 of the test matrix passed
+
 ## Monitoring (first 48 hours)
 - [ ] Vercel logs watched for `API error` lines; Admin dashboard checked at least daily (abuse flags, open withdrawals, ledger check)
 - [ ] Know the kill switches: Settings → Withdrawals/Deposits/Advertising off, or Maintenance on

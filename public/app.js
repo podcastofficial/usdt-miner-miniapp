@@ -52,13 +52,17 @@ const taskIcon = (t) => (t === 'channel' ? '✈️' : t === 'bot' ? '🤖' : t =
 function taskBtn(t) {
   const a = `data-id="${Number(t.id)}"`, nm = ' — ' + t.title;
   if (t.done) return '<button class="btn sm done" disabled>Done ✓</button>';
+  if (t.proof_required) {
+    if (t.proof_status === 'pending') return '<button class="btn sm" disabled aria-label="Proof is in review">⏳ In review</button>';
+    return btn(t.proof_status === 'rejected' ? 'Try again ›' : 'Send proof ›', 'proofOpen', a, 'btn sm', 'Send proof' + nm);
+  }
   if (t.type === 'channel') return opened[t.id] ? btn('Verify ✓', 'complete', a, 'btn sm done', 'Verify' + nm) : btn('Join ›', 'openTask', a, 'btn sm', 'Join' + nm);
   if (t.started_at) return t.seconds_left > 0 ? `<button class="btn sm" disabled aria-label="Wait ${t.seconds_left} seconds">⏳ ${t.seconds_left}s</button>` : btn('Claim ✓', 'complete', a, 'btn sm done', 'Claim' + nm);
   return btn((t.type === 'website' ? 'Visit' : 'Start') + ' ›', 'openTask', a, 'btn sm', 'Start' + nm);
 }
 function renderTasks() {
   const list = (data.tasks || []).filter((t) => filter === 'all' || (filter === 'social' && ['channel', 'bot'].includes(t.type)) || (filter === 'other' && !['channel', 'bot'].includes(t.type)));
-  setHtml('tasklist', list.map((t) => `<div class="card row">${ic(taskIcon(t.type))}<div class="mid"><b>${esc(t.title)}</b>${t.description ? `<small>${esc(t.description)}</small>` : ''}<span class="pts">🪙 +${N(t.reward)} Points</span>${t.type !== 'channel' && !t.done ? `<small>Stay ${Number(t.timer_seconds)}s on the task, then claim</small>` : ''}</div>${taskBtn(t)}</div>`).join('') || empty('No tasks right now'));
+  setHtml('tasklist', list.map((t) => `<div class="card row">${ic(taskIcon(t.type))}<div class="mid"><b>${esc(t.title)}</b>${t.description ? `<small>${esc(t.description)}</small>` : ''}<span class="pts">🪙 +${N(t.reward)} Points</span>${t.proof_required && !t.done ? `<small>${t.proof_status === 'rejected' ? 'Rejected' + (t.proof_reason ? ': ' + esc(t.proof_reason) : '') + ' — you can try again' : 'Needs a proof, checked by an admin'}</small>` : ''}${t.type !== 'channel' && !t.proof_required && !t.done ? `<small>Stay ${Number(t.timer_seconds)}s on the task, then claim</small>` : ''}</div>${taskBtn(t)}</div>`).join('') || empty('No tasks right now'));
 }
 const initTimers = () => (data.tasks || []).forEach((t) => { t.deadline = Date.now() + (t.seconds_left || 0) * 1000; });
 setInterval(() => {
@@ -142,7 +146,7 @@ function renderVerify() {
 
 /* ---------------- finance (Part 4) ---------------- */
 const WI = { pending: '⏳', approved: '👍', paid: '✅', rejected: '❌', cancelled: '🚫' }, DI = { pending: '⏳', verified: '🔎', confirmed: '✅', rejected: '❌' };
-const BC = { pending: 'warn', approved: 'warn', paid: 'ok', rejected: 'no', cancelled: 'no', verified: 'warn', confirmed: 'ok', active: 'ok' };
+const BC = { pending: 'warn', approved: 'warn', paid: 'ok', rejected: 'no', cancelled: 'no', verified: 'warn', confirmed: 'ok', active: 'ok', finished: 'ok' };
 const RS = { not_found: 'Transaction not found yet', confirming: 'Waiting for confirmations', tx_failed: 'Transaction failed on-chain', no_matching_transfer: 'No matching USDT transfer to our wallet from that address', below_minimum: 'Below the minimum deposit', not_found_expired: 'Transaction never appeared', chain_unavailable: 'Blockchain check unavailable, try again' };
 function DS(r) { return r.status === 'confirmed' ? '✅ Deposit credited' : r.status === 'verified' ? '🔎 Verified on-chain - waiting for admin approval' : r.status === 'rejected' ? '❌ ' + (RS[r.reason] || r.reason || 'Rejected') : '⏳ ' + (RS[r.reason] || 'Pending') + (r.confirmations != null ? ' (' + r.confirmations + ')' : ''); }
 async function getFin() { if (!fin) fin = await api('financeInfo'); return fin; }
@@ -196,7 +200,7 @@ function adcalc() {
 }
 function campCard(c) {
   const pct = Math.min(Number(c.target), Number(c.completed));
-  return `<div class="card"><div class="row flat">${ic(taskIcon(c.type))}<div class="mid"><b>#${Number(c.id)} ${esc(c.title)}</b><small>${badge(BC[c.status] || 'warn', c.status === 'pending' ? 'in review' : c.status)} · +${N(c.reward)} × ${N(c.target)}</small></div></div>${c.status === 'active' ? `<progress value="${pct}" max="${Number(c.target)}" aria-label="Completed ${pct} of ${Number(c.target)}"></progress><small>${N(c.completed)} of ${N(c.target)} completed</small>` : ''}${c.reject_reason ? `<small>${esc(c.reject_reason)}</small>` : ''}${c.status === 'pending' ? `<div class="mt">${btn('Cancel and refund', 'cancelCamp', `data-id="${Number(c.id)}"`, 'btn sm ghost', 'Cancel campaign ' + Number(c.id))}</div>` : ''}</div>`;
+  return `<div class="card"><div class="row flat">${ic(taskIcon(c.type))}<div class="mid"><b>#${Number(c.id)} ${esc(c.title)}</b><small>${badge(BC[c.status] || 'warn', c.status === 'pending' ? 'in review' : c.status)} · +${N(c.reward)} × ${N(c.target)}</small></div></div>${c.status === 'active' ? `<progress value="${pct}" max="${Number(c.target)}" aria-label="Completed ${pct} of ${Number(c.target)}"></progress><small>${N(c.completed)} of ${N(c.target)} completed</small>` : ''}${c.reject_reason ? `<small>${esc(c.reject_reason)}</small>` : ''}${c.status === 'active' || c.status === 'finished' ? `<small>Used ${N(c.spent)} of ${N(Number(c.reward) * Number(c.target))} Points${c.status === 'active' ? ' · ' + N(c.unused) + ' unused' : ''}</small>` : ''}${c.status === 'pending' || c.status === 'active' ? `<div class="mt">${btn(c.status === 'pending' ? 'Cancel and refund' : 'Stop and refund unused', 'cancelCamp', `data-id="${Number(c.id)}" data-st="${c.status === 'active' ? 'active' : 'pending'}"`, 'btn sm ghost', (c.status === 'pending' ? 'Cancel campaign ' : 'Stop campaign ') + Number(c.id))}</div>` : ''}</div>`;
 }
 async function loadAds() {
   setHtml('camplist', skel(2)); ads = await api('campaignList'); const i = ads.info;
@@ -323,9 +327,29 @@ async function playGame(d) {
   await boot(); await loadGames();
 }
 
+/* ---------------- contests (Phase 2 / Part 4) ---------------- */
+let proofTask = null;
+const fmtLeft = (sec) => { const d = Math.floor(sec / 86400), h = Math.floor((sec % 86400) / 3600), m = Math.floor((sec % 3600) / 60); return d > 0 ? d + 'd ' + h + 'h' : h > 0 ? h + 'h ' + m + 'm' : m + 'm'; };
+const medal = (r) => (r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '🥉' : '#' + r);
+const prizeLine = (prizes) => (prizes || []).map((p, i) => medal(i + 1) + ' ' + N(p)).join(' · ');
+const ctRows = (rows) => rows.map((r) => `<div class="card row${r.me ? ' me' : ''}"><span class="ic" aria-hidden="true">${esc(medal(r.rank))}</span><div class="mid"><b>${esc(r.name)}${r.me ? ' (you)' : ''}</b><small>${N(r.referrals)} referral${r.referrals === 1 ? '' : 's'}</small></div>${r.prize > 0 ? `<span class="pts">+${N(r.prize)}</span>` : ''}</div>`).join('');
+function renderContests(c) {
+  if (!c.enabled) return setHtml('ctlist', empty('Contests are not open yet'));
+  let h = '';
+  if (c.current) {
+    const k = c.current, me = k.me;
+    h += `<div class="card"><b>${esc(k.title)}</b><small>${esc(k.kind)} contest · ${k.over ? 'ended, waiting for the payout' : 'ends in ' + esc(fmtLeft(k.seconds_left))}</small><small>Prizes: ${esc(prizeLine(k.prizes))} Points</small><small>You need at least ${N(k.min_referrals)} qualified referral${k.min_referrals === 1 ? '' : 's'} to win.</small>`
+      + `<span class="pts">Your referrals: ${N(me.referrals)}${me.rank ? ' · rank #' + N(me.rank) : me.qualifies ? '' : ' · not ranked yet'}</span>${btn('Invite friends ›', 'goRef', '', 'btn sm', 'Invite friends')}</div>`
+      + `<h3 class="sub">Live leaderboard</h3>` + (k.top.length ? ctRows(k.top) : empty('No one has qualified yet — be the first!'));
+  } else h += empty('No contest is running right now');
+  if (c.last && c.last.winners.length) h += `<h3 class="sub">Last winners · ${esc(c.last.title)}</h3>` + ctRows(c.last.winners);
+  setHtml('ctlist', h);
+}
+async function loadContests() { setHtml('ctlist', skel(2)); renderContests(await api('contests')); }
+
 /* ---------------- navigation ---------------- */
-const PARENT = { deposit: 'withdraw', rewards: 'more', rank: 'more', ads: 'more', channel: 'more', proof: 'more', howto: 'more', games: 'more', history: 'more' };
-const NAVOF = { deposit: 'withdraw', rewards: 'more', rank: 'more', ads: 'more', channel: 'more', proof: 'more', howto: 'more', games: 'more', history: 'more' };
+const PARENT = { deposit: 'withdraw', rewards: 'more', rank: 'more', ads: 'more', channel: 'more', proof: 'more', howto: 'more', games: 'more', contests: 'more', taskproof: 'tasks', history: 'more' };
+const NAVOF = { deposit: 'withdraw', rewards: 'more', rank: 'more', ads: 'more', channel: 'more', proof: 'more', howto: 'more', games: 'more', contests: 'more', taskproof: 'tasks', history: 'more' };
 let cur = 'home', backBound = false;
 function go(id) {
   if (!$(id)) return; cur = id;
@@ -356,6 +380,7 @@ async function load(id) {
     if (id === 'proof') await loadProof(false);
     if (id === 'howto') await loadHow();
     if (id === 'games') await loadGames();
+    if (id === 'contests') await loadContests();
   } catch (e) { say(e.message); }
 }
 
@@ -417,7 +442,20 @@ const ACT = {
     const r = await api('campaignCreate', { type: $('c_type').value, title: $('c_title').value, link: $('c_link').value, reward: $('c_reward').value.trim(), target: $('c_target').value.trim() });
     say('Campaign #' + r.id + ' submitted for review'); ['c_title', 'c_link', 'c_reward', 'c_target'].forEach((k) => { $(k).value = ''; }); await boot(); await loadAds();
   },
-  async cancelCamp(d) { if (!(await confirmAsk('Cancel this campaign? The full budget is refunded.'))) return; const r = await api('campaignCancel', { id: Number(d.id) }); say('Cancelled - ' + N(r.refunded_points) + ' Points refunded'); await boot(); await loadAds(); },
+  async cancelCamp(d) { if (!(await confirmAsk(d.st === 'active' ? 'Stop this campaign? Only the unused budget is refunded; completions already paid stay paid.' : 'Cancel this campaign? The full budget is refunded.'))) return; const r = await api('campaignCancel', { id: Number(d.id) }); say((d.st === 'active' ? 'Stopped' : 'Cancelled') + ' - ' + N(r.refunded_points) + ' Points refunded'); await boot(); await loadAds(); },
+  proofOpen(d) {
+    const t = (data.tasks || []).find((x) => x.id === Number(d.id)); if (!t) return;
+    proofTask = t; $('pf_title').textContent = t.title; $('pf_hint').textContent = t.proof_hint || 'Send what the task asks for (for example your @username).';
+    $('pf_note').textContent = t.proof_status === 'rejected' ? 'Your last proof was rejected' + (t.proof_reason ? ': ' + t.proof_reason : '') + '. You can send a new one.' : '';
+    $('pf_text').value = ''; go('taskproof');
+  },
+  proofOpenLink() { if (proofTask) openUrl(proofTask.link); },
+  async proofSend() {
+    if (!proofTask) { go('tasks'); return; }
+    const txt = $('pf_text').value.trim(); if (txt.length < 3) { say('Write your proof first'); return; }
+    await api('taskProofSubmit', { taskId: Number(proofTask.id), proof: txt }); proofTask = null; say('🧾 Proof sent — an admin will check it'); await boot(); go('tasks');
+  },
+  goRef() { go('ref'); },
   async moreProof() { await loadProof(true); },
   async play(d) { await playGame(d); },
   async boost() {

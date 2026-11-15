@@ -15,6 +15,8 @@ import { captureReferrer } from "../lib/referral.js";
 import * as ntf from "../lib/actions/notify.js";
 import * as eng from "../lib/actions/engage.js";
 import * as gam from "../lib/actions/games.js";
+import * as tsk from "../lib/actions/tasks.js";
+import * as cts from "../lib/actions/contests.js";
 
 // Action registry. write=true -> POST only; admin=true -> server-side admin check on every call.
 const ACTIONS = {
@@ -89,6 +91,15 @@ const ACTIONS = {
   adminDrawCreate: { fn: gam.adminDrawCreate, admin: true, write: true },
   adminDrawPick: { fn: gam.adminDrawPick, admin: true, write: true },
   adminDrawCancel: { fn: gam.adminDrawCancel, admin: true, write: true },
+  taskProofSubmit: { fn: tsk.taskProofSubmit, write: true },
+  adminTaskProofs: { fn: tsk.adminTaskProofs, admin: true },
+  adminTaskProofApprove: { fn: tsk.adminTaskProofApprove, admin: true, write: true },
+  adminTaskProofReject: { fn: tsk.adminTaskProofReject, admin: true, write: true },
+  contests: { fn: cts.contests },
+  adminContestList: { fn: cts.adminContestList, admin: true },
+  adminContestCreate: { fn: cts.adminContestCreate, admin: true, write: true },
+  adminContestCancel: { fn: cts.adminContestCancel, admin: true, write: true },
+  adminContestPay: { fn: cts.adminContestPay, admin: true, write: true },
 };
 
 export default async function handler(req, res) {

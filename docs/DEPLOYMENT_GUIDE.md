@@ -67,3 +67,11 @@ Vercel → Deployments → previous deployment → **Promote to Production**. Da
 4. Turn on in this order, testing each with tiny numbers: Games (free plays only) → Mining Boosters → Lucky Draw. Set free plays, daily max and the win cap before you switch Games ON.
 5. **Legal**: Points can be withdrawn as USDT. Before you set an **entry fee above 0** or switch the **Lucky Draw** (paid tickets) ON, check what your local law says about games of chance and lotteries. Run rows 35-50 of `docs/TEST_MATRIX.md` first.
 6. Lucky Draw: create the draw (Admin → Games), set a sales end date, and after it ends press **Draw winner** (type DRAW). One draw can be open at a time. **Cancel + refund** returns every ticket.
+
+## 13. Tasks with proof, Ads & Contests (v1.11.0)
+1. Neon SQL Editor: run `db/migrations/010_tasks_ads_contests.sql` (safe to run twice). **Do this BEFORE redeploying**: the task claim now reads `campaigns.spent`. No new Vercel env variables. Redeploy.
+2. **Admin → Settings → Tasks, Ads & Contests**. Task proofs and Contests start **OFF**.
+3. Proof tasks: Admin → Tasks → set "Proof required" and tell users what to send in the hint. Turn **Tasks that need a proof** ON and review **Admin → Task proofs** daily. Keep rewards small: a proof is text and an admin judges it.
+4. Ads: nothing to switch. Approved bot / website campaigns become proof tasks only while proofs are ON; channel campaigns are checked by Telegram (the bot must be admin in the advertiser's channel).
+5. Contests: Admin → Contests → create one, then switch **Referral contests** ON. Prizes are Points the app creates: check the total. After the end date type `PAY`. Run rows 51-66 of `docs/TEST_MATRIX.md` with tiny numbers first.
+

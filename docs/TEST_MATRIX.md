@@ -66,3 +66,19 @@ Also run once (done in this build): headless Chromium at 390×844 against the st
 | 48 | Claim the daily reward while the booster is active, then after it expires | Reward = base × booster % ÷ 100 rounded down, ledger text mentions the booster; after expiry the base reward again |
 | 49 | Switch Boosters / Games / Lucky Draw OFF after purchases | An already-bought booster still applies; new purchases / plays / tickets are refused with clear messages |
 | 50 | Admin > Audit filter `game` and `draw`, then Admin > Ledger check | Rows present with the admin ID; ledger check reports no mismatch |
+| 51 | Admin > Tasks: create a website task, reward 10, **Proof required**. Settings: Tasks that need a proof OFF | Task is NOT in the user's Tasks list; `taskProofSubmit` returns `proofs_off` |
+| 52 | Turn proofs ON. As user A open the task, tap Send proof, send `@testuser` | Task shows "In review"; second submission refused "already have a proof waiting" |
+| 53 | Call `taskComplete` for the proof task (timer or not) | Refused "needs a proof"; no Points |
+| 54 | Admin > Task proofs: Approve A's proof, press Approve again (or from a second admin) | +10 once, ledger has ONE `Task Reward`; second press "already reviewed"; task shows Done; audit `taskproof.approve` |
+| 55 | User B sends a proof, admin Rejects with a reason | B sees the reason and "Try again"; B sends a new proof; after 3 rejections B is refused ("used all 3 attempts") |
+| 56 | User with 5 proofs waiting sends a 6th | Refused "at most 5 proofs waiting" |
+| 57 | Approve a proof for a task that is full or disabled | Refused "closed or full: reject instead"; no Points move |
+| 58 | As a user create a campaign (reward 10, target 10 = 100 Points), admin approves it (bot type, proofs ON) | Campaign becomes active, task needs a proof; owner's balance already down 100 (`Campaign Budget`) |
+| 59 | Three users complete it (channel campaign: join + Verify; bot campaign: proof + approve) | Each paid 10 once; campaign card shows "Used 30 of 100 · 70 unused"; `campaign_completions` has 3 rows |
+| 60 | Owner taps Stop and refund unused (or admin cancels), then taps again | +70 `Campaign Refund` ONCE; status cancelled; task disappears; second tap refused; ledger check clean |
+| 61 | Let a small campaign (target 2) be completed by 2 users | Status becomes **finished**, no refund row, task gone from Tasks |
+| 62 | Settings > Contests ON. Admin > Contests: weekly, prizes `100,50`, min 1. Try creating a second one | First created; second refused "already a contest running"; More > Contests shows it with a countdown |
+| 63 | Two users invite friends who join + verify channels. Check the live leaderboard; make two users tie | Ranking by referrals; tie goes to whoever reached the count first; rows show first names only |
+| 64 | Press Pay before the end date | Refused "has not ended yet" (use a custom 1-day contest and wait, or set `ends_at` in the past in Neon for the test) |
+| 65 | After the end: Pay winners, type PAY, press Pay again | Rank 1 +100, rank 2 +50, one `Contest Prize` row each; contest `paid`; second press refused; More > Contests shows last winners; audit `contest.pay` |
+| 66 | Cancel an open contest; Ledger check after rows 51-65 | Cancel pays nothing; ledger check reports no mismatch |

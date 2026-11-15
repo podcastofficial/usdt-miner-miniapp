@@ -35,7 +35,7 @@ Defaults are editable in Admin > Settings. Anything touching money/abuse ships *
 | DB | `009_games.sql`: `game_plays`, `game_prizes`, `draws`, `draw_tickets`, `boosters` |
 | Tests | outcome distribution, caps, no double play, ledger balance after plays |
 
-## Part 4 — Tasks, Ads & Contests (v1.11.0)
+## Part 4 — Tasks, Ads & Contests (v1.11.0) — DONE
 | Feature | Details |
 |---|---|
 | Bot/website tasks | user submits proof, admin review queue, approve pays Points once; `ALLOW_UNVERIFIED_TASKS` stays false |

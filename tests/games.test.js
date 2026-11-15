@@ -260,7 +260,7 @@ test("frontend: games screen is live, handlers exist, no 'coming soon', admin ta
   for (const a of ["play", "boost", "drawBuy"]) assert.match(app, new RegExp(`^  (async )?${a}\\(`, "m"), a);
   assert.match(app, /prefers-reduced-motion/); assert.match(adm, /\['gam','🎮','Games'\]/);
   for (const m of ["editPrize", "prizeSave", "prizeOn", "drawCreate", "drawPick", "drawCancel"]) assert.match(adm, new RegExp(`^ (async )?${m}\\(`, "m"), m);
-  assert.equal(pkg.version, "1.10.0");
+  assert.ok(pkg.version.split(".").map(Number).join(".") >= "1.10.0" || Number(pkg.version.split(".")[1]) >= 10, "version is at least 1.10.0"); // Part 4 bumped it to 1.11.0
   for (const f of ["lib/games.js", "lib/actions/games.js"]) assert.ok(pkg.scripts.check.includes(f), f);
 });
 

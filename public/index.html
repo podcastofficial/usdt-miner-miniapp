@@ -183,6 +183,7 @@
   <button class="card hub" data-go="proof"><span class="ic" aria-hidden="true">🧾</span><span><b>Payment Proof</b><small>Recent paid withdrawals</small></span><span class="chev" aria-hidden="true">›</span></button>
   <button class="card hub" data-go="howto"><span class="ic" aria-hidden="true">📖</span><span><b>How to Use</b><small>Step by step guide and FAQ</small></span><span class="chev" aria-hidden="true">›</span></button>
   <button class="card hub" data-go="games"><span class="ic" aria-hidden="true">🎮</span><span><b>Games</b><small>Spin, scratch, lucky draw, boosters</small></span><span class="chev" aria-hidden="true">›</span></button>
+  <button class="card hub" data-go="contests"><span class="ic" aria-hidden="true">🏁</span><span><b>Contests</b><small>Invite friends and win prizes</small></span><span class="chev" aria-hidden="true">›</span></button>
   <button class="card hub" data-go="history"><span class="ic" aria-hidden="true">📜</span><span><b>History</b><small>Your Points transactions</small></span><span class="chev" aria-hidden="true">›</span></button>
 </section>
 
@@ -247,6 +248,28 @@
   <h3 class="sec">Your recent plays</h3>
   <div id="playlist"></div>
   <p class="hint">Games use Points only, never real money. Every result is decided by the server before you see it, and the odds are shown on each game. Daily limits and prize caps apply. Play for fun.</p>
+</section>
+
+<!-- ============ TASK PROOF (Phase 2 / Part 4) ============ -->
+<section id="taskproof" aria-labelledby="h-taskproof">
+  <h2 id="h-taskproof">🧾 Send proof<small>An admin checks it, then you get your Points</small></h2>
+  <div class="card">
+    <b id="pf_title"></b>
+    <p id="pf_hint" class="muted"></p>
+    <p id="pf_note" class="hint" role="status"></p>
+    <button class="btn sm ghost" data-act="proofOpenLink">Open the task first ›</button>
+    <label for="pf_text">Your proof</label>
+    <textarea id="pf_text" maxlength="300" rows="3" autocomplete="off" spellcheck="false" placeholder="e.g. your @username or the code you saw"></textarea>
+    <button class="btn" data-act="proofSend">Send proof ›</button>
+    <small>Fake proofs are rejected. You get a limited number of attempts per task.</small>
+  </div>
+</section>
+
+<!-- ============ CONTESTS (Phase 2 / Part 4) ============ -->
+<section id="contests" aria-labelledby="h-contests">
+  <h2 id="h-contests">🏁 Contests<small>Invite friends and win Points</small></h2>
+  <div id="ctlist"><div class="empty">Loading…</div></div>
+  <p class="hint">Only friends who join and verify the required channels count. Rankings are live; prizes are paid by the admin after the contest ends. Ties go to whoever reached the number first.</p>
 </section>
 
 <!-- ============ ADMIN ============ -->
