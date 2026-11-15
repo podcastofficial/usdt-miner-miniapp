@@ -10,3 +10,4 @@ lib/core.js (split into the modules above)
 1. Neon SQL Editor → run `db/migrations/001_foundation.sql` (after `db/schema.sql` if the DB is new).
 2. Vercel env: add `INITDATA_MAX_AGE_SECONDS=86400`, `DEPOSITS_ENABLED=false`, `ALLOW_UNVERIFIED_TASKS=false`; set real `ADMIN_TELEGRAM_IDS`.
 3. Redeploy; open inside Telegram. `npm test` → 12 passing.
+
