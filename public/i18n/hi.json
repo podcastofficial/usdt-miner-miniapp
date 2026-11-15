@@ -72,5 +72,15 @@
  "prefs.saved": "सेव हो गया",
  "toast.claimed": "🎁 {n} पॉइंट्स मिले",
  "toast.streak": " · 🔥 {n} दिन की स्ट्रीक",
- "hub.history.t": "इतिहास"
+ "hub.history.t": "इतिहास",
+ "prefs.font": "फ़ॉन्ट",
+ "font.system": "सिस्टम (डिफ़ॉल्ट)",
+ "font.serif": "सेरिफ़",
+ "font.mono": "मोनोस्पेस",
+ "font.rounded": "गोल",
+ "font.hand": "हस्तलिपि",
+ "prefs.fsize": "टेक्स्ट का आकार",
+ "size.small": "छोटा",
+ "size.normal": "सामान्य",
+ "size.large": "बड़ा"
 }

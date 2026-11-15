@@ -72,5 +72,15 @@
  "prefs.saved": "Saved",
  "toast.claimed": "🎁 Claimed {n} Points",
  "toast.streak": " · 🔥 {n}-day streak",
- "hub.history.t": "History"
+ "hub.history.t": "History",
+ "prefs.font": "Font",
+ "font.system": "System (default)",
+ "font.serif": "Serif",
+ "font.mono": "Monospace",
+ "font.rounded": "Rounded",
+ "font.hand": "Handwriting",
+ "prefs.fsize": "Text size",
+ "size.small": "Small",
+ "size.normal": "Normal",
+ "size.large": "Large"
 }
