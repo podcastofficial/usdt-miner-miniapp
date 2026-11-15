@@ -1,20 +1,22 @@
-/* USDT Miner - Part 7 design system: Black + Orange 3D.
+/* USDT Miner - Part 7 design system, re-themed to the gem-coin logo: warm black + gold/orange 3D.
    Rules: every text colour below is contrast-checked in tests/frontend.test.js (WCAG AA 4.5:1);
    motion is off under prefers-reduced-motion; interactive targets are >= 44px; focus is always visible. */
 :root{
-  --bg:#050507;--card-a:#1d1e25;--card-b:#0e0f13;--field:#08090c;
-  --or1:#ffb02e;--or2:#ff7a00;--or3:#c24e00;--line:rgba(255,140,0,.45);
+  --bg:#050507;--card-a:#241509;--card-b:#0d0a07;--field:#08070a;
+  --or1:#ffb02e;--or2:#ff7a00;--or3:#c24e00;--line:rgba(255,154,18,.42);
   --txt:#fff4e6;--mut:#bfae99;--green:#3fe0b0;--red:#ff8a8a;--focus:#ffd98a;
-  --btn-a:#ffc552;--btn-b:#ff8a00;--btn-c:#e66a00;--btn-ink:#2b1200;--btn-edge:#8f3d00;
+  --btn-a:#ffd36b;--btn-b:#ff9a12;--btn-c:#e66a00;--btn-ink:#2b1200;--btn-edge:#8f3d00;
   --r:18px;color-scheme:dark;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 body{margin:0;min-height:100vh;color:var(--txt);font:1rem/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
-  background:radial-gradient(ellipse at 50% -10%,#3a1a00 0%,#12090a 45%,var(--bg) 80%) fixed;
+  background:radial-gradient(ellipse at 50% -8%,#3a1a00 0%,#170d05 42%,var(--bg) 80%) fixed;
   padding:calc(12px + env(safe-area-inset-top,0px)) 14px calc(108px + env(safe-area-inset-bottom,0px))}
 h1,h2,h3{margin:0}
 h2{margin:6px 2px 12px;font-size:1.3rem;font-style:italic;font-weight:800;letter-spacing:.2px}
+h2::before{content:"";display:inline-block;width:5px;height:1em;margin-right:9px;border-radius:3px;background:linear-gradient(180deg,#ffd36b,#ff7a00);vertical-align:-.12em}
+h2.sr::before{display:none}
 h2 small{font-style:normal;font-weight:400;font-size:.85rem;color:var(--mut);display:block}
 h3{font-size:1.05rem}
 p{margin:4px 0}
@@ -29,8 +31,8 @@ small{font-size:.85rem}
 
 /* header / status */
 .top{display:flex;align-items:center;gap:10px;margin-bottom:8px}
-.logo{font-size:2rem;filter:drop-shadow(0 0 10px var(--or2))}
-.top h1{font-size:1.65rem;font-style:italic;font-weight:900;line-height:1.1;background:linear-gradient(180deg,#fff,#ffd9a0 60%,#ff9d2e);-webkit-background-clip:text;background-clip:text;color:transparent}
+.logo{flex:0 0 auto;width:48px;height:48px;border-radius:14px;filter:drop-shadow(0 0 12px rgba(255,138,0,.6))}
+.top h1{font-size:1.65rem;font-style:italic;font-weight:900;line-height:1.1;background:linear-gradient(180deg,#fff4e6,#ffd36b 55%,#ff9a12);-webkit-background-clip:text;background-clip:text;color:transparent}
 .top small{display:block;font-style:normal;font-size:.82rem;font-weight:500;-webkit-text-fill-color:var(--mut)}
 #banner{margin:4px 0 10px;padding:10px 12px;border-radius:14px;border:1.5px solid var(--or2);background:rgba(255,122,0,.12);color:var(--txt);font-size:.92rem}
 #toast{position:fixed;left:14px;right:14px;bottom:calc(92px + env(safe-area-inset-bottom,0px));z-index:60;padding:12px 14px;border-radius:14px;background:#2a1606;border:1.5px solid var(--or2);color:var(--txt);box-shadow:0 10px 26px rgba(0,0,0,.8);text-align:center;font-weight:600;opacity:0;transform:translateY(8px);pointer-events:none;transition:opacity .2s,transform .2s}
@@ -40,40 +42,44 @@ main>section{display:none}
 main>section.on{display:block;animation:in .3s ease}
 @keyframes in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 
-/* hero: 3D coin with real thickness */
-.hero{position:relative;height:210px;perspective:800px;display:grid;place-items:center;overflow:hidden;border-radius:24px;border:1.5px solid var(--line);
-  background:radial-gradient(ellipse at 50% 100%,rgba(255,122,0,.4),transparent 65%),linear-gradient(180deg,#120b07,#08080b);box-shadow:0 12px 28px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.1)}
-.floor{position:absolute;bottom:20px;width:240px;height:50px;border-radius:50%;border:3px solid var(--or2);box-shadow:0 0 30px var(--or2),inset 0 0 24px var(--or2);transform:rotateX(72deg);animation:pulse 2.6s ease-in-out infinite}
-@keyframes pulse{50%{box-shadow:0 0 46px var(--or1),inset 0 0 36px var(--or1)}}
-.coin{position:relative;width:120px;height:120px;margin-top:-18px;transform-style:preserve-3d;animation:spin 7s linear infinite}
-@keyframes spin{to{transform:rotateY(360deg)}}
-.coin .face,.coin .rim i{position:absolute;inset:0;border-radius:50%}
-.coin .face{display:grid;place-items:center;font-size:4.2rem;font-weight:900;color:#fff;backface-visibility:hidden;border:8px solid var(--or1);
-  background:radial-gradient(circle at 35% 30%,#59e0b2,#26a17b 55%,#0d5c45);box-shadow:inset 0 0 20px rgba(0,0,0,.5);text-shadow:0 4px 6px rgba(0,0,0,.5)}
-.coin .front{transform:translateZ(9px)}
-.coin .back{transform:rotateY(180deg) translateZ(9px)}
-.coin .rim i{background:linear-gradient(90deg,var(--or3),var(--or1),var(--or3));transform:translateZ(var(--z))}
-.gem{position:absolute;font-size:1.9rem;filter:drop-shadow(0 0 8px #ff9d00);animation:fl 3s ease-in-out infinite}
-.gem.l{left:18px;bottom:40px}.gem.r{right:26px;bottom:34px;animation-delay:1s}
-.pick{position:absolute;right:14px;top:8px;font-size:4rem;transform:rotate(25deg);filter:drop-shadow(0 6px 10px #000)}
-@keyframes fl{50%{transform:translateY(-8px) rotate(8deg)}}
+/* hero: the gem-coin logo floating on a gold glow */
+.hero{position:relative;height:208px;display:grid;place-items:center;overflow:hidden;border-radius:26px;border:1.5px solid var(--line);
+  background:radial-gradient(circle at 50% 58%,rgba(255,154,18,.4),transparent 62%),linear-gradient(180deg,#160c05,#08070a);box-shadow:0 12px 28px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,211,107,.25)}
+.hero .aura{position:absolute;width:236px;height:236px;border-radius:50%;background:conic-gradient(rgba(255,211,107,0),rgba(255,176,46,.38),rgba(255,211,107,0) 38%,rgba(255,122,0,.32),rgba(255,211,107,0));filter:blur(20px);animation:turn 10s linear infinite}
+@keyframes turn{to{transform:rotate(360deg)}}
+.floor{position:absolute;bottom:14px;width:210px;height:44px;border-radius:50%;border:3px solid var(--or2);box-shadow:0 0 28px var(--or2),inset 0 0 22px var(--or2);transform:rotateX(72deg);animation:pulse 2.8s ease-in-out infinite}
+@keyframes pulse{50%{box-shadow:0 0 44px var(--or1),inset 0 0 34px var(--or1)}}
+.hero-logo{position:relative;width:164px;height:auto;margin-top:-12px;filter:drop-shadow(0 14px 18px rgba(0,0,0,.75)) drop-shadow(0 0 24px rgba(255,138,0,.55));animation:fl 4s ease-in-out infinite}
+@keyframes fl{50%{transform:translateY(-8px)}}
+.spark{position:absolute;color:#ffd98a;text-shadow:0 0 10px #ff9a12;animation:tw 2.6s ease-in-out infinite}
+.spark.s1{left:22px;top:30px;font-size:1.3rem}.spark.s2{right:28px;top:44px;font-size:1rem;animation-delay:.8s}.spark.s3{right:70px;bottom:36px;font-size:.8rem;animation-delay:1.6s}
+@keyframes tw{0%,100%{opacity:.35;transform:scale(.8)}50%{opacity:1;transform:scale(1.15)}}
 
 /* cards (3D: bevel + depth + rim glow) */
 .card{position:relative;margin:10px 0;padding:14px;border-radius:var(--r);border:1.5px solid var(--line);
   background:linear-gradient(160deg,var(--card-a),var(--card-b));
-  box-shadow:0 10px 22px rgba(0,0,0,.65),0 0 18px rgba(255,122,0,.15),inset 0 1px 0 rgba(255,255,255,.12),inset 0 -10px 18px rgba(0,0,0,.4)}
+  box-shadow:0 10px 22px rgba(0,0,0,.65),0 0 18px rgba(255,122,0,.15),inset 0 1px 0 rgba(255,211,107,.2),inset 0 -10px 18px rgba(0,0,0,.4)}
 .card p{word-break:break-word}
-.balance{display:flex;align-items:center;justify-content:space-between;gap:10px;border-color:var(--or2);box-shadow:0 10px 26px rgba(0,0,0,.7),0 0 26px rgba(255,122,0,.4),inset 0 0 18px rgba(255,122,0,.12)}
-.balance .l{font-weight:700;font-size:1.05rem}
+.balance{border-color:var(--or2);background:linear-gradient(150deg,#3a1a00,var(--card-a) 45%,var(--card-b));box-shadow:0 10px 26px rgba(0,0,0,.7),0 0 26px rgba(255,122,0,.4),inset 0 0 18px rgba(255,122,0,.12),inset 0 1px 0 rgba(255,211,107,.3)}
+.bal-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.balance .l{font-weight:700;font-size:1.02rem}
 .big{font-size:2.5rem;font-weight:900;line-height:1.1;color:var(--or1);text-shadow:0 1px 0 var(--or3),0 2px 0 #a63f00,0 3px 0 #7a3000,0 7px 12px rgba(0,0,0,.6),0 0 22px rgba(255,150,0,.5)}
-.wallet3d{font-size:3.2rem;filter:drop-shadow(0 6px 10px #000);transform:perspective(300px) rotateY(-18deg)}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;perspective:900px}
+.rate{flex:0 1 auto;padding:5px 10px;border-radius:999px;border:1px solid rgba(255,176,46,.4);background:rgba(255,176,46,.12);color:var(--txt);font-size:.76rem;font-weight:600;text-align:center;line-height:1.25}
+.qa{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.qa .btn{margin:0}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .grid>.card{margin:0}
-.tile{text-align:center;padding:12px 8px;transition:transform .15s}
-.tile:active{transform:rotateX(8deg) scale(.97)}
-.tile .ic{display:block;font-size:2.8rem;filter:drop-shadow(0 8px 8px rgba(0,0,0,.8)) drop-shadow(0 0 10px rgba(255,140,0,.4));animation:bob 3.5s ease-in-out infinite}
-.tile h3{margin-top:2px}.tile small{display:block;margin-bottom:8px}
-@keyframes bob{50%{transform:translateY(-4px)}}
+.tile{display:flex;flex-direction:column;align-items:flex-start;text-align:left;padding:14px 12px 12px;transition:transform .15s}
+.tile:active{transform:scale(.98)}
+.tile .ib{display:grid;place-items:center;width:52px;height:52px;margin-bottom:10px;border-radius:16px;font-size:1.7rem;
+  background:linear-gradient(160deg,#ffd36b,#ff9a12 55%,#c24e00);box-shadow:0 4px 0 #6b2c00,0 8px 14px rgba(255,122,0,.35),inset 0 2px 0 rgba(255,255,255,.55)}
+.tile h3{font-size:1rem}.tile small{display:block;margin:2px 0 12px}
+.tile>.btn{margin-top:auto}
+.tile.feat,.tile.wide{grid-column:1/-1;display:grid;grid-template-columns:auto 1fr auto;align-items:center;column-gap:12px;padding:12px}
+.tile.feat .ib,.tile.wide .ib{margin:0}
+.tile.feat small,.tile.wide small{margin:2px 0 0}
+.tile.feat>.btn,.tile.wide>.btn{width:auto;min-width:96px;margin:0}
+.tile.feat{border-color:var(--or2);background:linear-gradient(135deg,#3a1a00,#1b0f06 60%,var(--card-b));box-shadow:0 10px 24px rgba(0,0,0,.65),0 0 22px rgba(255,122,0,.35),inset 0 1px 0 rgba(255,211,107,.3)}
 
 /* buttons: raised 3D, press = sink */
 button{font:inherit;color:inherit;cursor:pointer}
@@ -84,7 +90,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .btn:disabled,.btn[aria-disabled=true]{opacity:.65;filter:grayscale(.35);cursor:default;transform:none}
 .btn.sm{display:inline-block;width:auto;padding:9px 16px;font-size:.88rem}
 .btn.done{background:linear-gradient(180deg,#5de3b0,#26a17b);color:#00261a;box-shadow:0 5px 0 #0d5c45,0 9px 14px rgba(38,161,123,.35),inset 0 2px 0 rgba(255,255,255,.5)}
-.btn.ghost{background:#2c2d35;color:var(--txt);box-shadow:0 4px 0 #0b0b0e,inset 0 1px 0 rgba(255,255,255,.12)}
+.btn.ghost{background:linear-gradient(180deg,#3a2a1a,#2c2d35);color:var(--txt);border:1.5px solid rgba(255,176,46,.45);box-shadow:0 4px 0 #0b0b0e,inset 0 1px 0 rgba(255,211,107,.2)}
 .btn+.btn{margin-top:10px}
 
 /* forms */
@@ -107,7 +113,7 @@ input[aria-invalid=true]{border-color:var(--red)}
 
 /* rows */
 .row{display:flex;align-items:center;gap:12px;padding:11px 12px}
-.row .ic{font-size:2.1rem;filter:drop-shadow(0 4px 5px #000);flex:0 0 auto}
+.row .ic,.hub .ic{flex:0 0 auto;display:grid;place-items:center;width:46px;height:46px;font-size:1.5rem;border-radius:14px;border:1px solid rgba(255,176,46,.38);background:linear-gradient(160deg,rgba(255,211,107,.24),rgba(194,78,0,.3));box-shadow:inset 0 1px 0 rgba(255,255,255,.18)}
 .row .mid{flex:1;min-width:0}.row b{display:block}.row .pts{color:var(--or1);font-weight:700;font-size:.9rem}
 .row small{display:block}
 .hub{display:flex;align-items:center;gap:12px;width:100%;min-height:64px;text-align:left}
@@ -138,21 +144,19 @@ nav#nav{position:fixed;left:10px;right:10px;bottom:calc(10px + env(safe-area-ins
   background:linear-gradient(180deg,#1a1b21,#0b0c10);border:1.5px solid var(--line);box-shadow:0 10px 30px rgba(0,0,0,.8),0 0 22px rgba(255,122,0,.25),inset 0 1px 0 rgba(255,255,255,.1)}
 nav#nav button{position:relative;flex:1;min-height:52px;padding:6px 0;border:0;border-radius:16px;background:transparent;color:#d9c9b5;font-size:.72rem}
 nav#nav .ic{display:block;font-size:1.4rem;filter:drop-shadow(0 3px 3px #000);transition:transform .2s}
-nav#nav button[aria-current=page]{color:var(--or1);font-weight:700}
+nav#nav button[aria-current=page]{color:var(--or1);font-weight:700;background:linear-gradient(180deg,rgba(255,211,107,.2),rgba(255,122,0,.1));box-shadow:inset 0 0 0 1px rgba(255,176,46,.4)}
 nav#nav button[aria-current=page] .ic{transform:translateY(-3px) scale(1.15);filter:drop-shadow(0 0 8px #ff8a00)}
 nav#nav button[aria-current=page]::after{content:"";position:absolute;left:25%;right:25%;bottom:0;height:3px;border-radius:3px;background:var(--or2);box-shadow:0 0 8px var(--or2)}
 
-@media (max-width:340px){.grid{grid-template-columns:1fr}.big{font-size:2rem}}
+@media (max-width:340px){.grid{grid-template-columns:1fr}.big{font-size:2rem}.bal-top{flex-direction:column}.tile.feat,.tile.wide{grid-template-columns:auto 1fr}.tile.feat>.btn,.tile.wide>.btn{grid-column:1/-1}}
 @media (prefers-contrast:more){:root{--line:#ff9d2e;--mut:#e8dccd}.card,.tab,input,select,textarea{border-width:2px}}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
-  .coin{transform:rotateY(-24deg)}
+  .hero-logo{transform:none}
 }
 
 /* utilities (replace inline styles so the CSP can forbid them) */
 .accent{color:var(--or1)}.wrap{word-break:break-all}.mt{margin-top:8px}.sub{margin:14px 2px 6px}.row.flat{padding:0}
-.coin .rim i:nth-child(1){--z:-8px}.coin .rim i:nth-child(2){--z:-6px}.coin .rim i:nth-child(3){--z:-4px}.coin .rim i:nth-child(4){--z:-2px}.coin .rim i:nth-child(5){--z:0px}
-.coin .rim i:nth-child(6){--z:2px}.coin .rim i:nth-child(7){--z:4px}.coin .rim i:nth-child(8){--z:6px}.coin .rim i:nth-child(9){--z:8px}
 
 /* admin panel (moved out of admin.js: no injected <style>) */
 #admtabs{display:flex;gap:6px;overflow-x:auto;margin:8px 0;padding-bottom:4px}#admtabs .tab{flex:0 0 auto;padding:8px 12px}

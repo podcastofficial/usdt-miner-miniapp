@@ -9,14 +9,14 @@ html[data-theme="light"]{
 html[data-theme="light"] body{background:radial-gradient(ellipse at 50% -10%,#ffe2b8 0%,#fff3e0 50%,var(--bg) 85%) fixed}
 html[data-theme="light"] .skip{background:#ffc552;color:#2b1200}
 html[data-theme="light"] .top h1{background:linear-gradient(180deg,#7a3300,#b34700 70%,#d96800);-webkit-background-clip:text;background-clip:text;color:transparent}
-html[data-theme="light"] .logo{filter:drop-shadow(0 0 6px rgba(217,104,0,.5))}
+html[data-theme="light"] .logo{filter:drop-shadow(0 3px 6px rgba(217,104,0,.45))}
 html[data-theme="light"] #banner{background:rgba(255,122,0,.16)}
 html[data-theme="light"] #toast{background:#ffffff;color:var(--txt);box-shadow:0 10px 26px rgba(120,60,0,.35)}
 html[data-theme="light"] .card{box-shadow:0 8px 18px rgba(120,60,0,.18),inset 0 1px 0 #fff,inset 0 -8px 14px rgba(255,170,80,.12)}
 html[data-theme="light"] .balance{box-shadow:0 8px 20px rgba(120,60,0,.22),0 0 18px rgba(255,122,0,.3)}
 html[data-theme="light"] .big{color:var(--or1);text-shadow:0 1px 0 #fff,0 3px 6px rgba(120,60,0,.25)}
 html[data-theme="light"] .tile .ic{filter:drop-shadow(0 6px 5px rgba(120,60,0,.3))}
-html[data-theme="light"] .row .ic,html[data-theme="light"] nav#nav .ic{filter:drop-shadow(0 3px 3px rgba(120,60,0,.3))}
+html[data-theme="light"] nav#nav .ic{filter:drop-shadow(0 3px 3px rgba(120,60,0,.3))}
 html[data-theme="light"] .btn.ghost{background:#f3dcbc;color:var(--txt);box-shadow:0 4px 0 #c9a77a,inset 0 1px 0 rgba(255,255,255,.7)}
 html[data-theme="light"] input,html[data-theme="light"] select,html[data-theme="light"] textarea{border-color:#c9a77a;color:var(--txt);box-shadow:inset 0 2px 5px rgba(120,60,0,.15)}
 html[data-theme="light"] .tab{background:linear-gradient(180deg,#ffffff,#fbe9cf);border-color:#d8b98a;color:var(--txt);box-shadow:0 4px 0 #d8b98a,inset 0 1px 0 #fff}
@@ -38,3 +38,14 @@ html[data-theme="light"] .gbox.open{border-color:var(--or2)}
 html[data-theme="light"] .result.win{background:#d9f5ea;border-color:#1f8a68}
 html[data-theme="light"] .odds li{border-bottom-color:#e9cfa7}
 html[data-theme="light"] .admodal{background:rgba(40,20,0,.6)}
+html[data-theme="light"] h2::before{background:linear-gradient(180deg,#ffb02e,#d96800)}
+html[data-theme="light"] .hero{background:radial-gradient(circle at 50% 58%,rgba(255,154,18,.38),transparent 62%),linear-gradient(180deg,#fff0d8,#ffddaa);border-color:rgba(194,78,0,.5);box-shadow:0 10px 24px rgba(120,60,0,.25),inset 0 1px 0 #fff}
+html[data-theme="light"] .hero-logo{filter:drop-shadow(0 12px 14px rgba(120,60,0,.45)) drop-shadow(0 0 18px rgba(255,154,18,.5))}
+html[data-theme="light"] .spark{color:#c24e00;text-shadow:0 0 8px rgba(255,176,46,.8)}
+html[data-theme="light"] .balance{background:linear-gradient(150deg,#ffe3bd,#ffffff 55%,#fff1dd);box-shadow:0 8px 20px rgba(120,60,0,.22),0 0 18px rgba(255,122,0,.3),inset 0 1px 0 #fff}
+html[data-theme="light"] .rate{background:rgba(217,104,0,.12);border-color:rgba(194,78,0,.45);color:var(--txt)}
+html[data-theme="light"] .tile.feat{background:linear-gradient(135deg,#ffe3bd,#fff6e8 65%,#ffffff);box-shadow:0 8px 20px rgba(120,60,0,.22),0 0 16px rgba(217,104,0,.25),inset 0 1px 0 #fff}
+html[data-theme="light"] .tile .ib{box-shadow:0 4px 0 #b35300,0 8px 12px rgba(217,104,0,.3),inset 0 2px 0 rgba(255,255,255,.7)}
+html[data-theme="light"] .row .ic,html[data-theme="light"] .hub .ic{border-color:rgba(194,78,0,.4);background:linear-gradient(160deg,#ffe3bd,#ffc98a);box-shadow:inset 0 1px 0 #fff}
+html[data-theme="light"] .btn.ghost{border-color:rgba(194,78,0,.5)}
+html[data-theme="light"] nav#nav button[aria-current=page]{background:linear-gradient(180deg,rgba(255,176,46,.35),rgba(255,122,0,.15));box-shadow:inset 0 0 0 1px rgba(194,78,0,.45)}
