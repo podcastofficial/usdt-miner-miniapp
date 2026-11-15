@@ -5,8 +5,12 @@ const $=id=>document.getElementById(id),E=esc,A=(a,p)=>api(a,p||{}),N=Number;
 const D=x=>x?new Date(x).toLocaleString():'';
 const short=h=>h?String(h).slice(0,10)+'…'+String(h).slice(-6):'';
 const nm=x=>E(x.first_name||x.username||x.telegram_id||x.owner_id);
-const TABS=[['home','📊','Home'],['wd','💸','Withdraw'],['dep','⬇️','Deposits'],['usr','👤','Users'],['tsk','📋','Tasks'],['cmp','📢','Campaigns'],['tpf','🧾','Task proofs'],['cts','🏁','Contests'],['ntf','🔔','Notify'],['pro','🎟️','Promo'],['gam','🎮','Games'],['set','⚙️','Settings'],['prf','🧾','Proof'],['aud','🧾','Audit']];
-let tab='home',cur={f:{},tasks:[],setItems:[],audNext:null,prfNext:null};
+// [key, icon, label, permission]. The server checks the permission again on every call (lib/roles.js); this only hides tabs the role cannot use.
+const ALLTABS=[['home','📊','Home','dashboard'],['wd','💸','Withdraw','finance'],['dep','⬇️','Deposits','finance'],['usr','👤','Users','users_read'],['tsk','📋','Tasks','tasks'],['cmp','📢','Campaigns','campaigns'],['tpf','🧾','Task proofs','proofs_review'],['cts','🏁','Contests','rewards'],['flg','🛡','Safety','fraud'],['ana','📈','Analytics','analytics'],['exp','📤','Export','csv'],['ntf','🔔','Notify','notify'],['pro','🎟️','Promo','rewards'],['gam','🎮','Games','rewards'],['set','⚙️','Settings','settings'],['rol','🔑','Roles','roles'],['prf','🧾','Proof','proof'],['aud','🧾','Audit','audit']];
+const perms=()=>(typeof data!=='undefined'&&data&&data.admin_perms)||[];
+const can=p=>perms().includes(p);
+const TABS=()=>ALLTABS.filter(t=>can(t[3]));
+let tab='home',cur={f:{},tasks:[],setItems:[],audNext:null,prfNext:null,flgNext:null,csv:null};
 
 function note(m){const n=$('admnote');if(n)n.textContent=m;try{say(m)}catch(e){}}
 async function run(fn){try{await fn()}catch(e){note(e.message)}}
@@ -21,15 +25,16 @@ const empty=t=>`<div class="empty">${t}</div>`;
 const sel=(id,opts,tabKey,c,lbl)=>`<label class="sr" for="${id}">${E(lbl||'Filter')}</label><select id="${id}" data-admchg="go" data-p0="${tabKey}">${opts.map(o=>`<option${o===c?' selected':''}>${o}</option>`).join('')}</select>`;
 const stat=(l,v)=>`<div class="card stat"><small>${l}</small><b>${E(v)}</b></div>`;
 
-function shell(){$('adm').innerHTML=`<div id="admtabs">${TABS.map(t=>`<button class="tab${t[0]===tab?' on':''}"${t[0]===tab?' aria-current="true"':''} data-adm="go" data-p0="${t[0]}">${t[1]} ${t[2]}</button>`).join('')}</div><div id="admnote"></div><div id="admbody"></div>`}
+function shell(){$('adm').innerHTML=`<div id="admtabs">${TABS().map(t=>`<button class="tab${t[0]===tab?' on':''}"${t[0]===tab?' aria-current="true"':''} data-adm="go" data-p0="${t[0]}">${t[1]} ${t[2]}</button>`).join('')}</div><div id="admnote"></div><div id="admbody"></div>`}
 async function show(){shell();const b=$('admbody');b.innerHTML=empty('Loading…');await run(async()=>{b.innerHTML=await VIEWS[tab]()})}
 const VIEWS={
  async home(){const d=await A('adminDashboard');return `<div class="grid">${[
   ['Users',d.users],['New (24h)',d.new_24h],['Active (24h)',d.active_24h],['Blocked',d.blocked],
   ['Points in wallets',Number(d.points_total).toLocaleString()+' ≈ '+d.points_total_usdt+' USDT'],['Open withdrawals',d.open_withdrawals+' · owe '+d.owed_usdt+' USDT'],
   ['Paid out',d.paid_usdt+' USDT'],['Deposits to review',d.deposits_waiting],['Deposited',d.deposited_usdt+' USDT'],['Campaigns pending',d.campaigns_pending],['Task proofs to review',d.proofs_pending],
-  ['Active tasks',d.tasks_active],['Qualified referrals',d.referrals_qualified],['Abuse flags (24h)',d.abuse_24h],['Maintenance',d.maintenance?'ON':'off']].map(x=>stat(x[0],x[1])).join('')}</div>
-  <div class="acts"><button class="btn sm" data-adm="tool" data-p0="adminReconcile">Ledger check</button><button class="btn sm" data-adm="tool" data-p0="adminAbuseEvents">Abuse events</button><button class="btn sm" data-adm="tool" data-p0="adminDiagnostics">Server check</button></div><pre id="admout"></pre>`},
+  ['Active tasks',d.tasks_active],['Qualified referrals',d.referrals_qualified],['Abuse events (24h)',d.abuse_24h],['Fraud flags to review',d.flags_open],['Maintenance',d.maintenance?'ON':'off']].map(x=>stat(x[0],x[1])).join('')}</div>
+  <small class="muted">Your role: ${E(data.admin_role||'')}</small>
+  <div class="acts">${can('finance')?'<button class="btn sm" data-adm="tool" data-p0="adminReconcile">Ledger check</button>':''}${can('fraud')?'<button class="btn sm" data-adm="tool" data-p0="adminAbuseEvents">Abuse events</button>':''}${can('system')?'<button class="btn sm" data-adm="tool" data-p0="adminDiagnostics">Server check</button><button class="btn sm" data-adm="tool" data-p0="adminHealth">Health check</button><button class="btn sm ghost" data-adm="tool" data-p0="adminHealthRun">Check + alert admins</button>':''}</div><pre id="admout"></pre>`},
  async wd(){const f=cur.f.wdf||'open';const r=await A('adminWithdrawals',{status:f});
   return sel('wdf',['open','paid','rejected','cancelled'],'wd',f)+`<small class="muted">Owed (pending+approved): ${E(r.owed_usdt)} USDT</small>`+(r.items.map(x=>`<div class="card"><b>#${N(x.id)} · ${E(x.net_usdt)} USDT <small class="inl">(${E(x.status)})</small></b><small>${nm(x)} · ${E(D(x.created_at))}</small><p>${E(x.wallet_address)}</p>${x.reject_reason?`<small>${E(x.reject_reason)}</small>`:''}${x.tx_hash?`<small>${E(short(x.tx_hash))}</small>`:''}
   ${x.status==='pending'?`<div class="acts"><button class="btn sm" data-adm="w" data-p0="${N(x.id)}" data-p1="Approve">Approve</button><button class="btn sm ghost" data-adm="w" data-p0="${N(x.id)}" data-p1="Reject">Reject</button></div>`:x.status==='approved'?`<div class="acts"><button class="btn sm" data-adm="w" data-p0="${N(x.id)}" data-p1="Paid">Mark paid</button><button class="btn sm ghost" data-adm="w" data-p0="${N(x.id)}" data-p1="Reject">Reject</button></div>`:''}</div>`).join('')||empty('Nothing here'))},
@@ -52,6 +57,28 @@ const VIEWS={
   const top=r.live?`<h2>Live standings</h2>`+(r.top.map(x=>`<div class="card row"><div class="mid"><b>#${N(x.rank)} ${E(x.name)}</b><small>ID ${E(x.id)} · ${N(x.referrals)} referrals</small></div><span class="pts">${x.prize?'+'+P(x.prize):''}</span></div>`).join('')||empty('No qualified referrals yet')):'';
   return form+top+'<h2>Contests</h2>'+(r.items.map(c=>`<div class="card"><b>#${N(c.id)} ${E(c.title)} <small class="inl">(${E(c.status)})</small></b><small>${E(c.kind)} · ${E(D(c.starts_at))} → ${E(D(c.ends_at))} · min ${N(c.min_referrals)} referral(s)</small><small>Prizes ${E(pl(c.prizes))} = ${P(c.total_prizes)} Points</small>${c.cancel_reason?`<small>${E(c.cancel_reason)}</small>`:''}${c.status==='open'||c.status==='paying'?`<div class="acts"><button class="btn sm" data-adm="ctPay" data-p0="${N(c.id)}">${c.over?(c.status==='paying'?'Resume payout':'Pay winners'):'Pay winners (after it ends)'}</button>${c.status==='open'?`<button class="btn sm ghost" data-adm="ctCancel" data-p0="${N(c.id)}">Cancel</button>`:''}</div>`:''}</div>`).join('')||empty('No contests yet'))},
 
+ async flg(){const f=cur.f.flgf||'open',rl=cur.f.flgr||'all';const r=await A('adminFraudList',{status:f,rule:rl==='all'?'':rl});cur.flgNext=r.next;
+  return `<div class="card"><b>${N(r.open)} flag(s) waiting for review</b><small>A flag is a question for you, never a ban. Nobody is blocked or paid differently because of a flag. Open the user, look at the ledger and withdrawals, then mark it Reviewed or Dismissed with a note. Block only from Users, with a reason.</small><div class="acts">${can('fraud')?'<button class="btn sm" data-adm="fraudScan">Scan now</button>':''}</div></div>`
+  +sel('flgf',['open','reviewed','dismissed'],'flg',f,'Status')+sel('flgr',['all','same_wallet','referral_burst','rapid_claims'],'flg',rl,'Rule')
+  +`<div id="flgl">${flgRows(r.items)}</div>`+(r.next?`<button class="btn" id="flgmore" data-adm="flgMore">Load more</button>`:'')},
+ async ana(){const r=await A('adminAnalytics'),P=n=>N(n).toLocaleString(),d=r.days,rt=r.retention,cv=r.conversion,lv=r.live,pc=x=>x===null?'not enough data yet':x+'%';
+  const ser=(title,key,cls)=>{const vals=d.map(x=>N(x[key])),tot=vals.reduce((a,b)=>a+b,0);
+   return `<div class="card"><b>${E(title)}</b><small>Last ${N(r.range_days)} days · total ${P(tot)} · today ${P(vals[vals.length-1])}</small>${chart(vals,cls,title)}<details><summary>Numbers</summary><small>${d.map((x,i)=>E(x.day.slice(5))+': '+P(vals[i])).join(' · ')}</small></details></div>`};
+  return `<div class="grid">${[['Active now (24h)',lv.d1],['Active (7d)',lv.d7],['Active (30d)',lv.d30],['All users',lv.total],['Come back after 1 day',pc(rt.d1)],['Come back after 7 days',pc(rt.d7)],['Invites that qualified (30d)',cv.invited?cv.qualified+' of '+cv.invited+' · '+pc(cv.rate):'no invites yet']].map(x=>stat(x[0],x[1])).join('')}</div>
+  <small class="muted">${E(r.notes.retention)} ${E(r.notes.conversion)} ${E(r.notes.active)}</small>`
+  +ser('Active users per day','active','')+ser('New users per day','new_users','')+ser('Points created per day (in)','points_in','')+ser('Points spent or withdrawn per day (out)','points_out','out')},
+ async exp(){
+  return `<div class="card"><h2>Export CSV</h2><small>Admin only and written to the audit log. Up to 5,000 newest rows. Cells that start with = + - or @ get a leading ' so a spreadsheet cannot run them as formulas.</small>
+  <label for="ex_ds">Data</label><select id="ex_ds"><option value="users">Users</option><option value="withdrawals">Withdrawals</option><option value="deposits">Deposits</option><option value="ledger">Ledger (all Points movements)</option></select>
+  <label for="ex_days">Days back (not used for Users)</label><input id="ex_days" type="number" min="1" max="365" value="30" inputmode="numeric">
+  <button class="btn" data-adm="expMake">Create CSV ›</button></div><div id="exres"></div>`},
+ async rol(){const r=await A('adminRoles'),M=r.matrix;
+  return `<div class="card"><h2>Admin roles</h2><small>Super admins (${N(r.super_admins)}) are the IDs in ADMIN_TELEGRAM_IDS in Vercel. They cannot be changed here, so a database leak can never create one. Here you can give a person one limited role. They must have opened the app once.</small>
+  <label for="ro_id">Telegram ID</label><input id="ro_id" type="text" inputmode="numeric" autocomplete="off" placeholder="Telegram ID">
+  <label for="ro_role">Role</label><select id="ro_role">${r.grantable.map(x=>`<option>${E(x)}</option>`).join('')}</select>
+  <button class="btn" data-adm="roleSet">Save role ›</button></div>
+  <h2>People with a role</h2>${r.items.map(x=>`<div class="card row"><div class="mid"><b>${nm(x)} · ${E(x.role)}</b><small>ID ${E(x.telegram_id)} · since ${E(D(x.created_at))}</small></div><button class="btn sm ghost" data-adm="roleDel" data-p0="${E(x.telegram_id)}">Remove</button></div>`).join('')||empty('No one yet')}
+  <h2>What each role can do</h2>${Object.keys(M).map(k=>`<div class="card"><b>${E(k)}</b><small>${M[k].map(E).join(' · ')}</small></div>`).join('')}`},
  async ntf(){const r=await A('adminNotifyStatus'),q=r.queue||{},w=r.webhook;
   const ok=w&&w.url;
   return `<div class="card"><h2>Bot webhook</h2><small>${ok?'✅ Connected':'❌ Not connected'}${w&&w.url?' · '+E(w.url):''}${w&&w.last_error?' · last error: '+E(w.last_error):''}</small><small>Secrets: TG_WEBHOOK_SECRET ${r.secrets.webhook?'✅':'❌'} · CRON_SECRET ${r.secrets.cron?'✅':'❌'}</small><div class="acts"><button class="btn sm" data-adm="hook">Set / refresh webhook</button></div></div>
@@ -82,12 +109,23 @@ const VIEWS={
   `<button class="btn" data-adm="saveSettings">Save settings ›</button><div class="card"><small>Secrets stay in Vercel env: ${Object.entries(r.env).map(([k,v])=>E(k)+(v?' ✅':' ❌')).join(' · ')}</small></div>`},
  async prf(){const r=await A('adminProofList');cur.prfNext=r.next;return `<small class="muted">Paid withdrawals shown on the public Payment Proof screen. Hide any you do not want shown.</small><div id="prfl">${prfRows(r.items)}</div>`+(r.next?`<button class="btn" id="prfmore" data-adm="prfMore">Load more</button>`:'')},
  async aud(){const f=cur.f.audf||'';const r=await A('adminAudit',{action:f==='all'?'':f});cur.audNext=r.next;
-  return sel('audf',['all','withdrawal','deposit','user','task','campaign','proof','broadcast','notify','promo','game','draw','settings'],'aud',f||'all')+`<div id="audl">${audRows(r.items)}</div>`+(r.next?`<button class="btn" id="audmore" data-adm="more">Load more</button>`:'')},
+  return sel('audf',['all','withdrawal','deposit','user','task','campaign','proof','broadcast','notify','promo','game','draw','settings','fraud','role','export','health'],'aud',f||'all')+`<div id="audl">${audRows(r.items)}</div>`+(r.next?`<button class="btn" id="audmore" data-adm="more">Load more</button>`:'')},
 };
+const RULE={same_wallet:'Same wallet on several accounts',referral_burst:'Referral burst',rapid_claims:'Rapid task claims'};
+function chart(vals,cls,label){const top=Math.max(0,...vals),W=280,H=64,bw=Math.floor(W/vals.length)-4;
+ const bars=vals.map((v,i)=>{const h=top>0?Math.round(v/top*(H-4)):0;return `<rect class="bar ${cls}" x="${i*Math.floor(W/vals.length)+2}" y="${H-h}" width="${bw}" height="${h}"></rect>`}).join('');
+ return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${E(label)}, last ${vals.length} days. Highest ${E(top.toLocaleString())}">${bars}<line class="axis" x1="0" y1="${H}" x2="${W}" y2="${H}"></line></svg>`}
+function flagInfo(x){const d=x.details||{};
+ if(x.rule==='same_wallet')return 'Wallet '+E(short(d.wallet))+' ('+E(d.source)+') is used by '+N(d.accounts)+' accounts. Others: '+E((d.other_users||[]).join(', '));
+ if(x.rule==='referral_burst')return N(d.referrals)+' qualified referrals within '+N(d.window_minutes)+' minutes';
+ if(x.rule==='rapid_claims')return N(d.claims)+' tasks claimed within '+N(d.window_minutes)+' minutes';
+ return ''}
+function flgRows(items){return items.map(x=>`<div class="card"><b>#${N(x.id)} · ${E(RULE[x.rule]||x.rule)} <small class="inl">(${E(x.severity)} · ${E(x.status)})</small></b><small>${nm(x)} · ID ${E(x.telegram_id)}${x.is_blocked?' · blocked':''} · ${E(D(x.created_at))}</small><p class="wrap">${flagInfo(x)}</p>${x.review_note?`<small>Note: ${E(x.review_note)}</small>`:''}
+  <div class="acts">${can('users_read')?`<button class="btn sm" data-adm="goUser" data-p0="${E(x.telegram_id)}">Open user</button>`:''}${x.status==='open'?`<button class="btn sm" data-adm="fraudRev" data-p0="${N(x.id)}" data-p1="reviewed">Reviewed</button><button class="btn sm ghost" data-adm="fraudRev" data-p0="${N(x.id)}" data-p1="dismissed">Dismiss</button>`:`<button class="btn sm ghost" data-adm="fraudRev" data-p0="${N(x.id)}" data-p1="open">Reopen</button>`}</div></div>`).join('')||empty('Nothing here')}
 function prfRows(items){return items.map(x=>`<div class="card row"><div class="mid"><b>#${N(x.id)} · ${E(x.amount)} USDT</b><small>${E(x.name)} · ${E(D(x.paid_at))} · ${E(short(x.tx))}</small><small>${x.hidden?'Hidden from users':'Visible to users'}</small></div><button class="btn sm ghost" data-adm="prfHide" data-p0="${N(x.id)}" data-p1="${!x.hidden}">${x.hidden?'Show':'Hide'}</button></div>`).join('')||empty('No paid withdrawals yet')}
 function audRows(items){return items.map(a=>`<div class="card"><b>${E(a.action)}</b><small>#${N(a.id)} · ${E(D(a.created_at))} · by ${E(a.actor_id)}</small><small>${E(a.target_type||'')} ${E(a.target_id||'')}${a.reason?' · '+E(a.reason):''}</small>${a.after_data?`<pre>${E(JSON.stringify(a.after_data)).slice(0,300)}</pre>`:''}</div>`).join('')||empty('Nothing here')}
 
-const NUM=new Set(['w','d','c','editTask','taskOn','prfHide','bcCancel','editPrize','prizeOn','drawPick','drawCancel','tp','ctPay','ctCancel']),BOOL=new Set(['block','taskOn','prfHide','promoOn','prizeOn']);
+const NUM=new Set(['fraudRev','w','d','c','editTask','taskOn','prfHide','bcCancel','editPrize','prizeOn','drawPick','drawCancel','tp','ctPay','ctCancel']),BOOL=new Set(['block','taskOn','prfHide','promoOn','prizeOn']);
 function call(el,key){const n=el.dataset[key];if(!n||!Object.prototype.hasOwnProperty.call(Admin,n)||typeof Admin[n]!=='function')return;
  const a=[el.dataset.p0,el.dataset.p1].filter(x=>x!==undefined);if(NUM.has(n))a[0]=N(a[0]);if(BOOL.has(n)&&a.length>1)a[1]=a[1]==='true';
  Promise.resolve(Admin[n](...a)).catch(e=>note(e.message))}
@@ -107,7 +145,7 @@ window.Admin={
  async users(){await run(async()=>{const r=await A('adminUsers',{q:$('uq').value});$('ulist').innerHTML=r.items.map(u=>`<div class="card row"><div class="ic">${u.is_blocked?'⛔':'👤'}</div><div class="mid"><b>${nm(u)}</b><small>${E(u.telegram_id)} · ${N(u.points).toLocaleString()} pts</small></div><button class="btn sm" data-adm="user" data-p0="${E(u.telegram_id)}">Open</button></div>`).join('')||empty('No users found')})},
  async user(uid){await run(async()=>{const r=await A('adminUser',{userId:uid}),u=r.user;
   $('ulist').innerHTML=`<div class="card"><b>${E(u.first_name||'')} ${u.username?'@'+E(u.username):''}</b><small>ID ${E(u.telegram_id)} · joined ${E(D(u.created_at))} · last seen ${E(D(u.last_active_at))}</small><small>Points ${N(u.points).toLocaleString()} · verified ${u.membership_verified?'yes':'no'} · referred by ${E(u.referrer_id||'—')} · invited ${N(r.referrals.invited)} (${N(r.referrals.qualified)} qualified)</small>${u.is_blocked?`<small>⛔ Blocked: ${E(u.blocked_reason||'')}</small>`:''}
-  <div class="acts"><button class="btn sm" data-adm="adjust" data-p0="${E(u.telegram_id)}">Adjust Points</button><button class="btn sm ghost" data-adm="block" data-p0="${E(u.telegram_id)}" data-p1="${!u.is_blocked}">${u.is_blocked?'Unblock':'Block'}</button><button class="btn sm ghost" data-adm="users">‹ Back</button></div></div>
+  <div class="acts">${can('users_adjust')?`<button class="btn sm" data-adm="adjust" data-p0="${E(u.telegram_id)}">Adjust Points</button>`:''}${can('users_block')?`<button class="btn sm ghost" data-adm="block" data-p0="${E(u.telegram_id)}" data-p1="${!u.is_blocked}">${u.is_blocked?'Unblock':'Block'}</button>`:''}<button class="btn sm ghost" data-adm="users">‹ Back</button></div></div>
   <h2>Ledger</h2>${r.transactions.map(t=>`<div class="card row"><div class="mid"><b>${E(t.type)}</b><small>${E(t.description||'')} · ${E(D(t.created_at))}</small></div><span class="pts">${t.points_change>0?'+':''}${N(t.points_change).toLocaleString()}</span></div>`).join('')||empty('No transactions')}
   <h2>Withdrawals</h2>${r.withdrawals.map(w=>`<div class="card row"><div class="mid"><b>#${N(w.id)} · ${E(w.net_usdt)} USDT</b><small>${E(w.status)}</small></div></div>`).join('')||empty('None')}
   <h2>Deposits</h2>${r.deposits.map(w=>`<div class="card row"><div class="mid"><b>#${N(w.id)} · ${E(w.amount_usdt||'?')} USDT</b><small>${E(w.status)}</small></div></div>`).join('')||empty('None')}`})},
@@ -146,6 +184,19 @@ window.Admin={
   await run(async()=>{const r=await A('adminContestPay',{id,confirm:v.ok});note('Paid '+r.winners.length+' winner(s) · '+N(r.points_paid_now).toLocaleString()+' Points paid now');await show()})},
  async ctCancel(id){const v=await ask('Cancel contest #'+id,[{k:'reason',label:'Reason (nothing has been paid, so nothing is refunded)'}]);if(!v)return;
   await run(async()=>{await A('adminContestCancel',{id,reason:v.reason});note('Contest cancelled');await show()})},
+ async fraudScan(){await run(async()=>{const r=await A('adminFraudScan');note('Scan done · '+N(r.new_flags)+' new flag(s) ('+N(r.created.same_wallet)+' wallet · '+N(r.created.referral_burst)+' referral · '+N(r.created.rapid_claims)+' rapid claims)');await show()})},
+ async fraudRev(id,status){let p={id,status};if(status!=='open'){const v=await ask(status==='dismissed'?'Dismiss flag #'+id:'Mark flag #'+id+' reviewed',[{k:'n',label:'Note (what you checked)'}]);if(!v)return;p.note=v.n}
+  await run(async()=>{await A('adminFraudReview',p);note('Flag #'+id+' → '+status);await show()})},
+ async flgMore(){await run(async()=>{const f=cur.f.flgf||'open',rl=cur.f.flgr||'all',r=await A('adminFraudList',{status:f,rule:rl==='all'?'':rl,before:cur.flgNext});cur.flgNext=r.next;$('flgl').insertAdjacentHTML('beforeend',flgRows(r.items));if(!r.next)$('flgmore').remove()})},
+ async goUser(uid){tab='usr';await show();await Admin.user(uid)},
+ async expMake(){await run(async()=>{const r=await A('adminExport',{dataset:$('ex_ds').value,days:$('ex_days').value});cur.csv={name:r.filename,text:r.csv};
+  $('exres').innerHTML=`<div class="card"><b>${E(r.filename)}</b><small>${N(r.rows)} row(s)${r.truncated?' · only the newest 5,000 are included, narrow the days':''}. If Download does nothing in Telegram, use Copy and paste into a spreadsheet.</small><label for="ex_out">CSV text</label><textarea id="ex_out" rows="6" readonly></textarea><div class="acts"><button class="btn sm" data-adm="expDownload">Download</button><button class="btn sm ghost" data-adm="expCopy">Copy</button></div></div>`;
+  $('ex_out').value=r.csv;note('CSV ready · '+N(r.rows)+' row(s)')})},
+ async expDownload(){if(!cur.csv)return;const b=new Blob([cur.csv.text],{type:'text/csv;charset=utf-8'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=cur.csv.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000)},
+ async expCopy(){if(!cur.csv)return;try{await navigator.clipboard.writeText(cur.csv.text);note('Copied')}catch(e){const t=$('ex_out');t.focus();t.select();note('Select all and copy manually')}},
+ async roleSet(){await run(async()=>{const r=await A('adminRoleSet',{userId:$('ro_id').value.trim(),role:$('ro_role').value});note('ID '+r.userId+' is now '+r.role);await show()})},
+ async roleDel(uid){const v=await ask('Remove role',[{k:'ok',label:'Type REMOVE to take away the role of ID '+uid}]);if(!v||v.ok.toUpperCase()!=='REMOVE'){note('Cancelled');return}
+  await run(async()=>{await A('adminRoleRemove',{userId:uid});note('Role removed');await show()})},
  async hook(){await run(async()=>{const r=await A('adminWebhookSetup');note('Webhook set: '+r.url);await show()})},
  async sendBatch(){await run(async()=>{const r=await A('adminNotifyProcess');note('Sent '+N(r.sent)+' · skipped '+N(r.skipped)+' · failed '+N(r.failed)+' · remaining '+N(r.remaining));await show()})},
  async bcSend(){const text=$('bc_text').value,segment=$('bc_seg').value;if(text.trim().length<3){note('Write a message first');return}

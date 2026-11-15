@@ -82,3 +82,32 @@ Also run once (done in this build): headless Chromium at 390×844 against the st
 | 64 | Press Pay before the end date | Refused "has not ended yet" (use a custom 1-day contest and wait, or set `ends_at` in the past in Neon for the test) |
 | 65 | After the end: Pay winners, type PAY, press Pay again | Rank 1 +100, rank 2 +50, one `Contest Prize` row each; contest `paid`; second press refused; More > Contests shows last winners; audit `contest.pay` |
 | 66 | Cancel an open contest; Ledger check after rows 51-65 | Cancel pays nothing; ledger check reports no mismatch |
+
+## Part 5 (v1.12.0) — Safety, Admin & Growth (live checks, tiny numbers)
+| # | Step | Expected |
+|---|---|---|
+| 67 | Run `011_safety_admin.sql` twice in Neon | No error the second time; `schema_migrations` has `011_safety_admin` once |
+| 68 | Admin → Roles: give a second Telegram account **support**. Open the app on that account | It sees an Admin tab with only Home, Users, Tasks, Campaigns, Task proofs, Safety, Proof |
+| 69 | As **support** call (or tap) Withdraw, Settings, Adjust Points, Export | Tabs are not shown; a direct call returns 403 `forbidden_role` |
+| 70 | Change that account to **finance** | Tabs: Home, Withdraw, Deposits, Users, Safety, Analytics, Export, Audit; Tasks / Settings / Roles refused |
+| 71 | Try to give a role to an ID in `ADMIN_TELEGRAM_IDS`, to an unknown ID, then Remove the role | Refused "already a super admin" / "User not found"; after Remove the account is a normal user again within ~5 s; audit `role.set`, `role.remove` |
+| 72 | Two test accounts submit the SAME wallet in a withdrawal request, then Admin → Safety → Scan now | 2 `same_wallet` flags (one per account); Scan now again creates 0 new flags |
+| 73 | Settings: burst = 2 referrals / 30 min. Make one inviter qualify 2 friends quickly; Scan now | A `referral_burst` flag for the inviter |
+| 74 | Settings: rapid claims = 2 tasks / 10 min. Complete 2 tasks quickly; Scan now | A `rapid_claims` flag |
+| 75 | Open a flag's user, mark **Reviewed** (note required), then **Dismiss** another, then **Reopen** | Status changes with the note; the user is NOT blocked; audit `fraud.review` |
+| 76 | Admin → Export: Withdrawals, 30 days | CSV with a header row; row count matches the screen; a username like `=1+1` appears as `'=1+1`; audit `export.csv` |
+| 77 | Export Ledger and open it in a spreadsheet | Negative Points stay numbers (not text); Hindi names show correctly |
+| 78 | Admin → Analytics | 4 bar charts (14 days), retention, referral conversion; today's activity matches the ledger |
+| 79 | More → Settings → Language Hindi, then Hinglish, then English | Nav, Home tiles, headings and More change at once; the choice survives closing and reopening the app |
+| 80 | More → Settings → Theme Light; check Home, Tasks, Withdraw, More | Readable text everywhere; buttons still orange; Dark (default) is unchanged |
+| 81 | Admin → Home → **Check + alert admins** with 0 problems | No Telegram message; result shows `ledger_mismatches: 0` |
+| 82 | Settings: alert level = 1 open withdrawal, create one withdrawal, press **Check + alert admins** twice | ONE Telegram message to each admin (the second press is throttled for 6 h) |
+| 83 | Force an API error (for example set a wrong `DATABASE_URL` on a preview) | One "API error" Telegram message per action per 30 min, no secrets in it |
+| 84 | Settings: turn **Deposit auto-credit** ON before any deposit was approved | Refused "stays OFF until a real small deposit has passed" |
+| 85 | Send a tiny real USDT deposit, let it verify, **approve it by hand**, then turn auto-credit ON | Saved; a second tiny deposit is credited without admin review |
+| 86 | Settings: turn **Automatic fraud scan** ON, wait for the daily cron (or call it with the Bearer secret) | Cron JSON has a `safety` part; new flags appear once, never twice |
+| 87 | Open the app as a blocked user and as a maintenance-mode user | Unchanged: blocked refused, maintenance lets admins (any role) in |
+| 88 | Admin → Audit filter `fraud`, `role`, `export`, `health` | Rows with the admin ID, before / after |
+| 89 | Ledger check (Admin → Home) after rows 67-88 | No mismatch |
+| 90 | Admin → Settings → Safety & Alerts: save a bad value (0 minutes) | Refused with the setting name; nothing saved |
+

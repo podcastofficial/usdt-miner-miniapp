@@ -25,6 +25,7 @@ Fresh database and registration. This does NOT connect to or modify the existing
 - Referral reward target 1,000 Points
 - Required channels: @USDTMinerUpdates and @USDTMinerPayments
 - Weekly/monthly referral contests: **Part 4** (v1.11.0, ships OFF).
+- Fraud flags, admin roles, CSV export, analytics, English / Hindi / Hinglish, light theme, health alerts: **Part 5** (v1.12.0).
 
 ## Launch
 See `docs/DEPLOYMENT_GUIDE.md`, `docs/TEST_MATRIX.md` and `DEPLOYMENT_CHECKLIST.md`. Run `npm test` (146 tests).
@@ -33,7 +34,7 @@ See `docs/DEPLOYMENT_GUIDE.md`, `docs/TEST_MATRIX.md` and `DEPLOYMENT_CHECKLIST.
 This is a functional starter, not a completed audited financial platform. Deposit hashes are queued for admin review; **automatic BEP-20 on-chain verification is not implemented**. Withdrawals create requests and require secure manual payout. Do not place private keys in GitHub or Vercel. Referral rewards are not yet granted because qualifying channel-join verification and referral attribution need a separate Telegram webhook flow. Bot/website task claims need stronger verification before awarding meaningful Points. Games (v1.10.0) use Points only and ship OFF. Task proofs and contests (v1.11.0) ship OFF. Advertising campaigns reserve Points; delivery, budget use and refunds are tracked per campaign (v1.11.0). Add rate limits, idempotent DB transactions, monitoring, backups, terms and privacy policy before production.
 
 ## API actions
-`bootstrap`, `referral`, `leaderboard`, `daily`, `taskComplete`, `withdraw`, `depositSubmit`, `campaignCreate`, `adminOverview`, plus (v1.8.0) `adminNotifyStatus`, `adminNotifyProcess`, `adminWebhookSetup`, `adminBroadcastCreate`, `adminBroadcastCancel`, plus (v1.9.0) `engagement`, `referralList`, `promoRedeem`, `adminPromoList`, `adminPromoCreate`, `adminPromoSetActive`, plus (v1.11.0) `taskProofSubmit`, `contests`, `adminTaskProofs`, `adminTaskProofApprove`, `adminTaskProofReject`, `adminContestList`, `adminContestCreate`, `adminContestCancel`, `adminContestPay`. Server-to-server only: `tgWebhook`, `cron`.
+`bootstrap`, `referral`, `leaderboard`, `daily`, `taskComplete`, `withdraw`, `depositSubmit`, `campaignCreate`, `adminOverview`, plus (v1.8.0) `adminNotifyStatus`, `adminNotifyProcess`, `adminWebhookSetup`, `adminBroadcastCreate`, `adminBroadcastCancel`, plus (v1.9.0) `engagement`, `referralList`, `promoRedeem`, `adminPromoList`, `adminPromoCreate`, `adminPromoSetActive`, plus (v1.11.0) `taskProofSubmit`, `contests`, `adminTaskProofs`, `adminTaskProofApprove`, `adminTaskProofReject`, `adminContestList`, `adminContestCreate`, `adminContestCancel`, `adminContestPay`, plus (v1.12.0) `setLang`, `adminFraudList`, `adminFraudReview`, `adminFraudScan`, `adminRoles`, `adminRoleSet`, `adminRoleRemove`, `adminExport`, `adminAnalytics`, `adminHealth`, `adminHealthRun`. Server-to-server only: `tgWebhook`, `cron`.
 
 ## Security
 Only Telegram Mini App signed initData is accepted. Admin IDs are set in `ADMIN_TELEGRAM_IDS`. Never commit `.env`.
@@ -81,7 +82,7 @@ Rule for every part: new options live in Admin > Settings (default OFF where mon
 - Weekly / monthly / custom referral contests: live leaderboard, tie rule, admin payout (resumable, once per winner)
 - Migration `010_tasks_ads_contests.sql` · details in `CHANGELOG_PART11.md`
 
-### Part 5 — Safety, Admin & Growth (v1.12.0)
+### Part 5 — Safety, Admin & Growth (v1.12.0) ✅ DONE
 - Fraud detection: multi-account patterns, shared wallet addresses, auto-flag + admin review
 - Admin roles (Super admin / Support / Finance) with per-action permissions
 - CSV export (users, withdrawals, deposits, ledger)
@@ -89,4 +90,4 @@ Rule for every part: new options live in Admin > Settings (default OFF where mon
 - Multi-language (English / Hindi / Hinglish) + light theme
 - Health alerts to admin on Telegram (errors, ledger mismatch, open withdrawals)
 - Deposit auto-credit hardening (stays OFF until a small real test passes)
-- Migration `011_safety_admin.sql`
+- Migration `011_safety_admin.sql`; no new env variables. Details: `CHANGELOG_PART12.md`

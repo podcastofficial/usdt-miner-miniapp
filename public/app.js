@@ -6,9 +6,22 @@
 const tg = window.Telegram?.WebApp;
 try { tg?.ready(); tg?.expand(); tg?.setHeaderColor('#050507'); tg?.setBackgroundColor('#050507'); } catch (e) {}
 let init = tg?.initData || '';
+/* Phase 2 / Part 5: theme (dark default, light, or follow Telegram). Stored per device; every storage call is guarded. */
+const THEMES = ['dark', 'light', 'auto'];
+const getTheme = () => { try { const v = localStorage.getItem('theme'); return THEMES.includes(v) ? v : 'dark'; } catch (e) { return 'dark'; } };
+function applyTheme(pref) {
+  const light = pref === 'light' || (pref === 'auto' && tg?.colorScheme === 'light');
+  document.documentElement.dataset.theme = light ? 'light' : 'dark';
+  const bg = light ? '#fff7ec' : '#050507';
+  document.querySelector('meta[name=theme-color]')?.setAttribute('content', bg);
+  try { tg?.setHeaderColor(bg); tg?.setBackgroundColor(bg); } catch (e) {}
+}
+applyTheme(getTheme());
+if (window.I18N) { const early = I18N.stored() || I18N.guess(tg?.initDataUnsafe?.user?.language_code); if (early !== 'en') I18N.set(early); }
 let data = {}, filter = 'all', opened = {}, community = null, fin = null;
 
 const $ = (id) => document.getElementById(id);
+const T = (k, v, d) => (window.I18N ? I18N.t(k, v, d) : d !== undefined ? String(d).replace(/\{(\w+)\}/g, (m, n) => (v && n in v ? v[n] : m)) : k);
 const N = (n) => Number(n).toLocaleString();
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const ic = (e) => `<span class="ic" aria-hidden="true">${e}</span>`;
@@ -348,8 +361,8 @@ function renderContests(c) {
 async function loadContests() { setHtml('ctlist', skel(2)); renderContests(await api('contests')); }
 
 /* ---------------- navigation ---------------- */
-const PARENT = { deposit: 'withdraw', rewards: 'more', rank: 'more', ads: 'more', channel: 'more', proof: 'more', howto: 'more', games: 'more', contests: 'more', taskproof: 'tasks', history: 'more' };
-const NAVOF = { deposit: 'withdraw', rewards: 'more', rank: 'more', ads: 'more', channel: 'more', proof: 'more', howto: 'more', games: 'more', contests: 'more', taskproof: 'tasks', history: 'more' };
+const PARENT = { deposit: 'withdraw', rewards: 'more', rank: 'more', ads: 'more', channel: 'more', proof: 'more', howto: 'more', games: 'more', contests: 'more', taskproof: 'tasks', history: 'more', prefs: 'more' };
+const NAVOF = { deposit: 'withdraw', rewards: 'more', rank: 'more', ads: 'more', channel: 'more', proof: 'more', howto: 'more', games: 'more', contests: 'more', taskproof: 'tasks', history: 'more', prefs: 'more' };
 let cur = 'home', backBound = false;
 function go(id) {
   if (!$(id)) return; cur = id;
@@ -381,7 +394,28 @@ async function load(id) {
     if (id === 'howto') await loadHow();
     if (id === 'games') await loadGames();
     if (id === 'contests') await loadContests();
+    if (id === 'prefs') loadPrefs();
   } catch (e) { say(e.message); }
+}
+
+/* ---------------- settings: language + theme (Phase 2 / Part 5) ---------------- */
+async function syncLang() {
+  if (!window.I18N) return;
+  const want = (data.user && data.user.lang) || I18N.stored() || (data.user && data.user.lang_guess) || 'en';
+  if (want !== I18N.lang) await I18N.set(want);
+}
+let lastPrefs = '';
+function loadPrefs() { $('pf_lang').value = window.I18N ? I18N.lang : 'en'; $('pf_theme').value = getTheme(); lastPrefs = $('pf_lang').value + '|' + $('pf_theme').value; }
+async function savePrefs() {
+  const th = $('pf_theme').value, lg = $('pf_lang').value;
+  if (lastPrefs === lg + '|' + th) return; // a select fires both "input" and "change": handle the choice once
+  lastPrefs = lg + '|' + th;
+  if (THEMES.includes(th)) { try { localStorage.setItem('theme', th); } catch (e) {} applyTheme(th); }
+  if (window.I18N && lg !== I18N.lang) {
+    await I18N.set(lg);
+    try { await api('setLang', { lang: lg }); if (data.user) data.user.lang = lg; } catch (e) { say(e.message); return; } // the choice is kept on this device even if the server call fails
+  }
+  say(T('prefs.saved', null, 'Saved'));
 }
 
 /* ---------------- boot ---------------- */
@@ -392,19 +426,20 @@ async function boot() {
     const s = data.settings || {}; $('rate').textContent = N(s.points_per_usdt || 10000) + ' Points = 1 USDT';
     const bn = $('banner'); bn.textContent = s.announcement || ''; bn.hidden = !s.announcement;
     $('promotile').hidden = s.promo_enabled !== true;
+    await syncLang();
     initTimers(); renderDaily(); renderVerify(); renderTasks(); renderTx(data.transactions || [], false);
     if (data.admin) initAdmin();
   } catch (e) { status(e.message); say(e.message); }
 }
 function initAdmin() {
-  if (!document.querySelector('#nav [data-go=admin]')) { const b = document.createElement('button'); b.dataset.go = 'admin'; b.innerHTML = '<span class="ic" aria-hidden="true">🛡</span>Admin'; $('nav').appendChild(b); }
+  if (!document.querySelector('#nav [data-go=admin]')) { const b = document.createElement('button'); b.dataset.go = 'admin'; b.innerHTML = '<span class="ic" aria-hidden="true">🛡</span><span data-i18n="nav.admin">' + esc(T('nav.admin', null, 'Admin')) + '</span>'; $('nav').appendChild(b); }
   if (!$('admjs')) { const s = document.createElement('script'); s.id = 'admjs'; s.src = '/admin.js'; document.body.appendChild(s); }
 }
 function showGate() { $('gate').hidden = false; $('main').hidden = true; $('nav').hidden = true; status(''); }
 
 /* ---------------- actions ---------------- */
 const ACT = {
-  async daily() { const r = await api('daily'); say('🎁 Claimed ' + N(r.reward) + ' Points' + (r.streak > 1 ? ' · 🔥 ' + r.streak + '-day streak' : '')); await boot(); },
+  async daily() { const r = await api('daily'); say(T('toast.claimed', { n: N(r.reward) }, '🎁 Claimed {n} Points') + (r.streak > 1 ? T('toast.streak', { n: r.streak }, ' · 🔥 {n}-day streak') : '')); await boot(); },
   async refFilter(d) {
     refFilter = d.f; document.querySelectorAll('[data-act=refFilter]').forEach((b) => { const on = b.dataset.f === d.f; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); });
     await loadRefs(true);
@@ -470,7 +505,7 @@ const ACT = {
     const r = await api('drawBuy', { tickets: n }); say('🎫 You now hold ' + r.tickets + ' ticket(s)'); await boot(); await loadGames();
   },
 };
-const INPUT = { quote: quoteW, adcalc: adcalc };
+const INPUT = { quote: quoteW, adcalc: adcalc, prefs: () => { savePrefs().catch((e) => say(e.message)); } };
 
 /* ---------------- delegated events ---------------- */
 document.addEventListener('click', (e) => {

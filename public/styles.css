@@ -205,3 +205,11 @@ progress::-moz-progress-bar{background:linear-gradient(90deg,var(--btn-a),var(--
 .odds ul{list-style:none;margin:6px 0;padding:0}.odds li{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #2c2d35}
 #boostbox b,#boostbox small{display:block}
 @media (prefers-reduced-motion:reduce){.scratch,.gbox{transition:none}}
+
+/* Phase 2 / Part 5: analytics charts (SVG attributes + classes only: no inline styles) */
+svg.chart{display:block;width:100%;height:auto;margin:8px 0}
+svg.chart .bar{fill:var(--or1)}
+svg.chart .bar.out{fill:var(--red)}
+svg.chart .axis{stroke:var(--mut);stroke-width:1}
+#adm details summary{cursor:pointer;min-height:44px;display:flex;align-items:center;color:var(--or1)}
+#adm textarea{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.75rem}

@@ -75,3 +75,12 @@ Vercel → Deployments → previous deployment → **Promote to Production**. Da
 4. Ads: nothing to switch. Approved bot / website campaigns become proof tasks only while proofs are ON; channel campaigns are checked by Telegram (the bot must be admin in the advertiser's channel).
 5. Contests: Admin → Contests → create one, then switch **Referral contests** ON. Prizes are Points the app creates: check the total. After the end date type `PAY`. Run rows 51-66 of `docs/TEST_MATRIX.md` with tiny numbers first.
 
+## 14. Safety, Admin & Growth (v1.12.0)
+1. Neon SQL Editor: run `db/migrations/011_safety_admin.sql` (safe to run twice). **Do this BEFORE redeploying**: the dashboard now counts `fraud_flags` and the app reads `users.user_lang`. No new Vercel env variables. Redeploy.
+2. **Roles.** You (the IDs in `ADMIN_TELEGRAM_IDS`) stay super admins. To add a helper: they open the app once, then Admin → Roles → their Telegram ID → **support** (users, tasks, campaigns, proofs, flags) or **finance** (withdrawals, deposits, ledger, export, analytics, audit). Roles cannot touch Settings, Points adjustment, broadcasts or contest / game payouts.
+3. **Fraud flags.** Admin → Safety → **Scan now**. Settings → Safety & Alerts → **Automatic fraud scan** is OFF; switch it ON to let the daily cron scan (about 03:30 UTC). Flags only ask you to look; nobody is blocked.
+4. **Health alerts** are ON: admins get a Telegram message on API errors, a ledger mismatch, or when open withdrawals reach the alert level (default 20). Each admin must have pressed Start on the bot once. Use Admin → Home → **Check + alert admins** to test.
+5. **Deposits auto-credit** can only be switched ON after one real deposit has been approved by hand (the Settings save is refused otherwise).
+6. **Language / theme**: users pick them in More → Settings. Dark stays the default.
+7. Run rows 67-90 of `docs/TEST_MATRIX.md` with tiny numbers first.
+

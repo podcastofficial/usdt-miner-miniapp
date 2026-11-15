@@ -37,7 +37,7 @@
       ]
     },
     {
-      "source": "/(styles\\.css|app\\.js|admin\\.js)",
+      "source": "/(styles\\.css|light\\.css|app\\.js|admin\\.js|i18n\\.js|i18n/.*\\.json)",
       "headers": [
         {
           "key": "Cache-Control",

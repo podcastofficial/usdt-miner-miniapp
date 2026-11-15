@@ -44,7 +44,7 @@ Defaults are editable in Admin > Settings. Anything touching money/abuse ships *
 | DB | `010_tasks_ads_contests.sql`: `task_proofs`, `campaign_completions`, `contests`, `contest_entries` |
 | Tests | proof state machine, budget maths, refund once, contest ranking and ties |
 
-## Part 5 — Safety, Admin & Growth (v1.12.0)
+## Part 5 — Safety, Admin & Growth (v1.12.0) — DONE
 | Feature | Details |
 |---|---|
 | Fraud flags | same-wallet across users, referral bursts, rapid claims; auto-flag + admin review, never auto-ban |

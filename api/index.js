@@ -1,4 +1,4 @@
-import { verifyInitData, AuthError, isAdminId } from "../lib/auth.js";
+import { verifyInitData, AuthError } from "../lib/auth.js";
 import { ensureUser } from "../lib/users.js";
 import { rateLimit } from "../lib/ratelimit.js";
 import { sql } from "../lib/db.js";
@@ -17,6 +17,9 @@ import * as eng from "../lib/actions/engage.js";
 import * as gam from "../lib/actions/games.js";
 import * as tsk from "../lib/actions/tasks.js";
 import * as cts from "../lib/actions/contests.js";
+import * as saf from "../lib/actions/safety.js";
+import { roleOf, can } from "../lib/roles.js";
+import { reportApiError } from "../lib/health.js";
 
 // Action registry. write=true -> POST only; admin=true -> server-side admin check on every call.
 const ACTIONS = {
@@ -100,7 +103,22 @@ const ACTIONS = {
   adminContestCreate: { fn: cts.adminContestCreate, admin: true, write: true },
   adminContestCancel: { fn: cts.adminContestCancel, admin: true, write: true },
   adminContestPay: { fn: cts.adminContestPay, admin: true, write: true },
+  // Phase 2 / Part 5: safety, roles, export, analytics, language
+  adminFraudList: { fn: saf.adminFraudList, admin: true },
+  adminFraudReview: { fn: saf.adminFraudReview, admin: true, write: true },
+  adminFraudScan: { fn: saf.adminFraudScan, admin: true, write: true },
+  adminRoles: { fn: saf.adminRoles, admin: true },
+  adminRoleSet: { fn: saf.adminRoleSet, admin: true, write: true },
+  adminRoleRemove: { fn: saf.adminRoleRemove, admin: true, write: true },
+  adminExport: { fn: saf.adminExport, admin: true, write: true },
+  adminAnalytics: { fn: saf.adminAnalytics, admin: true },
+  adminHealth: { fn: saf.adminHealth, admin: true },
+  adminHealthRun: { fn: saf.adminHealthRun, admin: true, write: true },
+  setLang: { fn: saf.setLang, write: true },
 };
+
+const query_action = (req) => String((req.query && req.query.action) || (req.body && req.body.action) || "bootstrap");
+const alertsOn = async () => { try { return (await getConfig()).healthAlerts !== false; } catch { return true; } };
 
 export default async function handler(req, res) {
   try {
@@ -124,7 +142,7 @@ export default async function handler(req, res) {
     if (row.created) { try { row.referrer_id = (await captureReferrer(tg.user.id, tg.startParam)) ?? row.referrer_id; } catch (e) { console.error("referral capture failed:", e.message); } }
     if (row.is_blocked) throw new HttpError(403, "account_blocked", "Account unavailable");
 
-    const id = String(tg.user.id), isAdmin = isAdminId(id);
+    const id = String(tg.user.id), role = await roleOf(id), isAdmin = role !== null; // "super" (env) | "support" | "finance" | null
     const cfg = await getConfig();
     if (cfg.maintenanceMode && !isAdmin) throw new HttpError(503, "maintenance", cfg.announcement || "Under maintenance, please come back soon");
     const action = query.action || body.action || "bootstrap";
@@ -132,13 +150,15 @@ export default async function handler(req, res) {
     if (!def) throw new HttpError(404, "unknown_action", "Unknown action");
     if (def.write && req.method !== "POST") throw new HttpError(405, "method_not_allowed", "POST required");
     if (def.admin && !isAdmin) throw new HttpError(403, "admin_only", "Admin only");
+    if (def.admin && !can(role, action)) throw new HttpError(403, "forbidden_role", "Your admin role cannot do this"); // fail closed: an action with no entry in ACTION_PERMS is denied to everyone
 
     await rateLimit(id, action);
-    return send(res, 200, await def.fn({ id, row, isAdmin, body, query, startParam: tg.startParam, host: req.headers["x-forwarded-host"] || req.headers.host }));
+    return send(res, 200, await def.fn({ id, row, isAdmin, role, body, query, startParam: tg.startParam, host: req.headers["x-forwarded-host"] || req.headers.host }));
   } catch (e) {
     if (e instanceof AuthError) return send(res, e.code === "server_misconfigured" ? 500 : 401, { error: e.message, code: e.code });
     if (e instanceof HttpError) return send(res, e.status, { error: e.message, code: e.code });
     console.error("API error:", e); // details stay in server logs, never sent to the client
+    await reportApiError(query_action(req), e, await alertsOn()); // Telegram message to the admins (throttled, never throws)
     return send(res, 500, { error: "Server error, please try again", code: "server_error" });
   }
 }

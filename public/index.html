@@ -3,26 +3,27 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="color-scheme" content="dark">
+<meta name="color-scheme" content="dark light">
 <meta name="theme-color" content="#050507">
 <title>USDT Miner</title>
 <link rel="stylesheet" href="/styles.css">
+<link rel="stylesheet" href="/light.css">
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-<a class="skip" href="#main">Skip to content</a>
+<a class="skip" href="#main" data-i18n="a11y.skip">Skip to content</a>
 
 <header class="top">
   <span class="logo" aria-hidden="true">⛏️</span>
-  <div><h1>USDT Miner</h1><small>Mine Points &amp; Earn USDT</small></div>
+  <div><h1>USDT Miner</h1><small data-i18n="app.sub">Mine Points &amp; Earn USDT</small></div>
 </header>
 <div id="banner" role="note" hidden></div>
 <p id="status" class="muted" role="status">Connecting to Telegram…</p>
 <div id="toast" role="status" aria-live="polite"></div>
 
 <div id="gate" class="card" hidden>
-  <h2>🔒 Open in Telegram</h2>
-  <p>USDT Miner works only inside Telegram. Open the official bot and tap the Mini App button to log in.</p>
+  <h2 data-i18n="gate.title">🔒 Open in Telegram</h2>
+  <p data-i18n="gate.body">USDT Miner works only inside Telegram. Open the official bot and tap the Mini App button to log in.</p>
 </div>
 
 <main id="main" tabindex="-1">
@@ -39,7 +40,7 @@
   </div>
   <div class="card balance">
     <div>
-      <div class="l"><span aria-hidden="true">🪙</span> Your Points</div>
+      <div class="l"><span aria-hidden="true">🪙</span> <span data-i18n="home.points">Your Points</span></div>
       <div id="points" class="big">—</div>
       <div id="rate" class="muted">10,000 Points = 1 USDT</div>
     </div>
@@ -61,20 +62,20 @@
     <button class="btn" data-act="verify">Verify ›</button>
   </div>
   <div class="grid">
-    <article class="card tile"><span class="ic" aria-hidden="true">⛏️</span><h3>Points Miner</h3><small>Mine &amp; earn Points</small><button class="btn" data-go="tasks">Tasks ›</button></article>
-    <article class="card tile"><span class="ic" aria-hidden="true">🎁</span><h3>Daily Rewards</h3><small>Claim free Points</small><button class="btn" id="dailybtn" data-act="daily">Claim ›</button></article>
-    <article class="card tile"><span class="ic" aria-hidden="true">👥</span><h3>Referral</h3><small>Invite &amp; earn more</small><button class="btn" data-go="ref">Invite ›</button></article>
-    <article class="card tile"><span class="ic" aria-hidden="true">🏆</span><h3>Leaderboard</h3><small>Top miners ranking</small><button class="btn" data-go="rank">View ›</button></article>
-    <article class="card tile"><span class="ic" aria-hidden="true">💸</span><h3>Withdraw</h3><small>Convert Points to USDT</small><button class="btn" data-go="withdraw">Request ›</button></article>
-    <article class="card tile"><span class="ic" aria-hidden="true">🏅</span><h3>Rewards</h3><small>Level, badges &amp; bonuses</small><button class="btn" data-go="rewards">Open ›</button></article>
-    <article class="card tile" id="promotile" hidden><span class="ic" aria-hidden="true">🎟️</span><h3>Promo Code</h3><small>Redeem a code</small><button class="btn" data-go="rewards">Redeem ›</button></article>
-    <article class="card tile"><span class="ic" aria-hidden="true">📢</span><h3>Advertise</h3><small>Promote &amp; get joins</small><button class="btn" data-go="ads">Promote ›</button></article>
+    <article class="card tile"><span class="ic" aria-hidden="true">⛏️</span><h3 data-i18n="tile.miner.t">Points Miner</h3><small data-i18n="tile.miner.s">Mine &amp; earn Points</small><button class="btn" data-go="tasks" data-i18n="tile.miner.b">Tasks ›</button></article>
+    <article class="card tile"><span class="ic" aria-hidden="true">🎁</span><h3 data-i18n="tile.daily.t">Daily Rewards</h3><small data-i18n="tile.daily.s">Claim free Points</small><button class="btn" id="dailybtn" data-act="daily">Claim ›</button></article>
+    <article class="card tile"><span class="ic" aria-hidden="true">👥</span><h3 data-i18n="tile.ref.t">Referral</h3><small data-i18n="tile.ref.s">Invite &amp; earn more</small><button class="btn" data-go="ref" data-i18n="tile.ref.b">Invite ›</button></article>
+    <article class="card tile"><span class="ic" aria-hidden="true">🏆</span><h3 data-i18n="tile.rank.t">Leaderboard</h3><small data-i18n="tile.rank.s">Top miners ranking</small><button class="btn" data-go="rank" data-i18n="tile.rank.b">View ›</button></article>
+    <article class="card tile"><span class="ic" aria-hidden="true">💸</span><h3 data-i18n="tile.withdraw.t">Withdraw</h3><small data-i18n="tile.withdraw.s">Convert Points to USDT</small><button class="btn" data-go="withdraw" data-i18n="tile.withdraw.b">Request ›</button></article>
+    <article class="card tile"><span class="ic" aria-hidden="true">🏅</span><h3 data-i18n="tile.rewards.t">Rewards</h3><small data-i18n="tile.rewards.s">Level, badges &amp; bonuses</small><button class="btn" data-go="rewards" data-i18n="tile.rewards.b">Open ›</button></article>
+    <article class="card tile" id="promotile" hidden><span class="ic" aria-hidden="true">🎟️</span><h3 data-i18n="tile.promo.t">Promo Code</h3><small data-i18n="tile.promo.s">Redeem a code</small><button class="btn" data-go="rewards" data-i18n="tile.promo.b">Redeem ›</button></article>
+    <article class="card tile"><span class="ic" aria-hidden="true">📢</span><h3 data-i18n="tile.ads.t">Advertise</h3><small data-i18n="tile.ads.s">Promote &amp; get joins</small><button class="btn" data-go="ads" data-i18n="tile.ads.b">Promote ›</button></article>
   </div>
 </section>
 
 <!-- ============ TASKS ============ -->
 <section id="tasks" aria-labelledby="h-tasks">
-  <h2 id="h-tasks">⛏️ Points Miner<small>Complete tasks and earn Points</small></h2>
+  <h2 id="h-tasks"><span data-i18n="tasks.title">⛏️ Points Miner</span><small data-i18n="tasks.sub">Complete tasks and earn Points</small></h2>
   <div class="tabs" role="tablist" aria-label="Task type">
     <button class="tab" role="tab" id="tab-all" aria-selected="true" aria-controls="tasklist" data-act="tab" data-f="all">⛏️ Mining</button>
     <button class="tab" role="tab" id="tab-social" aria-selected="false" aria-controls="tasklist" tabindex="-1" data-act="tab" data-f="social">👥 Social</button>
@@ -85,7 +86,7 @@
 
 <!-- ============ REFERRAL ============ -->
 <section id="ref" aria-labelledby="h-ref">
-  <h2 id="h-ref">👥 Referral</h2>
+  <h2 id="h-ref" data-i18n="ref.title">👥 Referral</h2>
   <div class="card">
     <p class="muted">Your invite link</p>
     <p id="refurl" class="accent"></p>
@@ -107,7 +108,7 @@
 
 <!-- ============ REWARDS (Phase 2 / Part 2) ============ -->
 <section id="rewards" aria-labelledby="h-rewards">
-  <h2 id="h-rewards">🏅 Rewards<small>Level, badges, streak and bonuses</small></h2>
+  <h2 id="h-rewards"><span data-i18n="rewards.title">🏅 Rewards</span><small data-i18n="rewards.sub">Level, badges, streak and bonuses</small></h2>
   <div class="card" id="lvlcard"><div class="empty">Loading…</div></div>
   <h3 class="sec">Referral milestones</h3>
   <div id="mslist"></div>
@@ -124,7 +125,7 @@
 
 <!-- ============ LEADERBOARD (Part 6) ============ -->
 <section id="rank" aria-labelledby="h-rank">
-  <h2 id="h-rank">🏆 Leaderboard<small>Top 200 miners by Points</small></h2>
+  <h2 id="h-rank"><span data-i18n="rank.title">🏆 Leaderboard</span><small data-i18n="rank.sub">Top 200 miners by Points</small></h2>
   <div id="rankme"></div>
   <div id="ranklist"></div>
   <div class="pager" id="rankpager" hidden>
@@ -136,7 +137,7 @@
 
 <!-- ============ WITHDRAW / DEPOSIT ============ -->
 <section id="withdraw" aria-labelledby="h-withdraw">
-  <h2 id="h-withdraw">💸 Withdraw</h2>
+  <h2 id="h-withdraw" data-i18n="withdraw.title">💸 Withdraw</h2>
   <div class="card">
     <label for="amount">USDT amount</label>
     <input id="amount" type="text" inputmode="decimal" autocomplete="off" placeholder="USDT amount (min 15)" data-input="quote">
@@ -151,7 +152,7 @@
 </section>
 
 <section id="deposit" aria-labelledby="h-deposit">
-  <h2 id="h-deposit">⬇️ Deposit</h2>
+  <h2 id="h-deposit" data-i18n="deposit.title">⬇️ Deposit</h2>
   <div class="card">
     <p id="depinfo" class="muted"></p>
     <div id="depform">
@@ -168,23 +169,24 @@
 </section>
 
 <section id="history" aria-labelledby="h-history">
-  <h2 id="h-history">📜 History</h2>
+  <h2 id="h-history" data-i18n="history.title">📜 History</h2>
   <div id="txlist"></div>
   <button class="btn" id="moreTx" data-act="moreTx" hidden>Load more</button>
 </section>
 
 <!-- ============ MORE / COMMUNITY HUB (Part 6) ============ -->
 <section id="more" aria-labelledby="h-more">
-  <h2 id="h-more">✨ More<small>Community, help and history</small></h2>
-  <button class="card hub" data-go="rewards"><span class="ic" aria-hidden="true">🏅</span><span><b>Rewards</b><small>Level, badges, milestones, promo codes</small></span><span class="chev" aria-hidden="true">›</span></button>
-  <button class="card hub" data-go="rank"><span class="ic" aria-hidden="true">🏆</span><span><b>Leaderboard</b><small>See the top miners</small></span><span class="chev" aria-hidden="true">›</span></button>
-  <button class="card hub" data-go="ads"><span class="ic" aria-hidden="true">📢</span><span><b>Advertise</b><small>Promote your channel, bot or site</small></span><span class="chev" aria-hidden="true">›</span></button>
-  <button class="card hub" data-go="channel"><span class="ic" aria-hidden="true">✈️</span><span><b>Official Channel</b><small>News, updates and support</small></span><span class="chev" aria-hidden="true">›</span></button>
-  <button class="card hub" data-go="proof"><span class="ic" aria-hidden="true">🧾</span><span><b>Payment Proof</b><small>Recent paid withdrawals</small></span><span class="chev" aria-hidden="true">›</span></button>
-  <button class="card hub" data-go="howto"><span class="ic" aria-hidden="true">📖</span><span><b>How to Use</b><small>Step by step guide and FAQ</small></span><span class="chev" aria-hidden="true">›</span></button>
-  <button class="card hub" data-go="games"><span class="ic" aria-hidden="true">🎮</span><span><b>Games</b><small>Spin, scratch, lucky draw, boosters</small></span><span class="chev" aria-hidden="true">›</span></button>
-  <button class="card hub" data-go="contests"><span class="ic" aria-hidden="true">🏁</span><span><b>Contests</b><small>Invite friends and win prizes</small></span><span class="chev" aria-hidden="true">›</span></button>
-  <button class="card hub" data-go="history"><span class="ic" aria-hidden="true">📜</span><span><b>History</b><small>Your Points transactions</small></span><span class="chev" aria-hidden="true">›</span></button>
+  <h2 id="h-more"><span data-i18n="more.title">✨ More</span><small data-i18n="more.sub">Community, help and history</small></h2>
+  <button class="card hub" data-go="rewards"><span class="ic" aria-hidden="true">🏅</span><span><b data-i18n="tile.rewards.t">Rewards</b><small data-i18n="hub.rewards.s">Level, badges, milestones, promo codes</small></span><span class="chev" aria-hidden="true">›</span></button>
+  <button class="card hub" data-go="rank"><span class="ic" aria-hidden="true">🏆</span><span><b data-i18n="tile.rank.t">Leaderboard</b><small data-i18n="hub.rank.s">See the top miners</small></span><span class="chev" aria-hidden="true">›</span></button>
+  <button class="card hub" data-go="ads"><span class="ic" aria-hidden="true">📢</span><span><b data-i18n="tile.ads.t">Advertise</b><small data-i18n="hub.ads.s">Promote your channel, bot or site</small></span><span class="chev" aria-hidden="true">›</span></button>
+  <button class="card hub" data-go="channel"><span class="ic" aria-hidden="true">✈️</span><span><b data-i18n="hub.channel.t">Official Channel</b><small data-i18n="hub.channel.s">News, updates and support</small></span><span class="chev" aria-hidden="true">›</span></button>
+  <button class="card hub" data-go="proof"><span class="ic" aria-hidden="true">🧾</span><span><b data-i18n="hub.proof.t">Payment Proof</b><small data-i18n="hub.proof.s">Recent paid withdrawals</small></span><span class="chev" aria-hidden="true">›</span></button>
+  <button class="card hub" data-go="howto"><span class="ic" aria-hidden="true">📖</span><span><b data-i18n="hub.howto.t">How to Use</b><small data-i18n="hub.howto.s">Step by step guide and FAQ</small></span><span class="chev" aria-hidden="true">›</span></button>
+  <button class="card hub" data-go="games"><span class="ic" aria-hidden="true">🎮</span><span><b data-i18n="hub.games.t">Games</b><small data-i18n="hub.games.s">Spin, scratch, lucky draw, boosters</small></span><span class="chev" aria-hidden="true">›</span></button>
+  <button class="card hub" data-go="contests"><span class="ic" aria-hidden="true">🏁</span><span><b data-i18n="hub.contests.t">Contests</b><small data-i18n="hub.contests.s">Invite friends and win prizes</small></span><span class="chev" aria-hidden="true">›</span></button>
+  <button class="card hub" data-go="history"><span class="ic" aria-hidden="true">📜</span><span><b data-i18n="hub.history.t">History</b><small data-i18n="hub.history.s">Your Points transactions</small></span><span class="chev" aria-hidden="true">›</span></button>
+  <button class="card hub" data-go="prefs"><span class="ic" aria-hidden="true">⚙️</span><span><b data-i18n="hub.prefs.t">Settings</b><small data-i18n="hub.prefs.s">Language and light / dark theme</small></span><span class="chev" aria-hidden="true">›</span></button>
 </section>
 
 <!-- ============ ADVERTISE (Part 6) ============ -->
@@ -272,6 +274,18 @@
   <p class="hint">Only friends who join and verify the required channels count. Rankings are live; prizes are paid by the admin after the contest ends. Ties go to whoever reached the number first.</p>
 </section>
 
+<!-- ============ SETTINGS: language + theme (Phase 2 / Part 5) ============ -->
+<section id="prefs" aria-labelledby="h-prefs">
+  <h2 id="h-prefs"><span data-i18n="prefs.title">⚙️ Settings</span><small data-i18n="prefs.sub">Language and appearance</small></h2>
+  <div class="card">
+    <label for="pf_lang" data-i18n="prefs.lang">Language</label>
+    <select id="pf_lang" data-input="prefs"><option value="en">English</option><option value="hi">हिन्दी</option><option value="hinglish">Hinglish</option></select>
+    <label for="pf_theme" data-i18n="prefs.theme">Theme</label>
+    <select id="pf_theme" data-input="prefs"><option value="dark" data-i18n="theme.dark">Dark (default)</option><option value="light" data-i18n="theme.light">Light</option><option value="auto" data-i18n="theme.auto">Match Telegram</option></select>
+    <p class="hint" data-i18n="prefs.note">The language changes the main screens and messages. Some detailed screens and the admin panel stay in English.</p>
+  </div>
+</section>
+
 <!-- ============ ADMIN ============ -->
 <section id="admin" aria-labelledby="h-admin">
   <h2 id="h-admin">🛡 Admin</h2>
@@ -281,13 +295,14 @@
 </main>
 
 <nav id="nav" aria-label="Main">
-  <button data-go="home" aria-current="page"><span class="ic" aria-hidden="true">🏠</span>Home</button>
-  <button data-go="tasks"><span class="ic" aria-hidden="true">📋</span>Tasks</button>
-  <button data-go="ref"><span class="ic" aria-hidden="true">👥</span>Referral</button>
-  <button data-go="withdraw"><span class="ic" aria-hidden="true">💸</span>Withdraw</button>
-  <button data-go="more"><span class="ic" aria-hidden="true">✨</span>More</button>
+  <button data-go="home" aria-current="page"><span class="ic" aria-hidden="true">🏠</span><span data-i18n="nav.home">Home</span></button>
+  <button data-go="tasks"><span class="ic" aria-hidden="true">📋</span><span data-i18n="nav.tasks">Tasks</span></button>
+  <button data-go="ref"><span class="ic" aria-hidden="true">👥</span><span data-i18n="nav.referral">Referral</span></button>
+  <button data-go="withdraw"><span class="ic" aria-hidden="true">💸</span><span data-i18n="nav.withdraw">Withdraw</span></button>
+  <button data-go="more"><span class="ic" aria-hidden="true">✨</span><span data-i18n="nav.more">More</span></button>
 </nav>
 
+<script src="/i18n.js"></script>
 <script src="/app.js"></script>
 </body>
 </html>
