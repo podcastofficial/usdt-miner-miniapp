@@ -483,7 +483,18 @@ async function boot() {
     initTimers(); renderDaily(); renderVerify(); renderTasks(); renderTx(data.transactions || [], false);
     if (data.admin) initAdmin();
     autoVerify();
+    autoGift();
   } catch (e) { status(e.message); say(e.message); }
+}
+/* Gift link: t.me/<bot>/<app>?startapp=gift_CODE opens the app and redeems the code once, by itself. */
+let giftTried = false;
+async function autoGift() {
+  if (giftTried) return; giftTried = true;
+  const sp = String(tg?.initDataUnsafe?.start_param || ''), m = /^gift_([A-Za-z0-9]{4,20})$/.exec(sp); if (!m) return;
+  const key = 'gift_' + m[1].toUpperCase();
+  try { if (localStorage.getItem(key)) return; } catch (e) { /* storage blocked: the server still enforces the limits */ }
+  try { const r = await api('promoRedeem', { code: m[1] }); try { localStorage.setItem(key, '1'); } catch (e) { /* ignore */ } say('🎁 Gift code redeemed: +' + N(r.reward) + ' Points'); await boot(); }
+  catch (e) { say(e.message); }
 }
 function initAdmin() {
   if (!document.querySelector('#nav [data-go=admin]')) { const b = document.createElement('button'); b.dataset.go = 'admin'; b.innerHTML = '<span class="ic" aria-hidden="true">🛡</span><span data-i18n="nav.admin">' + esc(T('nav.admin', null, 'Admin')) + '</span>'; $('nav').appendChild(b); }
