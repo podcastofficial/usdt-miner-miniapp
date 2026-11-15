@@ -86,7 +86,7 @@ function taskBtn(t) {
 }
 function renderTasks() {
   const list = (data.tasks || []).filter((t) => filter === 'all' || (filter === 'social' && ['channel', 'bot'].includes(t.type)) || (filter === 'other' && !['channel', 'bot'].includes(t.type)));
-  setHtml('tasklist', list.map((t) => `<div class="card row">${ic(taskIcon(t.type))}<div class="mid"><b>${esc(t.title)}</b>${t.description ? `<small>${esc(t.description)}</small>` : ''}<span class="pts">🪙 +${N(t.reward)} Points</span>${t.proof_required && !t.done ? `<small>${t.proof_status === 'rejected' ? 'Rejected' + (t.proof_reason ? ': ' + esc(t.proof_reason) : '') + ' — you can try again' : 'Needs a proof, checked by an admin'}</small>` : ''}${t.type !== 'channel' && !t.proof_required && !t.done ? `<small>Stay ${Number(t.timer_seconds)}s on the task, then claim</small>` : ''}</div>${taskBtn(t)}</div>`).join('') || empty('No tasks right now'));
+  setHtml('tasklist', list.map((t) => `<div class="card row">${ic(taskIcon(t.type))}<div class="mid"><b>${esc(t.title)}</b>${t.description ? `<small>${esc(t.description)}</small>` : ''}<span class="pts">🪙 +${N(t.reward)} Points</span>${t.proof_required && !t.done ? `<small>${t.proof_status === 'rejected' ? 'Rejected' + (t.proof_reason ? ': ' + esc(t.proof_reason) : '') + ' — you can try again' : 'Needs a proof, checked by an admin'}</small>` : ''}${t.type !== 'channel' && !t.proof_required && !t.done ? `<small>Stay ${Number(t.timer_seconds)}s on the task, then claim</small>` : ''}${t.started_at && !t.done && !t.proof_required ? `<small><a href="#" data-act="openTaskLink" data-id="${Number(t.id)}">Open task link again</a></small>` : ''}</div>${taskBtn(t)}</div>`).join('') || empty('No tasks right now'));
 }
 const initTimers = () => (data.tasks || []).forEach((t) => { t.deadline = Date.now() + (t.seconds_left || 0) * 1000; });
 setInterval(() => {
@@ -160,11 +160,16 @@ async function loadRewards() {
   $('promocard').hidden = !e.promo_enabled;
 }
 let refLink = '';
+let gateMissing = null; // channels the user still has to join (set after a verify check); non-null = full-screen join gate
 function renderVerify() {
   const box = $('verifybox'), u = data.user || {};
-  if (!u.verify_needed) { box.hidden = true; return; }
-  const ch = (data.settings && data.settings.required_channels) || [];
-  $('vtext').textContent = u.has_referrer ? 'Join these channels, then tap Verify. Your inviter gets rewarded after you verify.' : 'Join these channels, then tap Verify.';
+  if (u.membership_verified) gateMissing = null;
+  if (!u.verify_needed) { box.hidden = true; box.classList.remove('gate'); return; }
+  const ch = (gateMissing && gateMissing.length ? gateMissing : (data.settings && data.settings.required_channels) || []);
+  const block = !data.admin && !u.membership_verified && gateMissing !== null; // blocks the app until the channels are joined (admins are never locked out)
+  if (block && box.parentElement !== document.body) document.body.appendChild(box);
+  box.classList.toggle('gate', block);
+  $('vtext').textContent = block ? 'Join these channels to use the app, then tap Verify.' : u.has_referrer ? 'Join these channels, then tap Verify. Your inviter gets rewarded after you verify.' : 'Join these channels, then tap Verify.';
   setHtml('vlinks', ch.map((c) => `<p><a href="${esc(chUrl(c))}" data-act="openCh" data-ch="${esc(c)}">${esc(c)}</a></p>`).join('')); box.hidden = false;
 }
 
@@ -432,11 +437,16 @@ async function savePrefs() {
 /* Referral fix: a referred user who already joined the channels used to get nothing until they found and tapped Verify.
    Now the check runs by itself once per app open (silent when channels are still missing). */
 let autoTried = false;
-async function autoVerify() {
-  if (autoTried || !data.user || !data.user.verify_needed) return;
+async function autoVerify(force) {
+  if ((autoTried && !force) || !data.user || !data.user.verify_needed) return;
   autoTried = true;
-  try { const r = await api('referralVerify'); if (r.verified) { if (r.reward_granted) say('✅ Verified — your inviter was rewarded'); await boot(); } } catch (e) { /* channels missing or check unavailable: the Verify button stays */ }
+  try {
+    const r = await api('referralVerify');
+    if (r.verified) { gateMissing = null; if (r.reward_granted) say('✅ Verified — your inviter was rewarded'); await boot(); }
+    else { gateMissing = r.missing || []; renderVerify(); } // not joined yet: show the join screen
+  } catch (e) { /* check unavailable (bot not admin in a channel ...): never lock people out, the normal Verify card stays */ }
 }
+document.addEventListener('visibilitychange', () => { if (!document.hidden && gateMissing !== null) autoVerify(true); }); // came back from joining -> check again by itself
 
 /* ---------------- boot ---------------- */
 async function boot() {
@@ -471,6 +481,7 @@ const ACT = {
     const r = await api('promoRedeem', { code }); $('promo').value = ''; say('🎟️ +' + N(r.reward) + ' Points added'); await boot(); await loadRewards();
   },
   async complete(d) { const r = await api('taskComplete', { taskId: Number(d.id) }); delete opened[d.id]; say('✅ Earned ' + N(r.reward) + ' Points'); await boot(); },
+  openTaskLink(d, el) { const t = (data.tasks || []).find((x) => x.id === Number(d.id)); if (t) openUrl(t.link); },
   async openTask(d) {
     const id = Number(d.id), t = (data.tasks || []).find((x) => x.id === id); if (!t) return;
     openUrl(t.link); // open FIRST, right inside the tap (it used to wait for the server and then did nothing if that call failed)
@@ -485,7 +496,7 @@ const ACT = {
     filter = d.f; document.querySelectorAll('[role=tab]').forEach((b) => { const on = b === el; b.setAttribute('aria-selected', on); b.tabIndex = on ? 0 : -1; });
     $('tasklist').setAttribute('aria-labelledby', el.id); renderTasks();
   },
-  async verify() { const r = await api('referralVerify'); if (r.verified) { say(r.reward_granted ? '✅ Verified — your inviter was rewarded' : '✅ Channels verified'); await boot(); } else say('Join first: ' + r.missing.join(', ')); },
+  async verify() { const r = await api('referralVerify'); if (r.verified) { gateMissing = null; say(r.reward_granted ? '✅ Verified — your inviter was rewarded' : '✅ Channels verified'); await boot(); } else { gateMissing = r.missing || []; renderVerify(); say('Join first: ' + r.missing.join(', ')); } },
   openCh(d) { openUrl(chUrl(d.ch)); },
   openUrl(d) { openUrl(d.url); },
   openProofChannel() { openUrl(proofChannel); },
@@ -538,7 +549,7 @@ document.addEventListener('click', (e) => {
   const el = e.target.closest('[data-go],[data-act]');
   if (!el || el.disabled || el.getAttribute('aria-disabled') === 'true') return;
   if (el.dataset.go) { go(el.dataset.go); return; }
-  if (el.dataset.act === 'openCh') e.preventDefault();
+  if (el.dataset.act === 'openCh' || el.dataset.act === 'openTaskLink') e.preventDefault();
   const fn = ACT[el.dataset.act]; if (fn) Promise.resolve().then(() => fn(el.dataset, el)).catch((err) => say(err.message));
 });
 document.addEventListener('input', (e) => { const f = INPUT[e.target.dataset && e.target.dataset.input]; if (f) f(); });

@@ -213,3 +213,7 @@ svg.chart .bar.out{fill:var(--red)}
 svg.chart .axis{stroke:var(--mut);stroke-width:1}
 #adm details summary{cursor:pointer;min-height:44px;display:flex;align-items:center;color:var(--or1)}
 #adm textarea{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.75rem}
+
+/* join gate: full-screen card shown until the required channels are joined */
+#verifybox.gate{position:fixed;inset:0;z-index:80;margin:0;border-radius:0;overflow:auto;display:flex;flex-direction:column;justify-content:center;gap:12px;padding:24px 20px;background:var(--bg)}
+#verifybox.gate[hidden]{display:none}
