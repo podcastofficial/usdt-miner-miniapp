@@ -73,6 +73,7 @@ nav button.on::after{content:"";position:absolute;left:25%;right:25%;bottom:0;he
 </style></head><body>
 <div class="top"><div class="logo">⛏️</div><h1>USDT Miner<small>Mine Points &amp; Earn USDT</small></h1></div>
 <div id="msg">Connecting to Telegram…</div>
+<div id="gate" class="card" style="display:none"><h2>🔒 Open in Telegram</h2><p>USDT Miner works only inside Telegram. Open the official bot and tap the Mini App button to log in.</p></div>
 
 <section id="home" class="on">
  <div class="hero"><div class="glow"></div><div class="pick">⛏️</div><div class="gem" style="left:18px;bottom:36px">💎</div><div class="gem" style="right:26px;bottom:30px;animation-delay:1s">🔶</div>
@@ -111,7 +112,7 @@ nav button.on::after{content:"";position:absolute;left:25%;right:25%;bottom:0;he
 <script>
 const tg=window.Telegram?.WebApp;tg?.ready();tg?.expand();try{tg?.setHeaderColor('#07080b');tg?.setBackgroundColor('#07080b')}catch(e){}
 const init=tg?.initData||'';let data={},filter='all',opened={};
-async function api(action,p={}){let r=await fetch('/api?action='+action,{method:'POST',headers:{'Content-Type':'application/json','X-Telegram-Init-Data':init},body:JSON.stringify(p)});let j=await r.json();if(!r.ok)throw Error(j.error);return j}
+async function api(action,p={}){let r;try{r=await fetch('/api?action='+action,{method:'POST',headers:{'Content-Type':'application/json','X-Telegram-Init-Data':init},body:JSON.stringify(p)})}catch(e){throw Error('Network error - check your connection')}let j={};try{j=await r.json()}catch(e){}if(!r.ok)throw Error(j.error||('Request failed ('+r.status+')'));return j}
 function say(s){document.getElementById('msg').textContent=s;try{tg?.HapticFeedback?.impactOccurred('light')}catch(e){}}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function icon(t){return t==='channel'?'✈️':t==='bot'?'🤖':t==='website'?'🌐':'🎯'}
@@ -129,5 +130,5 @@ async function withdraw(){try{let r=await api('withdraw',{amount:amount.value,wa
 async function deposit(){try{let r=await api('depositSubmit',{amount:depamount.value,txHash:txhash.value});say('Deposit request #'+r.id+' pending review')}catch(e){say(e.message)}}
 async function campaign(){try{let r=await api('campaignCreate',{type:ctype.value,title:ctitle.value,link:clink.value,reward:creward.value,target:ctarget.value});say('Campaign #'+r.id+' submitted');await boot()}catch(e){say(e.message)}}
 async function copyRef(){try{await navigator.clipboard.writeText(refurl.textContent);say('Copied ✅')}catch(e){say('Copy failed')}}
-boot();
+if(!init){document.getElementById('gate').style.display='block';document.querySelectorAll('body>section,#nav').forEach(e=>e.style.display='none');document.getElementById('msg').textContent=''}else boot();
 </script></body></html>

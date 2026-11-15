@@ -1,1 +1,1 @@
-{"version":2,"rewrites":[{"source":"/api/(.*)","destination":"/api/index.js"},{"source":"/(.*)","destination":"/public/$1"}]}
+{"version":2,"rewrites":[{"source":"/api/(.*)","destination":"/api/index.js"},{"source":"/(.*)","destination":"/public/$1"}],"headers":[{"source":"/(.*)","headers":[{"key":"X-Content-Type-Options","value":"nosniff"},{"key":"Referrer-Policy","value":"no-referrer"}]}]}

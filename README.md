@@ -10,7 +10,7 @@ Fresh database and registration. This does NOT connect to or modify the existing
 
 ## Deploy
 1. Create a Neon PostgreSQL database.
-2. Run `db/schema.sql` in Neon SQL Editor.
+2. Run `db/schema.sql`, then `db/migrations/001_foundation.sql`, in Neon SQL Editor.
 3. Upload this project to a new GitHub repository.
 4. Import repository into Vercel.
 5. Add environment variables from `.env.example`.
@@ -34,3 +34,8 @@ This is a functional starter, not a completed audited financial platform. Deposi
 
 ## Security
 Only Telegram Mini App signed initData is accepted. Admin IDs are set in `ADMIN_TELEGRAM_IDS`. Never commit `.env`.
+
+## Project status
+Built in 7 parts — see `docs/ROADMAP_7_PARTS.md`, `docs/AUDIT_REPORT.md` and `CHANGELOG_PART1.md`.
+Structure: `api/index.js` (router) · `lib/` (auth, db, ledger, ratelimit, audit, config) · `lib/actions/` · `db/` · `tests/`.
+New flags: `DEPOSITS_ENABLED`, `ALLOW_UNVERIFIED_TASKS` (both default off). Run tests: `npm test`.

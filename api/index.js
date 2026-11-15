@@ -1,14 +1,57 @@
-import {sql,auth,ensure,admin,credit,debit,PPU,MIN,FEE,ist} from "../lib/core.js";
-const out=(r,c,x)=>{r.statusCode=c;r.setHeader("Content-Type","application/json");r.end(JSON.stringify(x))};
-export default async function handler(req,res){res.setHeader("Access-Control-Allow-Origin","*");res.setHeader("Access-Control-Allow-Headers","Content-Type,X-Telegram-Init-Data");res.setHeader("Access-Control-Allow-Methods","GET,POST,OPTIONS");if(req.method==="OPTIONS")return res.status(204).end();if(req.query.action==="health")return out(res,200,{ok:true});let b=req.body||{};if(typeof b!=="object")b={};let u;try{u=auth(req.headers["x-telegram-init-data"]||b.initData);await ensure(u)}catch(e){return out(res,401,{error:e.message})}const id=String(u.id),isAdmin=admin(id),a=req.query.action||b.action||"bootstrap";try{let x;
-if(a==="bootstrap"){const [me,tasks,tx,settings]=await Promise.all([sql`SELECT * FROM users WHERE telegram_id=${id}`,sql`SELECT * FROM tasks WHERE active=TRUE AND (target=0 OR completed<target) ORDER BY id DESC`,sql`SELECT * FROM transactions WHERE telegram_id=${id} ORDER BY id DESC LIMIT 25`,sql`SELECT key,value FROM settings`]);x={user:me[0],tasks,transactions:tx,settings:Object.fromEntries(settings.map(z=>[z.key,z.value])),admin:isAdmin}}
-else if(a==="referral"){const q=await sql`SELECT COUNT(*)::int n FROM referral_events WHERE referrer_id=${id}`;x={link:`https://t.me/${process.env.BOT_USERNAME||"USDTMinerOfficialBot"}?start=ref_${id}`,qualified:q[0].n,reward:1000}}
-else if(a==="leaderboard"){const top=await sql`SELECT telegram_id,username,first_name,points FROM users WHERE is_blocked=FALSE ORDER BY points DESC LIMIT 10`;const rank=await sql`SELECT COUNT(*)::int+1 rank FROM users WHERE points>(SELECT points FROM users WHERE telegram_id=${id})`;x={top,rank:rank[0].rank}}
-else if(a==="daily"){const d=ist(),q=await sql`INSERT INTO daily_claims VALUES(${id},${d},500) ON CONFLICT DO NOTHING RETURNING telegram_id`;if(!q.length)throw Error("Daily reward already claimed");x={reward:500,balance:await credit(id,500,"Daily Reward","Daily reward "+d,"daily:"+id+":"+d)}}
-else if(a==="taskComplete"){const tid=Number(b.taskId),t=await sql`SELECT * FROM tasks WHERE id=${tid} AND active=TRUE`;if(!t.length)throw Error("Task unavailable");if(t[0].type==="channel"){const z=await fetch(`https://api.telegram.org/bot${process.env.BOT_TOKEN}/getChatMember?chat_id=${encodeURIComponent(t[0].telegram_channel)}&user_id=${id}`).then(r=>r.json());if(!z.ok||!["member","administrator","creator"].includes(z.result?.status))throw Error("Join channel first")}const q=await sql`INSERT INTO task_completions(task_id,telegram_id,reward) VALUES(${tid},${id},${t[0].reward}) ON CONFLICT DO NOTHING RETURNING id`;if(!q.length)throw Error("Already completed");await sql`UPDATE tasks SET completed=completed+1 WHERE id=${tid}`;x={reward:t[0].reward,balance:await credit(id,Number(t[0].reward),"Task Reward",t[0].title,"task:"+tid+":"+id)}}
-else if(a==="withdraw"){const amount=Number(b.amount),wallet=String(b.wallet||"");if(amount<MIN||!/^0x[a-fA-F0-9]{40}$/.test(wallet))throw Error("Minimum is 15 USDT; valid BEP-20 address required");await debit(id,Math.ceil(amount*PPU),"Withdrawal","Withdrawal request");const fee=amount*FEE/100,q=await sql`INSERT INTO withdrawals(telegram_id,amount_usdt,fee_usdt,net_usdt,wallet_address) VALUES(${id},${amount},${fee},${amount-fee},${wallet}) RETURNING id`;x={id:q[0].id,fee,net:amount-fee}}
-else if(a==="depositSubmit"){if(!/^0x[a-fA-F0-9]{64}$/.test(String(b.txHash||""))||Number(b.amount)<=0)throw Error("Valid BSC tx hash and amount required");const q=await sql`INSERT INTO deposits(telegram_id,tx_hash,amount_usdt) VALUES(${id},${b.txHash},${Number(b.amount)}) RETURNING id`;x={id:q[0].id,status:"pending"}}
-else if(a==="campaignCreate"){const reward=Number(b.reward),target=Number(b.target);if(!["channel","bot","website"].includes(b.type)||!/^https?:\/\//.test(b.link)||reward<=0||target<1)throw Error("Invalid campaign");await debit(id,reward*target,"Campaign Budget",String(b.title));const q=await sql`INSERT INTO campaigns(owner_id,type,title,link,reward,target) VALUES(${id},${b.type},${b.title},${b.link},${reward},${target}) RETURNING id`;x={id:q[0].id,status:"pending"}}
-else if(a==="adminOverview"){if(!isAdmin)throw Error("Admin only");const q=await sql`SELECT (SELECT COUNT(*) FROM users)::int users,(SELECT COUNT(*) FROM deposits WHERE status='pending')::int deposits,(SELECT COUNT(*) FROM withdrawals WHERE status='pending')::int withdrawals`;x=q[0]}
-else if(a==="adminCreateTask"){if(!isAdmin)throw Error("Admin only");const q=await sql`INSERT INTO tasks(type,title,description,link,reward,target,telegram_channel) VALUES(${b.type},${b.title},${b.description||""},${b.link},${Number(b.reward)},${Number(b.target)||0},${b.telegramChannel||null}) RETURNING id`;x={id:q[0].id}}
-else throw Error("Unknown action");return out(res,200,x)}catch(e){console.error(e);return out(res,400,{error:e.message||"Request failed"})}}
+import { verifyInitData, AuthError, isAdminId } from "../lib/auth.js";
+import { ensureUser } from "../lib/users.js";
+import { rateLimit } from "../lib/ratelimit.js";
+import { sql } from "../lib/db.js";
+import { HttpError, send } from "../lib/http.js";
+import { INITDATA_MAX_AGE } from "../lib/config.js";
+import * as core from "../lib/actions/core.js";
+import * as legacy from "../lib/actions/legacy.js";
+
+// Action registry. write=true -> POST only; admin=true -> server-side admin check on every call.
+const ACTIONS = {
+  bootstrap: { fn: core.bootstrap },
+  referral: { fn: legacy.referral },
+  leaderboard: { fn: legacy.leaderboard },
+  daily: { fn: legacy.daily, write: true },
+  taskComplete: { fn: legacy.taskComplete, write: true },
+  withdraw: { fn: legacy.withdraw, write: true },
+  depositSubmit: { fn: legacy.depositSubmit, write: true },
+  campaignCreate: { fn: legacy.campaignCreate, write: true },
+  adminOverview: { fn: core.adminOverview, admin: true },
+  adminDiagnostics: { fn: core.adminDiagnostics, admin: true },
+  adminCreateTask: { fn: legacy.adminCreateTask, admin: true, write: true },
+};
+
+export default async function handler(req, res) {
+  try {
+    if (req.method === "OPTIONS") { res.statusCode = 204; return res.end(); }
+    const query = req.query || {};
+    if (query.action === "health") {
+      let db = false; try { await sql`SELECT 1`; db = true; } catch {}
+      return send(res, db ? 200 : 503, { ok: db, db });
+    }
+    let body = req.body || {};
+    if (typeof body === "string") { try { body = JSON.parse(body); } catch { body = {}; } }
+    if (typeof body !== "object") body = {};
+
+    const tg = verifyInitData(req.headers["x-telegram-init-data"] || body.initData,
+      { botToken: process.env.BOT_TOKEN, maxAgeSeconds: INITDATA_MAX_AGE });
+    const row = await ensureUser(tg.user, tg.startParam);
+    if (row.is_blocked) throw new HttpError(403, "account_blocked", "Account unavailable");
+
+    const id = String(tg.user.id), isAdmin = isAdminId(id);
+    const action = query.action || body.action || "bootstrap";
+    const def = Object.prototype.hasOwnProperty.call(ACTIONS, action) ? ACTIONS[action] : null;
+    if (!def) throw new HttpError(404, "unknown_action", "Unknown action");
+    if (def.write && req.method !== "POST") throw new HttpError(405, "method_not_allowed", "POST required");
+    if (def.admin && !isAdmin) throw new HttpError(403, "admin_only", "Admin only");
+
+    await rateLimit(id, action);
+    return send(res, 200, await def.fn({ id, row, isAdmin, body, query, startParam: tg.startParam }));
+  } catch (e) {
+    if (e instanceof AuthError) return send(res, e.code === "server_misconfigured" ? 500 : 401, { error: e.message, code: e.code });
+    if (e instanceof HttpError) return send(res, e.status, { error: e.message, code: e.code });
+    console.error("API error:", e); // details stay in server logs, never sent to the client
+    return send(res, 500, { error: "Server error, please try again", code: "server_error" });
+  }
+}
