@@ -24,7 +24,7 @@ const $ = (id) => document.getElementById(id);
 const T = (k, v, d) => (window.I18N ? I18N.t(k, v, d) : d !== undefined ? String(d).replace(/\{(\w+)\}/g, (m, n) => (v && n in v ? v[n] : m)) : k);
 const N = (n) => Number(n).toLocaleString();
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const ic = (e) => `<span class="ic" aria-hidden="true">${e}</span>`;
+const ic = (e, c) => `<span class="ic${c ? ' ' + c : ''}" aria-hidden="true">${e}</span>`;
 const short = (h) => (h ? String(h).slice(0, 10) + '…' + String(h).slice(-6) : '');
 const dt = (x) => (x ? new Date(x).toLocaleDateString() : '');
 const empty = (t) => `<div class="empty">${esc(t)}</div>`;
@@ -72,7 +72,18 @@ const chUrl = (c) => 'https://t.me/' + String(c).replace('@', '');
 const btn = (label, act, attrs = '', cls = 'btn sm', aria = '') => `<button class="${cls}" data-act="${act}" ${attrs}${aria ? ` aria-label="${esc(aria)}"` : ''}>${label}</button>`;
 
 /* ---------------- tasks ---------------- */
-const taskIcon = (t) => (t === 'channel' ? '✈️' : t === 'bot' ? '🤖' : t === 'website' ? '🌐' : '🎯');
+/* Icon follows what the task really is: the site in its link first (YouTube, X, Facebook ...), then words in its title, then the type. */
+const LINK_ICONS = [[/youtu\.?be/i, '▶️'], [/(^|\/\/|\.)(twitter|x)\.com\//i, '🐦'], [/facebook\.com|fb\.com|fb\.me/i, '📘'], [/instagram\.com/i, '📸'], [/tiktok\.com/i, '🎵'], [/discord\.(gg|com)/i, '🎧'], [/wa\.me|whatsapp\.com/i, '💬'], [/reddit\.com/i, '👽'], [/github\.com/i, '💻'], [/linkedin\.com/i, '💼'], [/medium\.com/i, '📝']];
+const WORD_ICONS = [[/tracker|chart|price|market|analytic/i, '📊'], [/nft/i, '🖼️'], [/airdrop|bonus|gift|giveaway/i, '🎁'], [/swap|dex|exchange|trade|trading|wallet/i, '💱'], [/news|update|announce/i, '📰'], [/signal|alert/i, '📡'], [/game|play/i, '🎮'], [/video|watch|stream/i, '🎬'], [/mining|miner/i, '⛏️'], [/crypto|coin|bitcoin|btc|eth|blockchain|token/i, '🪙']];
+function taskIcon(type, link, title) {
+  const l = String(link || ''), s = String(title || '');
+  for (const [re, e] of LINK_ICONS) if (re.test(l)) return e;
+  for (const [re, e] of WORD_ICONS) if (re.test(s)) return e;
+  return type === 'channel' ? '✈️' : type === 'bot' ? '🤖' : type === 'website' ? '🌐' : '🎯';
+}
+/* Ledger type -> icon (History). Unknown types fall back to green / red dot. */
+const TX_ICONS = { 'Task Reward': '✅', 'Daily Reward': '📅', 'Referral Reward': '👥', 'Milestone Reward': '🏅', 'Promo Code': '🎟️', 'Campaign Budget': '📢', 'Campaign Refund': '↩️', 'Withdrawal': '💸', 'Withdrawal Refund': '↩️', 'Deposit': '⬇️', 'Game Entry': '🎮', 'Game Prize': '🏆', 'Lucky Draw Ticket': '🎫', 'Lucky Draw Win': '🎉', 'Lucky Draw Refund': '↩️', 'Booster Purchase': '⚡', 'Contest Prize': '🏁', 'Admin Adjustment': '🛠️' };
+const txIcon = (t) => TX_ICONS[t.type] || (t.points_change >= 0 ? '🟢' : '🔴');
 function taskBtn(t) {
   const a = `data-id="${Number(t.id)}"`, nm = ' — ' + t.title;
   if (t.done) return '<button class="btn sm done" disabled>Done ✓</button>';
@@ -86,7 +97,7 @@ function taskBtn(t) {
 }
 function renderTasks() {
   const list = (data.tasks || []).filter((t) => filter === 'all' || (filter === 'social' && ['channel', 'bot'].includes(t.type)) || (filter === 'other' && !['channel', 'bot'].includes(t.type)));
-  setHtml('tasklist', list.map((t) => `<div class="card row">${ic(taskIcon(t.type))}<div class="mid"><b>${esc(t.title)}</b>${t.description ? `<small>${esc(t.description)}</small>` : ''}<span class="pts">🪙 +${N(t.reward)} Points</span>${t.proof_required && !t.done ? `<small>${t.proof_status === 'rejected' ? 'Rejected' + (t.proof_reason ? ': ' + esc(t.proof_reason) : '') + ' — you can try again' : 'Needs a proof, checked by an admin'}</small>` : ''}${t.type !== 'channel' && !t.proof_required && !t.done ? `<small>Stay ${Number(t.timer_seconds)}s on the task, then claim</small>` : ''}${t.started_at && !t.done && !t.proof_required ? `<small><a href="#" data-act="openTaskLink" data-id="${Number(t.id)}">Open task link again</a></small>` : ''}</div>${taskBtn(t)}</div>`).join('') || empty('No tasks right now'));
+  setHtml('tasklist', list.map((t) => `<div class="card row">${ic(taskIcon(t.type, t.link, t.title))}<div class="mid"><b>${esc(t.title)}</b>${t.description ? `<small>${esc(t.description)}</small>` : ''}<span class="pts">🪙 +${N(t.reward)} Points</span>${t.proof_required && !t.done ? `<small>${t.proof_status === 'rejected' ? 'Rejected' + (t.proof_reason ? ': ' + esc(t.proof_reason) : '') + ' — you can try again' : 'Needs a proof, checked by an admin'}</small>` : ''}${t.type !== 'channel' && !t.proof_required && !t.done ? `<small>Stay ${Number(t.timer_seconds)}s on the task, then claim</small>` : ''}${t.started_at && !t.done && !t.proof_required ? `<small><a href="#" data-act="openTaskLink" data-id="${Number(t.id)}">Open task link again</a></small>` : ''}</div>${taskBtn(t)}</div>`).join('') || empty('No tasks right now'));
 }
 const initTimers = () => (data.tasks || []).forEach((t) => { t.deadline = Date.now() + (t.seconds_left || 0) * 1000; });
 setInterval(() => {
@@ -99,7 +110,7 @@ setInterval(() => {
 /* ---------------- history / daily / referral / verify ---------------- */
 let txNext = null;
 function renderTx(items, append) {
-  const h = items.map((t) => `<div class="card row">${ic(t.points_change >= 0 ? '🟢' : '🔴')}<div class="mid"><b>${esc(t.type)}</b><small>${esc(t.description || '')}</small></div><span class="pts">${t.points_change > 0 ? '+' : ''}${N(t.points_change)}</span></div>`).join('');
+  const h = items.map((t) => `<div class="card row">${ic(txIcon(t), t.points_change >= 0 ? 'tx-in' : 'tx-out')}<div class="mid"><b>${esc(t.type)}</b><small>${esc(t.description || '')}</small></div><span class="pts">${t.points_change > 0 ? '+' : ''}${N(t.points_change)}</span></div>`).join('');
   const el = $('txlist'); if (append) el.insertAdjacentHTML('beforeend', h); else el.innerHTML = h || empty('No transactions yet');
   txNext = items.length >= 25 ? items[items.length - 1].id : null; $('moreTx').hidden = !txNext;
 }
@@ -222,7 +233,7 @@ async function loadRank(page) {
 let ads = null;
 const AD_HINT = { channel: 'Use a link like https://t.me/YourChannel and add this bot as an admin of your channel, so joins can be verified.', bot: 'Use your bot link, like https://t.me/YourBot.', website: 'Use a https:// link. People must stay on the page for the timer before they can claim.' };
 function adcalc() {
-  const t = $('c_type').value; $('c_hint').textContent = AD_HINT[t]; $('c_botbox').hidden = t !== 'channel';
+  const t = $('c_type').value; $('c_hint').textContent = AD_HINT[t]; const bb = $('c_botbox'); if (bb) bb.hidden = t !== 'channel';
   $('c_link').placeholder = t === 'channel' ? 'https://t.me/YourChannel' : t === 'bot' ? 'https://t.me/YourBot' : 'https://example.com';
   const r = Number($('c_reward').value), n = Number($('c_target').value), el = $('c_budget'), ppu = Number(data.settings?.points_per_usdt) || 10000;
   if (!Number.isInteger(r) || !Number.isInteger(n) || r < 1 || n < 1) { el.textContent = ''; return; }
@@ -231,7 +242,7 @@ function adcalc() {
 }
 function campCard(c) {
   const pct = Math.min(Number(c.target), Number(c.completed));
-  return `<div class="card"><div class="row flat">${ic(taskIcon(c.type))}<div class="mid"><b>#${Number(c.id)} ${esc(c.title)}</b><small>${badge(BC[c.status] || 'warn', c.status === 'pending' ? 'in review' : c.status)} · +${N(c.reward)} × ${N(c.target)}</small></div></div>${c.status === 'active' ? `<progress value="${pct}" max="${Number(c.target)}" aria-label="Completed ${pct} of ${Number(c.target)}"></progress><small>${N(c.completed)} of ${N(c.target)} completed</small>` : ''}${c.reject_reason ? `<small>${esc(c.reject_reason)}</small>` : ''}${c.status === 'active' || c.status === 'finished' ? `<small>Used ${N(c.spent)} of ${N(Number(c.reward) * Number(c.target))} Points${c.status === 'active' ? ' · ' + N(c.unused) + ' unused' : ''}</small>` : ''}${c.status === 'pending' || c.status === 'active' ? `<div class="mt">${btn(c.status === 'pending' ? 'Cancel and refund' : 'Stop and refund unused', 'cancelCamp', `data-id="${Number(c.id)}" data-st="${c.status === 'active' ? 'active' : 'pending'}"`, 'btn sm ghost', (c.status === 'pending' ? 'Cancel campaign ' : 'Stop campaign ') + Number(c.id))}</div>` : ''}</div>`;
+  return `<div class="card"><div class="row flat">${ic(taskIcon(c.type, c.link, c.title))}<div class="mid"><b>#${Number(c.id)} ${esc(c.title)}</b><small>${badge(BC[c.status] || 'warn', c.status === 'pending' ? 'in review' : c.status)} · +${N(c.reward)} × ${N(c.target)}</small></div></div>${c.status === 'active' ? `<progress value="${pct}" max="${Number(c.target)}" aria-label="Completed ${pct} of ${Number(c.target)}"></progress><small>${N(c.completed)} of ${N(c.target)} completed</small>` : ''}${c.reject_reason ? `<small>${esc(c.reject_reason)}</small>` : ''}${c.status === 'active' || c.status === 'finished' ? `<small>Used ${N(c.spent)} of ${N(Number(c.reward) * Number(c.target))} Points${c.status === 'active' ? ' · ' + N(c.unused) + ' unused' : ''}</small>` : ''}${c.status === 'pending' || c.status === 'active' ? `<div class="mt">${btn(c.status === 'pending' ? 'Cancel and refund' : 'Stop and refund unused', 'cancelCamp', `data-id="${Number(c.id)}" data-st="${c.status === 'active' ? 'active' : 'pending'}"`, 'btn sm ghost', (c.status === 'pending' ? 'Cancel campaign ' : 'Stop campaign ') + Number(c.id))}</div>` : ''}</div>`;
 }
 async function loadAds() {
   setHtml('camplist', skel(2)); ads = await api('campaignList'); const i = ads.info;
@@ -423,11 +434,16 @@ async function syncLang() {
   if (want !== I18N.lang) await I18N.set(want);
 }
 let lastPrefs = '';
-function loadPrefs() { $('pf_lang').value = window.I18N ? I18N.lang : 'en'; $('pf_theme').value = getTheme(); lastPrefs = $('pf_lang').value + '|' + $('pf_theme').value; }
+const FONTS = ['system', 'serif', 'mono', 'rounded', 'hand'], SIZES = ['small', 'normal', 'large'];
+const getPref = (k, list, d) => { try { const v = localStorage.getItem(k); return list.includes(v) ? v : d; } catch (e) { return d; } };
+function applyFont(f, z) { const r = document.documentElement; if (f === 'system') delete r.dataset.font; else r.dataset.font = f; if (z === 'normal') delete r.dataset.fsize; else r.dataset.fsize = z; }
+const prefsKey = () => [$('pf_lang').value, $('pf_theme').value, $('pf_font').value, $('pf_fsize').value].join('|');
+function loadPrefs() { $('pf_lang').value = window.I18N ? I18N.lang : 'en'; $('pf_theme').value = getTheme(); $('pf_font').value = getPref('font', FONTS, 'system'); $('pf_fsize').value = getPref('fsize', SIZES, 'normal'); lastPrefs = prefsKey(); }
 async function savePrefs() {
-  const th = $('pf_theme').value, lg = $('pf_lang').value;
-  if (lastPrefs === lg + '|' + th) return; // a select fires both "input" and "change": handle the choice once
-  lastPrefs = lg + '|' + th;
+  const th = $('pf_theme').value, lg = $('pf_lang').value, fo = $('pf_font').value, fz = $('pf_fsize').value;
+  if (lastPrefs === prefsKey()) return; // a select fires both "input" and "change": handle the choice once
+  lastPrefs = prefsKey();
+  if (FONTS.includes(fo) && SIZES.includes(fz)) { try { localStorage.setItem('font', fo); localStorage.setItem('fsize', fz); } catch (e) {} applyFont(fo, fz); }
   if (THEMES.includes(th)) { try { localStorage.setItem('theme', th); } catch (e) {} applyTheme(th); }
   if (window.I18N && lg !== I18N.lang) {
     await I18N.set(lg);
@@ -441,7 +457,7 @@ async function savePrefs() {
 let waitBot = false; // set when the user was sent to Telegram to make the bot admin: check by itself when they come back
 document.addEventListener('visibilitychange', () => {
   if (document.hidden || !waitBot || !$('c_link') || !$('c_link').value) return;
-  api('channelBotCheck', { link: $('c_link').value }).then((r) => { $('c_botmsg').textContent = r.message; if (r.admin) { waitBot = false; say(r.message); } }).catch(() => {});
+  api('channelBotCheck', { link: $('c_link').value }).then((r) => { if ($('c_botmsg')) $('c_botmsg').textContent = r.message; if (r.admin) { waitBot = false; say(r.message); } }).catch(() => {});
 });
 let autoTried = false;
 async function autoVerify(force) {
@@ -518,7 +534,7 @@ const ACT = {
   async copyDep() { try { await navigator.clipboard.writeText(fin.deposit.wallet); say('Address copied ✅'); } catch (e) { say('Copy failed'); } },
   async rankPage(d) { await loadRank(rankPage + Number(d.d)); window.scrollTo(0, 0); },
   botAdd() { waitBot = true; openUrl(data.bot_add_url); }, // Telegram's own "add bot as administrator" screen
-  async botCheck() { const r = await api('channelBotCheck', { link: $('c_link').value }); $('c_botmsg').textContent = r.message; say(r.message); },
+  async botCheck() { const r = await api('channelBotCheck', { link: $('c_link').value }); if ($('c_botmsg')) $('c_botmsg').textContent = r.message; say(r.message); },
   async campaign() {
     const r = await api('campaignCreate', { type: $('c_type').value, title: $('c_title').value, link: $('c_link').value, reward: $('c_reward').value.trim(), target: $('c_target').value.trim() });
     say('Campaign #' + r.id + ' submitted for review'); ['c_title', 'c_link', 'c_reward', 'c_target'].forEach((k) => { $(k).value = ''; }); await boot(); await loadAds();

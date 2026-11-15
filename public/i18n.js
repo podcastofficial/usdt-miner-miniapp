@@ -1,9 +1,9 @@
 'use strict';
-/* Phase 2 / Part 5: tiny i18n. Strings live in /i18n/en.json, hi.json, hinglish.json (same keys in all three - a test checks it).
+/* Phase 2 / Part 5: tiny i18n. Strings live in /i18n/*.json (same keys in every language - a test checks it).
    Static text carries data-i18n="key" (or data-i18n-ph / data-i18n-aria); JS uses I18N.t(key, vars, englishFallback).
    English is always the fallback, so a missing key or a failed download never leaves the app blank. */
 const I18N = (() => {
-  const LANGS = ['en', 'hi', 'hinglish'], HTML_LANG = { en: 'en', hi: 'hi', hinglish: 'hi-Latn' };
+  const LANGS = ['en', 'hi', 'es', 'ar', 'ru', 'pt', 'fr', 'tr', 'id'], HTML_LANG = { en: 'en', hi: 'hi', es: 'es', ar: 'ar', ru: 'ru', pt: 'pt', fr: 'fr', tr: 'tr', id: 'id' };
   let cur = 'en', dict = {}, base = null;
   const cache = {};
   const load = async (l) => {
@@ -32,11 +32,12 @@ const I18N = (() => {
       cur = lang;
     } catch (e) { cur = 'en'; dict = {}; return cur; } // offline / blocked: stay on the English text already in the page
     document.documentElement.lang = HTML_LANG[cur];
+    document.documentElement.dir = cur === 'ar' ? 'rtl' : 'ltr';
     try { localStorage.setItem('lang', cur); } catch (e) {}
     apply();
     return cur;
   }
-  const guess = (code) => (String(code || '').toLowerCase().startsWith('hi') ? 'hi' : 'en');
+  const guess = (code) => (LANGS.includes(String(code || '').toLowerCase().slice(0, 2)) ? String(code).toLowerCase().slice(0, 2) : 'en');
   const stored = () => { try { const v = localStorage.getItem('lang'); return LANGS.includes(v) ? v : null; } catch (e) { return null; } };
   return { t, set, apply, guess, stored, has, LANGS, get lang() { return cur; } };
 })();
