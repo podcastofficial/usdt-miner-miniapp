@@ -1,0 +1,27 @@
+import { HttpError } from "./http.js";
+const MEMBER = ["member", "administrator", "creator"];
+export const isChannelName = (c) => /^@[A-Za-z0-9_]{5,32}$/.test(String(c || ""));
+
+/** Returns the user's membership status in a channel. Throws 503 if Telegram cannot verify (e.g. bot is not a channel admin). */
+export async function chatMemberStatus(channel, userId) {
+  const z = await fetch(`https://api.telegram.org/bot${process.env.BOT_TOKEN}/getChatMember?chat_id=${encodeURIComponent(channel)}&user_id=${userId}`,
+    { signal: AbortSignal.timeout(8000) }).then(r => r.json()).catch(() => null);
+  if (!z || !z.ok) throw new HttpError(503, "verification_unavailable", "Verification is temporarily unavailable");
+  return z.result?.status || "left";
+}
+export const isMemberStatus = (s) => MEMBER.includes(s);
+
+// ---- Phase 2 / Part 1: bot messages. These never throw: the caller decides what to do with the outcome. ----
+async function tgCall(method, payload, timeoutMs = 8000) {
+  try {
+    const r = await fetch(`https://api.telegram.org/bot${process.env.BOT_TOKEN}/${method}`, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload), signal: AbortSignal.timeout(timeoutMs) });
+    const json = await r.json().catch(() => null);
+    return { status: r.status, json };
+  } catch (e) { return { status: 0, json: null }; } // network error / timeout -> treated as a retryable failure
+}
+export const sendMessage = (chatId, text, extra = {}) =>
+  tgCall("sendMessage", { chat_id: chatId, text, parse_mode: "HTML", disable_web_page_preview: true, ...extra });
+export const setWebhook = (url, secret) =>
+  tgCall("setWebhook", { url, secret_token: secret, allowed_updates: ["message", "my_chat_member"], drop_pending_updates: false, max_connections: 10 });
+export const getWebhookInfo = () => tgCall("getWebhookInfo", {});
