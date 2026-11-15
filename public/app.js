@@ -109,7 +109,7 @@ async function loadWithdraw() {
 async function loadDeposit() {
   const f = await getFin(), d = f.deposit;
   if (!d.enabled) { $('depinfo').textContent = 'Deposits are not enabled yet.'; $('depform').hidden = true; }
-  else { $('depform').hidden = false; setHtml('depinfo', 'Send USDT on <b>BSC (BEP-20)</b> only, to:<br><span style="color:var(--or1);word-break:break-all">' + esc(d.wallet) + '</span><br>Minimum ' + esc(d.min) + ' USDT · ' + esc(d.confirmations) + ' confirmations needed.'); }
+  else { $('depform').hidden = false; setHtml('depinfo', 'Send USDT on <b>BSC (BEP-20)</b> only, to:<br><span class="accent wrap">' + esc(d.wallet) + '</span><br>Minimum ' + esc(d.min) + ' USDT · ' + esc(d.confirmations) + ' confirmations needed.'); }
   const r = await api('depositList');
   setHtml('deplist', r.items.map((x) => `<div class="card row">${ic(DI[x.status] || '•')}<div class="mid"><b>${x.amount_usdt ? esc(x.amount_usdt) + ' USDT' : 'Deposit #' + Number(x.id)}</b><small>${badge(BC[x.status] || 'warn', x.status)}${x.reject_reason ? ' ' + esc(RS[x.reject_reason] || x.reject_reason) : ''} · ${esc(short(x.tx_hash))}</small></div>${x.status === 'pending' ? btn('Recheck', 'recheckD', `data-id="${Number(x.id)}"`, 'btn sm', 'Recheck deposit ' + Number(x.id)) : ''}</div>`).join('') || empty('No deposits yet'));
 }
@@ -141,7 +141,7 @@ function adcalc() {
 }
 function campCard(c) {
   const pct = Math.min(Number(c.target), Number(c.completed));
-  return `<div class="card"><div class="row" style="padding:0">${ic(taskIcon(c.type))}<div class="mid"><b>#${Number(c.id)} ${esc(c.title)}</b><small>${badge(BC[c.status] || 'warn', c.status === 'pending' ? 'in review' : c.status)} · +${N(c.reward)} × ${N(c.target)}</small></div></div>${c.status === 'active' ? `<progress value="${pct}" max="${Number(c.target)}" aria-label="Completed ${pct} of ${Number(c.target)}"></progress><small>${N(c.completed)} of ${N(c.target)} completed</small>` : ''}${c.reject_reason ? `<small>${esc(c.reject_reason)}</small>` : ''}${c.status === 'pending' ? `<div style="margin-top:8px">${btn('Cancel and refund', 'cancelCamp', `data-id="${Number(c.id)}"`, 'btn sm ghost', 'Cancel campaign ' + Number(c.id))}</div>` : ''}</div>`;
+  return `<div class="card"><div class="row flat">${ic(taskIcon(c.type))}<div class="mid"><b>#${Number(c.id)} ${esc(c.title)}</b><small>${badge(BC[c.status] || 'warn', c.status === 'pending' ? 'in review' : c.status)} · +${N(c.reward)} × ${N(c.target)}</small></div></div>${c.status === 'active' ? `<progress value="${pct}" max="${Number(c.target)}" aria-label="Completed ${pct} of ${Number(c.target)}"></progress><small>${N(c.completed)} of ${N(c.target)} completed</small>` : ''}${c.reject_reason ? `<small>${esc(c.reject_reason)}</small>` : ''}${c.status === 'pending' ? `<div class="mt">${btn('Cancel and refund', 'cancelCamp', `data-id="${Number(c.id)}"`, 'btn sm ghost', 'Cancel campaign ' + Number(c.id))}</div>` : ''}</div>`;
 }
 async function loadAds() {
   setHtml('camplist', skel(2)); ads = await api('campaignList'); const i = ads.info;
@@ -195,7 +195,7 @@ async function loadHow() {
     ['Is it safe?', 'Never share your private key, seed phrase or Telegram login code with anyone. Nobody from the team will ask for them.'],
     ['Are games available?', 'Not yet. See the Games screen for what is planned.'],
   ];
-  setHtml('howbody', `<div class="card"><ol class="steps">${steps.map((s) => `<li>${s}</li>`).join('')}</ol></div><h3 style="margin:14px 2px 6px">FAQ</h3>${faq.map((f) => `<details class="card faq"><summary>${esc(f[0])}</summary><p>${esc(f[1])}</p></details>`).join('')}${c.support ? `<button class="btn" data-act="openUrl" data-url="${esc(c.support)}">Contact support ›</button>` : ''}`);
+  setHtml('howbody', `<div class="card"><ol class="steps">${steps.map((s) => `<li>${s}</li>`).join('')}</ol></div><h3 class="sub">FAQ</h3>${faq.map((f) => `<details class="card faq"><summary>${esc(f[0])}</summary><p>${esc(f[1])}</p></details>`).join('')}${c.support ? `<button class="btn" data-act="openUrl" data-url="${esc(c.support)}">Contact support ›</button>` : ''}`);
 }
 
 /* ---------------- navigation ---------------- */

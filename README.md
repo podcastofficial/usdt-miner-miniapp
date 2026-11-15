@@ -26,6 +26,9 @@ Fresh database and registration. This does NOT connect to or modify the existing
 - Required channels: @USDTMinerUpdates and @USDTMinerPayments
 - Weekly/monthly referral contests intentionally postponed.
 
+## Launch
+See `docs/DEPLOYMENT_GUIDE.md`, `docs/TEST_MATRIX.md` and `DEPLOYMENT_CHECKLIST.md`. Run `npm test` (53 tests).
+
 ## Important before real launch
 This is a functional starter, not a completed audited financial platform. Deposit hashes are queued for admin review; **automatic BEP-20 on-chain verification is not implemented**. Withdrawals create requests and require secure manual payout. Do not place private keys in GitHub or Vercel. Referral rewards are not yet granted because qualifying channel-join verification and referral attribution need a separate Telegram webhook flow. Bot/website task claims need stronger verification before awarding meaningful Points. Games are informational placeholder only. Advertising campaign creation reserves Points, but the full campaign delivery/verification workflow is not yet complete. Add rate limits, idempotent DB transactions, monitoring, backups, terms and privacy policy before production.
 
@@ -36,6 +39,6 @@ This is a functional starter, not a completed audited financial platform. Deposi
 Only Telegram Mini App signed initData is accepted. Admin IDs are set in `ADMIN_TELEGRAM_IDS`. Never commit `.env`.
 
 ## Project status
-Built in 7 parts — see `docs/ROADMAP_7_PARTS.md`, `docs/AUDIT_REPORT.md` and `CHANGELOG_PART1.md`.
+Built in 7 parts (all done, v1.7.0) — see `docs/ROADMAP_7_PARTS.md`, `docs/AUDIT_REPORT.md` and `CHANGELOG_PART1.md`.
 Structure: `api/index.js` (router) · `lib/` (auth, db, ledger, ratelimit, audit, config) · `lib/actions/` · `db/` · `tests/`.
 New flag: `DEPOSITS_ENABLED` (default off). Daily reward (100) and its time zone live in the `settings` table. Run tests: `npm test`.

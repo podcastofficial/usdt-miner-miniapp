@@ -148,3 +148,23 @@ nav#nav button[aria-current=page]::after{content:"";position:absolute;left:25%;r
   *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
   .coin{transform:rotateY(-24deg)}
 }
+
+/* utilities (replace inline styles so the CSP can forbid them) */
+.accent{color:var(--or1)}.wrap{word-break:break-all}.mt{margin-top:8px}.sub{margin:14px 2px 6px}.row.flat{padding:0}
+.coin .rim i:nth-child(1){--z:-8px}.coin .rim i:nth-child(2){--z:-6px}.coin .rim i:nth-child(3){--z:-4px}.coin .rim i:nth-child(4){--z:-2px}.coin .rim i:nth-child(5){--z:0px}
+.coin .rim i:nth-child(6){--z:2px}.coin .rim i:nth-child(7){--z:4px}.coin .rim i:nth-child(8){--z:6px}.coin .rim i:nth-child(9){--z:8px}
+
+/* admin panel (moved out of admin.js: no injected <style>) */
+#admtabs{display:flex;gap:6px;overflow-x:auto;margin:8px 0;padding-bottom:4px}#admtabs .tab{flex:0 0 auto;padding:8px 12px}
+#admnote{color:var(--or1);font-size:.85rem;min-height:1rem}
+.admodal{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:50;display:flex;align-items:center;justify-content:center;padding:16px}.admodal .card{width:100%;max-width:420px}
+#adm .stat{margin:0;padding:10px}#adm .stat small{display:block}#adm .stat b{font-size:1.1rem;color:var(--or1)}
+#adm .acts,.admodal .acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}#adm .acts .btn,.admodal .acts .btn{width:auto}
+#adm pre{white-space:pre-wrap;word-break:break-all;font-size:.75rem;color:var(--mut)}
+#adm .inl{display:inline}#adm .card .btn{width:auto}#adm>div>.btn,#adm #admbody>.btn{width:100%}
+#adm h2{font-size:1.1rem}
+
+/* Part 7 polish */
+h2[tabindex="-1"]:focus,main:focus{outline:none} /* heading focus is only for screen readers after navigation */
+.hub>span:nth-child(2){flex:1;min-width:0}.hub b,.hub small{display:block}
+#adm .card>b+small,#adm .card>small+small{margin-top:2px}#adm .inl{margin-left:4px}

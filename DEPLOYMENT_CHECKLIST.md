@@ -1,21 +1,36 @@
-# Launch checklist
-- [ ] New Neon database created and schema applied
-- [ ] Vercel env vars set
-- [ ] Bot token belongs to the new/selected Telegram bot
-- [ ] Admin Telegram IDs verified
-- [ ] Deploy to Vercel
-- [ ] Set HTTPS Mini App URL with BotFather
-- [ ] Test authentication inside Telegram
-- [ ] Test daily claim and duplicate prevention
-- [ ] Test task membership verification
-- [ ] Test withdrawal validation
-- [ ] Run db/migrations/004_finance.sql
-- [ ] Deposits: set DEPOSITS_ENABLED=true + DEPOSIT_WALLET_ADDRESS only after a small test deposit passes (keep DEPOSIT_AUTO_CREDIT=false at first)
-- [ ] Test withdraw → approve → paid flow and reject/cancel refunds with a small amount
-- [ ] Build referral verification and campaign verification before awarding points
-- [ ] Add privacy policy, terms, backups and monitoring
-- [ ] Run db/migrations/005_admin.sql
-- [ ] Open Admin → Settings and confirm withdrawal fee/min, deposit wallet, channels, bot username
-- [ ] Test: campaign approve + reject refund, Points adjust, block/unblock, maintenance mode (as admin you stay in)
-- [ ] Run db/migrations/006_community.sql; set official/payments channel + support in Admin → Settings → Community & Ads
-- [ ] Test: Advertise create → cancel (refund), Payment Proof opens, leaderboard paging
+# Go-live checklist
+Tick in order. Anything marked **STOP** blocks launch.
+
+## Build & config
+- [ ] `npm install && npm test && npm run check` all green
+- [ ] New Neon DB: `schema.sql` then migrations 001-006 applied
+- [ ] Vercel env vars set (see `docs/DEPLOYMENT_GUIDE.md`); `git status` shows no `.env`
+- [ ] Bot token belongs to the intended bot; admin Telegram IDs verified (numeric)
+- [ ] Mini App URL set in BotFather; bot is admin in both official channels
+- [ ] `/api?action=health` returns `{"ok":true,"db":true}`
+- [ ] Response headers include the CSP (browser dev tools → Network) and the app still loads inside Telegram
+
+## Admin → Settings
+- [ ] Withdrawal min/fee, rate, daily reward, referral reward confirmed
+- [ ] Required channels, official/payments channel, support contact, bot username set
+- [ ] Maintenance **off**; `ALLOW_UNVERIFIED_TASKS` still `false`
+
+## Functional (small amounts) — see `docs/TEST_MATRIX.md` #1-14
+- [ ] Auth, daily, tasks, referral, withdraw (approve/paid/reject/cancel), advertise create/cancel, proof, leaderboard, admin actions
+- [ ] Deposits: **only** after a small real test deposit passes, then `DEPOSITS_ENABLED=true` + `DEPOSIT_WALLET_ADDRESS`; keep `DEPOSIT_AUTO_CREDIT=false` initially
+
+## Money safety — **STOP** if any is unchecked
+- [ ] No private key or seed anywhere in GitHub/Vercel/Neon
+- [ ] Payout wallet is held offline/by a person; every payout is manual after admin approval
+- [ ] Admin → Ledger check shows zero mismatches
+- [ ] Neon backups/point-in-time restore enabled; you know how to restore
+
+## Legal & trust — **STOP** until done (owner's decision, not code)
+- [ ] Privacy policy and Terms published and linked in the official channel/bot
+- [ ] Rules about earning, fees, withdrawals, bans and "Points are not a guaranteed value" written clearly
+- [ ] Check the rules for operating a rewards/payout service in your country and for Telegram's Mini App terms
+- [ ] Support contact monitored; someone is on call for the first week
+
+## Monitoring (first 48 hours)
+- [ ] Vercel logs watched for `API error` lines; Admin dashboard checked at least daily (abuse flags, open withdrawals, ledger check)
+- [ ] Know the kill switches: Settings → Withdrawals/Deposits/Advertising off, or Maintenance on

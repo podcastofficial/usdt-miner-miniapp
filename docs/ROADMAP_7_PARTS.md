@@ -5,4 +5,4 @@
 4. **Finance** — BEP-20 on-chain deposit verifier, withdrawal lifecycle (quote/fee/net, reserve, review, payout hash)  *(done)*
 5. **Admin panel** — dashboard, user search, task/deposit/withdrawal/campaign queues, audit viewer, all settings editable in-app  *(done)*
 6. **Community** — leaderboard (paginated), Advertise, Official Channel, Payment Proof, How to Use, Games (coming soon)  *(done)*
-7. **Premium UI + Launch** — Black + Orange 3D redesign, accessibility, test matrix, deployment guide, go-live checklist
+7. **Premium UI + Launch** — Black + Orange 3D redesign, accessibility, strict CSP, test matrix, deployment guide, go-live checklist  *(done)*
