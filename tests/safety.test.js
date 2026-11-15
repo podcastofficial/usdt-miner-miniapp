@@ -287,8 +287,8 @@ test("Part 5 settings: validated, safe defaults, resolved into the config", () =
 const dict = Object.fromEntries(LANGS.map((l) => [l, JSON.parse(read(`public/i18n/${l}.json`))]));
 const vars = (s) => [...String(s).matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort().join(",");
 
-test("i18n: English, Hindi and Hinglish files have exactly the same keys, no empty text, same {placeholders}", () => {
-  assert.deepEqual(LANGS, ["en", "hi", "hinglish"]);
+test("i18n: All language files have exactly the same keys, no empty text, same {placeholders}", () => {
+  assert.deepEqual(LANGS, ["en", "hi", "es", "ar", "ru", "pt", "fr", "tr", "id"]);
   const keys = Object.keys(dict.en).sort();
   assert.ok(keys.length >= 60);
   for (const l of LANGS) {
@@ -297,15 +297,18 @@ test("i18n: English, Hindi and Hinglish files have exactly the same keys, no emp
   }
 });
 
-test("i18n: scripts are right (Hindi in Devanagari, Hinglish in Latin letters only)", () => {
+test("i18n: scripts are right (Hindi in Devanagari, Arabic, Russian in Cyrillic, no Hinglish left)", () => {
   const dev = /[ऀ-ॿ]/;
   let hiHits = 0, differs = 0;
   for (const [k, v] of Object.entries(dict.hi)) { if (dev.test(v)) hiHits++; if (v !== dict.en[k]) differs++; }
   assert.ok(hiHits / Object.keys(dict.hi).length > 0.9, "Hindi file should be mostly Devanagari");
   assert.ok(differs / Object.keys(dict.hi).length > 0.9);
-  for (const [k, v] of Object.entries(dict.hinglish)) assert.doesNotMatch(v, dev, "hinglish." + k + " contains Devanagari");
+  const arb = /[\u0600-\u06FF]/, cyr = /[\u0400-\u04FF]/;
+  assert.ok(Object.values(dict.ar).filter((v) => arb.test(v)).length / Object.keys(dict.ar).length > 0.9, "Arabic file should be mostly Arabic script");
+  assert.ok(Object.values(dict.ru).filter((v) => cyr.test(v)).length / Object.keys(dict.ru).length > 0.9, "Russian file should be mostly Cyrillic");
+  assert.equal(fs.existsSync(new URL("../public/i18n/hinglish.json", import.meta.url)), false);
+  for (const l of ["es", "pt", "fr", "tr", "id"]) assert.ok(Object.keys(dict[l]).filter((k) => dict[l][k] !== dict.en[k]).length > 30, l + " looks untranslated");
   for (const [k, v] of Object.entries(dict.en)) assert.doesNotMatch(v, dev, "en." + k);
-  assert.ok(Object.keys(dict.hinglish).filter((k) => dict.hinglish[k] !== dict.en[k]).length > 30); // really translated, not a copy of English
 });
 
 test("i18n: every key used in index.html and app.js exists; the English text in the page matches en.json", () => {
@@ -324,7 +327,9 @@ test("i18n: every key used in index.html and app.js exists; the English text in 
 
 test("i18n: Telegram language guess and the settings screen", () => {
   assert.equal(guessLang("hi"), "hi"); assert.equal(guessLang("hi-IN"), "hi"); assert.equal(guessLang("HI"), "hi");
-  for (const c of ["en", "ru", "", null, undefined, "hindi"]) assert.equal(guessLang(c), c === "hindi" ? "hi" : "en");
+  assert.equal(guessLang("pt-BR"), "pt"); assert.equal(guessLang("ru"), "ru"); assert.equal(guessLang("AR"), "ar");
+  for (const c of ["en", "de", "", null, undefined, "xx"]) assert.equal(guessLang(c), "en");
+  assert.equal(guessLang("hindi"), "hi");
   assert.match(html, /<select id="pf_lang"[^>]*data-input="prefs"/); assert.match(html, /<label for="pf_lang"/);
   assert.match(html, /<select id="pf_theme"[^>]*data-input="prefs"/); assert.match(html, /<label for="pf_theme"/);
   assert.match(html, /<section id="prefs" aria-labelledby="h-prefs">/); assert.match(html, /data-go="prefs"/);
@@ -332,7 +337,9 @@ test("i18n: Telegram language guess and the settings screen", () => {
   assert.match(app, /prefs: 'more'/);
   assert.match(html, /<script src="\/i18n\.js"><\/script>\s*<script src="\/app\.js">/); // i18n loads before app.js
   const jsLang = read("public/i18n.js").match(/const guess = [^;]+;/)[0];
-  assert.match(jsLang, /startsWith\('hi'\)/);
+  assert.match(jsLang, /LANGS\.includes\(/);
+  assert.match(html, /<select id="pf_font"[^>]*data-input="prefs"/); assert.match(html, /<select id="pf_fsize"[^>]*data-input="prefs"/);
+  for (const l of LANGS) assert.match(html, new RegExp(`<option value="${l}">`), "language option " + l);
 });
 
 test("i18n runtime: fallback to English, {vars}, html lang, apply(), survives a failed download", async () => {
@@ -352,11 +359,12 @@ test("i18n runtime: fallback to English, {vars}, html lang, apply(), survives a 
   assert.equal(els[2].textContent, "orig"); // unknown key leaves the page text alone
   assert.equal(I.t("toast.claimed", { n: 5 }), "🎁 5 पॉइंट्स मिले");
   assert.equal(I.t("toast.claimed", {}), dict.hi["toast.claimed"]); // missing var stays visible, never "undefined"
-  await I.set("hinglish"); assert.equal(doc.documentElement.lang, "hi-Latn"); assert.equal(I.t("nav.tasks"), dict.hinglish["nav.tasks"]);
+  await I.set("es"); assert.equal(doc.documentElement.lang, "es"); assert.equal(I.t("nav.tasks"), dict.es["nav.tasks"]); assert.equal(doc.documentElement.dir, "ltr");
+  await I.set("ar"); assert.equal(doc.documentElement.dir, "rtl");
   await I.set("en"); assert.equal(doc.documentElement.lang, "en"); assert.equal(els[0].textContent, dict.en["nav.home"]);
   assert.equal(await I.set("klingon"), "en"); // unknown language -> English
   assert.equal(I.stored(), "en"); store.lang = "xx"; assert.equal(I.stored(), null);
-  fail = true; const cacheBust = I.LANGS.length; assert.ok(cacheBust === 3);
+  fail = true; const cacheBust = I.LANGS.length; assert.ok(cacheBust === 9);
   const ctx2 = { ...ctx, fetch: async () => { throw Error("offline"); } }; vm.createContext(ctx2); vm.runInContext(read("public/i18n.js") + "\nthis.I18N = I18N;", ctx2);
   assert.equal(await ctx2.I18N.set("hi"), "en"); // offline: stays English, no exception
 });
@@ -431,7 +439,7 @@ test("release: version 1.12.0, new files syntax-checked by npm run check, static
   for (const f of ["lib/roles.js", "lib/csv.js", "lib/fraud.js", "lib/analytics.js", "lib/health.js", "lib/i18n.js", "lib/safetyRules.js", "lib/actions/safety.js", "public/i18n.js"]) assert.ok(pkg.scripts.check.includes("node --check " + f), f + " is not in npm run check");
   const h = v.headers.find((x) => x.source.includes("admin"));
   const re = new RegExp("^" + h.source.replace(/\\\\/g, "\\") + "$");
-  for (const f of ["/styles.css", "/light.css", "/app.js", "/admin.js", "/i18n.js", "/i18n/hi.json", "/i18n/hinglish.json", "/i18n/en.json"]) assert.match(f, re, f);
+  for (const f of ["/styles.css", "/light.css", "/app.js", "/admin.js", "/i18n.js", "/i18n/hi.json", "/i18n/es.json", "/i18n/en.json"]) assert.match(f, re, f);
   assert.ok(v.crons.some((c) => c.path === "/api?action=cron")); // the same daily cron now also runs the fraud scan and health alerts (Hobby plan: once a day)
   assert.match(read("docs/TEST_MATRIX.md"), /Part 5 \(v1\.12\.0\)/); assert.match(read("CHANGELOG_PART12.md"), /v1\.12\.0/);
 });
