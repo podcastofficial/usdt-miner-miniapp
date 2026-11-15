@@ -7,11 +7,14 @@ import { INITDATA_MAX_AGE } from "../lib/config.js";
 import * as core from "../lib/actions/core.js";
 import * as legacy from "../lib/actions/legacy.js";
 import * as earn from "../lib/actions/earn.js";
+import * as ref from "../lib/actions/referral.js";
+import { captureReferrer } from "../lib/referral.js";
 
 // Action registry. write=true -> POST only; admin=true -> server-side admin check on every call.
 const ACTIONS = {
   bootstrap: { fn: core.bootstrap },
-  referral: { fn: legacy.referral },
+  referral: { fn: ref.referral },
+  referralVerify: { fn: ref.referralVerify, write: true },
   leaderboard: { fn: legacy.leaderboard },
   daily: { fn: earn.daily, write: true },
   taskStart: { fn: earn.taskStart, write: true },
@@ -25,6 +28,7 @@ const ACTIONS = {
   adminCreateTask: { fn: earn.adminCreateTask, admin: true, write: true },
   adminSetTaskActive: { fn: earn.adminSetTaskActive, admin: true, write: true },
   adminReconcile: { fn: earn.adminReconcile, admin: true },
+  adminAbuseEvents: { fn: ref.adminAbuseEvents, admin: true },
 };
 
 export default async function handler(req, res) {
@@ -42,6 +46,7 @@ export default async function handler(req, res) {
     const tg = verifyInitData(req.headers["x-telegram-init-data"] || body.initData,
       { botToken: process.env.BOT_TOKEN, maxAgeSeconds: INITDATA_MAX_AGE });
     const row = await ensureUser(tg.user, tg.startParam);
+    if (row.created) { try { row.referrer_id = (await captureReferrer(tg.user.id, tg.startParam)) ?? row.referrer_id; } catch (e) { console.error("referral capture failed:", e.message); } }
     if (row.is_blocked) throw new HttpError(403, "account_blocked", "Account unavailable");
 
     const id = String(tg.user.id), isAdmin = isAdminId(id);
