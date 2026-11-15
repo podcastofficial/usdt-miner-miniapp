@@ -8,6 +8,7 @@ import * as core from "../lib/actions/core.js";
 import * as legacy from "../lib/actions/legacy.js";
 import * as earn from "../lib/actions/earn.js";
 import * as ref from "../lib/actions/referral.js";
+import * as fin from "../lib/actions/finance.js";
 import { captureReferrer } from "../lib/referral.js";
 
 // Action registry. write=true -> POST only; admin=true -> server-side admin check on every call.
@@ -20,8 +21,14 @@ const ACTIONS = {
   taskStart: { fn: earn.taskStart, write: true },
   taskComplete: { fn: earn.taskComplete, write: true },
   history: { fn: earn.history },
-  withdraw: { fn: legacy.withdraw, write: true },
-  depositSubmit: { fn: legacy.depositSubmit, write: true },
+  financeInfo: { fn: fin.financeInfo },
+  withdrawQuote: { fn: fin.withdrawQuote },
+  withdraw: { fn: fin.withdraw, write: true },
+  withdrawList: { fn: fin.withdrawList },
+  withdrawCancel: { fn: fin.withdrawCancel, write: true },
+  depositSubmit: { fn: fin.depositSubmit, write: true },
+  depositRecheck: { fn: fin.depositRecheck, write: true },
+  depositList: { fn: fin.depositList },
   campaignCreate: { fn: legacy.campaignCreate, write: true },
   adminOverview: { fn: core.adminOverview, admin: true },
   adminDiagnostics: { fn: core.adminDiagnostics, admin: true },
@@ -29,6 +36,13 @@ const ACTIONS = {
   adminSetTaskActive: { fn: earn.adminSetTaskActive, admin: true, write: true },
   adminReconcile: { fn: earn.adminReconcile, admin: true },
   adminAbuseEvents: { fn: ref.adminAbuseEvents, admin: true },
+  adminWithdrawals: { fn: fin.adminWithdrawals, admin: true },
+  adminWithdrawalApprove: { fn: fin.adminWithdrawalApprove, admin: true, write: true },
+  adminWithdrawalReject: { fn: fin.adminWithdrawalReject, admin: true, write: true },
+  adminWithdrawalPaid: { fn: fin.adminWithdrawalPaid, admin: true, write: true },
+  adminDeposits: { fn: fin.adminDeposits, admin: true },
+  adminDepositApprove: { fn: fin.adminDepositApprove, admin: true, write: true },
+  adminDepositReject: { fn: fin.adminDepositReject, admin: true, write: true },
 };
 
 export default async function handler(req, res) {

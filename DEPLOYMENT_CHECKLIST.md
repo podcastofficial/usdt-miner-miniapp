@@ -9,6 +9,8 @@
 - [ ] Test daily claim and duplicate prevention
 - [ ] Test task membership verification
 - [ ] Test withdrawal validation
-- [ ] Keep deposits disabled until on-chain verifier is built and audited
+- [ ] Run db/migrations/004_finance.sql
+- [ ] Deposits: set DEPOSITS_ENABLED=true + DEPOSIT_WALLET_ADDRESS only after a small test deposit passes (keep DEPOSIT_AUTO_CREDIT=false at first)
+- [ ] Test withdraw → approve → paid flow and reject/cancel refunds with a small amount
 - [ ] Build referral verification and campaign verification before awarding points
 - [ ] Add privacy policy, terms, backups and monitoring
