@@ -3,12 +3,17 @@ Tick in order. Anything marked **STOP** blocks launch.
 
 ## Build & config
 - [ ] `npm install && npm test && npm run check` all green
-- [ ] New Neon DB: `schema.sql` then migrations 001-006 applied
+- [ ] New Neon DB: `schema.sql` then migrations 001-007 applied
 - [ ] Vercel env vars set (see `docs/DEPLOYMENT_GUIDE.md`); `git status` shows no `.env`
 - [ ] Bot token belongs to the intended bot; admin Telegram IDs verified (numeric)
 - [ ] Mini App URL set in BotFather; bot is admin in both official channels
 - [ ] `/api?action=health` returns `{"ok":true,"db":true}`
 - [ ] Response headers include the CSP (browser dev tools → Network) and the app still loads inside Telegram
+
+## Bot notifications (v1.8.0)
+- [ ] `TG_WEBHOOK_SECRET` and `CRON_SECRET` set; Admin → Notify shows webhook ✅ and both secrets ✅
+- [ ] `/start` in the bot replies; broadcast to "Only me" arrives
+- [ ] Bot is admin of the payments channel **before** turning `proof_autopost` ON
 
 ## Admin → Settings
 - [ ] Withdrawal min/fee, rate, daily reward, referral reward confirmed

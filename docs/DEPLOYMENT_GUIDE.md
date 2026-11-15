@@ -5,9 +5,9 @@ Neon (PostgreSQL), Vercel, GitHub, Telegram BotFather. Use a **new** Neon databa
 
 ## 2. Database (Neon SQL Editor, in this order)
 1. `db/schema.sql`
-2. `db/migrations/001_foundation.sql` → `002_points_and_tasks.sql` → `003_referrals.sql` → `004_finance.sql` → `005_admin.sql` → `006_community.sql`
+2. `db/migrations/001_foundation.sql` → `002_points_and_tasks.sql` → `003_referrals.sql` → `004_finance.sql` → `005_admin.sql` → `006_community.sql` → `007_notifications.sql`
 
-All migrations are idempotent (safe to re-run). Part 7 adds **no** migration.
+All migrations are idempotent (safe to re-run). Upgrading from v1.7.0: run only `007_notifications.sql`.
 
 ## 3. GitHub
 Create a private repo and push this folder. `.gitignore` now excludes `.env`, `.env.*` (except `.env.example`), `node_modules` and `*.zip`. Run `git status` once and confirm no `.env` is listed.
@@ -25,6 +25,8 @@ Import the repo. Framework preset: Other. Add the env vars below (Production), t
 | `DEPOSITS_ENABLED` | `false` until the deposit test below passes |
 | `DEPOSIT_WALLET_ADDRESS` | receive-only BEP-20 address (never a private key) |
 | `DEPOSIT_AUTO_CREDIT` | `false` at first |
+| `TG_WEBHOOK_SECRET` | any long random string (A-Z a-z 0-9 _ -). Only Telegram knows it |
+| `CRON_SECRET` | any long random string. Vercel sends it to the daily cron |
 | other values | defaults in `.env.example` are fine |
 
 Never put a private key, seed phrase or wallet password in GitHub or Vercel.
@@ -43,3 +45,10 @@ Check withdrawal min/fee, rates, required channels, official/payments channel, s
 
 ## 9. Rollback
 Vercel → Deployments → previous deployment → **Promote to Production**. Database changes are additive, so old code keeps working. To stop money movement at once: Admin → Settings → turn Withdrawals / Deposits / Advertising off, or switch Maintenance on (admins stay in).
+
+## 10. Bot notifications (v1.8.0)
+1. Add `TG_WEBHOOK_SECRET` and `CRON_SECRET` in Vercel, redeploy.
+2. Open the app as admin → **Admin → Notify → Set / refresh webhook**. It must show ✅ Connected. Send `/start` to the bot: it should reply with an **Open** button.
+3. **Admin → Settings → Notifications**: withdrawal and referral messages are ON; daily reminder and auto-post to the payments channel start **OFF**. For auto-post the bot must be an admin of the payments channel.
+4. Test a broadcast with **Only me** first. Large broadcasts are sent in batches: press **Send next batch** until Waiting is 0. The daily cron (03:30 UTC) also sends up to 100 waiting messages and queues reminders. Vercel Hobby allows one cron run per day; on Pro you can change the schedule in `vercel.json`.
+5. Telegram only lets a bot message users who started it. Others are marked Skipped and are not tried again until they press Start.

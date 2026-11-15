@@ -5,7 +5,7 @@ const $=id=>document.getElementById(id),E=esc,A=(a,p)=>api(a,p||{}),N=Number;
 const D=x=>x?new Date(x).toLocaleString():'';
 const short=h=>h?String(h).slice(0,10)+'…'+String(h).slice(-6):'';
 const nm=x=>E(x.first_name||x.username||x.telegram_id||x.owner_id);
-const TABS=[['home','📊','Home'],['wd','💸','Withdraw'],['dep','⬇️','Deposits'],['usr','👤','Users'],['tsk','📋','Tasks'],['cmp','📢','Campaigns'],['set','⚙️','Settings'],['prf','🧾','Proof'],['aud','🧾','Audit']];
+const TABS=[['home','📊','Home'],['wd','💸','Withdraw'],['dep','⬇️','Deposits'],['usr','👤','Users'],['tsk','📋','Tasks'],['cmp','📢','Campaigns'],['ntf','🔔','Notify'],['set','⚙️','Settings'],['prf','🧾','Proof'],['aud','🧾','Audit']];
 let tab='home',cur={f:{},tasks:[],setItems:[],audNext:null,prfNext:null};
 
 function note(m){const n=$('admnote');if(n)n.textContent=m;try{say(m)}catch(e){}}
@@ -43,6 +43,14 @@ const VIEWS={
  async cmp(){const f=cur.f.cmpf||'pending';const r=await A('adminCampaigns',{status:f});
   return sel('cmpf',['pending','active','rejected','cancelled'],'cmp',f)+(r.items.map(x=>`<div class="card"><b>#${N(x.id)} ${E(x.title)} <small class="inl">(${E(x.status)})</small></b><small>${nm(x)} · ${E(x.type)} · +${N(x.reward).toLocaleString()} × ${N(x.target)} · done ${N(x.completed)}</small><p>${E(x.link)}</p>${x.reject_reason?`<small>${E(x.reject_reason)}</small>`:''}
   ${x.status==='pending'?`<div class="acts"><button class="btn sm" data-adm="c" data-p0="${N(x.id)}" data-p1="Approve">Approve</button><button class="btn sm ghost" data-adm="c" data-p0="${N(x.id)}" data-p1="Close">Reject</button></div>`:x.status==='active'?`<div class="acts"><button class="btn sm ghost" data-adm="c" data-p0="${N(x.id)}" data-p1="Close">Cancel + refund rest</button></div>`:''}</div>`).join('')||empty('Nothing here'))},
+
+ async ntf(){const r=await A('adminNotifyStatus'),q=r.queue||{},w=r.webhook;
+  const ok=w&&w.url;
+  return `<div class="card"><h2>Bot webhook</h2><small>${ok?'✅ Connected':'❌ Not connected'}${w&&w.url?' · '+E(w.url):''}${w&&w.last_error?' · last error: '+E(w.last_error):''}</small><small>Secrets: TG_WEBHOOK_SECRET ${r.secrets.webhook?'✅':'❌'} · CRON_SECRET ${r.secrets.cron?'✅':'❌'}</small><div class="acts"><button class="btn sm" data-adm="hook">Set / refresh webhook</button></div></div>
+  <div class="grid">${[['Waiting',N(q.pending||0)+N(q.sending||0)],['Sent (7d)',q.sent||0],['Skipped (7d)',q.skipped||0],['Failed (7d)',q.failed||0]].map(x=>stat(x[0],x[1])).join('')}</div>
+  <div class="acts"><button class="btn sm" data-adm="sendBatch">Send next batch ›</button></div>
+  <div class="card"><h2>New broadcast</h2><label class="sr" for="bc_seg">Who receives it</label><select id="bc_seg"><option value="me">Only me (test)</option><option value="all">All users</option><option value="active7">Active in last 7 days</option><option value="balance">Users with Points</option><option value="new24">New in last 24 hours</option></select><label class="sr" for="bc_text">Message (plain text, max 1000 characters)</label><textarea id="bc_text" maxlength="1000" placeholder="Message (plain text, max 1000 characters)"></textarea><div class="acts"><button class="btn sm" data-adm="bcSend">Queue broadcast</button></div><small class="muted">Always test with “Only me” first. Users who blocked the bot are skipped automatically.</small></div>
+  <h2>Recent broadcasts</h2>${(r.broadcasts||[]).map(b=>`<div class="card"><b>#${N(b.id)} · ${E(b.label)} <small class="inl">(${b.cancelled?'cancelled':N(b.waiting)>0?'sending':'done'})</small></b><small>${E(D(b.created_at))} · to ${N(b.total)} · sent ${N(b.sent)} · skipped ${N(b.skipped)} · failed ${N(b.failed)} · waiting ${N(b.waiting)}</small><p>${E(b.preview)}</p>${N(b.waiting)>0&&!b.cancelled?`<div class="acts"><button class="btn sm ghost" data-adm="bcCancel" data-p0="${N(b.id)}">Cancel rest</button></div>`:''}</div>`).join('')||empty('No broadcasts yet')}`},
  async set(){const r=await A('adminSettings');cur.setItems=r.items;const groups=[...new Set(r.items.map(i=>i.group))];
   return groups.map(g=>`<div class="card"><h2>${E(g)}</h2>${r.items.filter(i=>i.group===g).map(i=>{const id='st_'+i.key,v=i.value;
    const ctl=i.type==='bool'?`<select id="${id}"><option value="true"${v?' selected':''}>ON</option><option value="false"${v?'':' selected'}>OFF</option></select>`
@@ -52,12 +60,12 @@ const VIEWS={
   `<button class="btn" data-adm="saveSettings">Save settings ›</button><div class="card"><small>Secrets stay in Vercel env: ${Object.entries(r.env).map(([k,v])=>E(k)+(v?' ✅':' ❌')).join(' · ')}</small></div>`},
  async prf(){const r=await A('adminProofList');cur.prfNext=r.next;return `<small class="muted">Paid withdrawals shown on the public Payment Proof screen. Hide any you do not want shown.</small><div id="prfl">${prfRows(r.items)}</div>`+(r.next?`<button class="btn" id="prfmore" data-adm="prfMore">Load more</button>`:'')},
  async aud(){const f=cur.f.audf||'';const r=await A('adminAudit',{action:f==='all'?'':f});cur.audNext=r.next;
-  return sel('audf',['all','withdrawal','deposit','user','task','campaign','proof','settings'],'aud',f||'all')+`<div id="audl">${audRows(r.items)}</div>`+(r.next?`<button class="btn" id="audmore" data-adm="more">Load more</button>`:'')},
+  return sel('audf',['all','withdrawal','deposit','user','task','campaign','proof','broadcast','notify','settings'],'aud',f||'all')+`<div id="audl">${audRows(r.items)}</div>`+(r.next?`<button class="btn" id="audmore" data-adm="more">Load more</button>`:'')},
 };
 function prfRows(items){return items.map(x=>`<div class="card row"><div class="mid"><b>#${N(x.id)} · ${E(x.amount)} USDT</b><small>${E(x.name)} · ${E(D(x.paid_at))} · ${E(short(x.tx))}</small><small>${x.hidden?'Hidden from users':'Visible to users'}</small></div><button class="btn sm ghost" data-adm="prfHide" data-p0="${N(x.id)}" data-p1="${!x.hidden}">${x.hidden?'Show':'Hide'}</button></div>`).join('')||empty('No paid withdrawals yet')}
 function audRows(items){return items.map(a=>`<div class="card"><b>${E(a.action)}</b><small>#${N(a.id)} · ${E(D(a.created_at))} · by ${E(a.actor_id)}</small><small>${E(a.target_type||'')} ${E(a.target_id||'')}${a.reason?' · '+E(a.reason):''}</small>${a.after_data?`<pre>${E(JSON.stringify(a.after_data)).slice(0,300)}</pre>`:''}</div>`).join('')||empty('Nothing here')}
 
-const NUM=new Set(['w','d','c','editTask','taskOn','prfHide']),BOOL=new Set(['block','taskOn','prfHide']);
+const NUM=new Set(['w','d','c','editTask','taskOn','prfHide','bcCancel']),BOOL=new Set(['block','taskOn','prfHide']);
 function call(el,key){const n=el.dataset[key];if(!n||!Object.prototype.hasOwnProperty.call(Admin,n)||typeof Admin[n]!=='function')return;
  const a=[el.dataset.p0,el.dataset.p1].filter(x=>x!==undefined);if(NUM.has(n))a[0]=N(a[0]);if(BOOL.has(n)&&a.length>1)a[1]=a[1]==='true';
  Promise.resolve(Admin[n](...a)).catch(e=>note(e.message))}
@@ -94,6 +102,13 @@ window.Admin={
    if(JSON.stringify(v)!==JSON.stringify(i.value))changes[i.key]=v}
   if(!Object.keys(changes).length){note('No changes');return}
   await run(async()=>{const r=await A('adminSettingsUpdate',{changes});note('Saved '+r.changed.length+' setting(s)'+(r.warnings.length?' ⚠️ '+r.warnings.join(' '):''));await show()})},
+
+ async hook(){await run(async()=>{const r=await A('adminWebhookSetup');note('Webhook set: '+r.url);await show()})},
+ async sendBatch(){await run(async()=>{const r=await A('adminNotifyProcess');note('Sent '+N(r.sent)+' · skipped '+N(r.skipped)+' · failed '+N(r.failed)+' · remaining '+N(r.remaining));await show()})},
+ async bcSend(){const text=$('bc_text').value,segment=$('bc_seg').value;if(text.trim().length<3){note('Write a message first');return}
+  const v=await ask('Confirm broadcast',[{k:'ok',label:'Type SEND to queue this message for '+$('bc_seg').selectedOptions[0].text}]);if(!v||v.ok.toUpperCase()!=='SEND'){note('Cancelled');return}
+  await run(async()=>{const r=await A('adminBroadcastCreate',{text,segment});note('Queued for '+N(r.recipients)+' users. Press “Send next batch” until Waiting is 0 (the daily cron also sends).');await show()})},
+ async bcCancel(id){await run(async()=>{const r=await A('adminBroadcastCancel',{id});note('Cancelled '+N(r.cancelled)+' waiting message(s)');await show()})},
  async prfHide(id,hidden){await run(async()=>{await A('adminProofHide',{id,hidden});note('Proof #'+id+(hidden?' hidden':' shown'));await show()})},
  async prfMore(){await run(async()=>{const r=await A('adminProofList',{before:cur.prfNext});cur.prfNext=r.next;$('prfl').insertAdjacentHTML('beforeend',prfRows(r.items));if(!r.next)$('prfmore').remove()})},
  async more(){await run(async()=>{const f=cur.f.audf||'',r=await A('adminAudit',{action:f==='all'?'':f,before:cur.audNext});cur.audNext=r.next;$('audl').insertAdjacentHTML('beforeend',audRows(r.items));if(!r.next)$('audmore').remove()})},

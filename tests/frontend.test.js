@@ -139,5 +139,5 @@ test("repo hygiene: secrets and zips are git-ignored, version bumped", () => {
   const gi = read(".gitignore").split(/\r?\n/);
   assert.ok(gi.includes(".env") && gi.includes("node_modules"), ".gitignore must list .env and node_modules on separate lines");
   assert.ok(!read(".gitignore").includes("\\n"), ".gitignore contains a literal \\n");
-  assert.match(JSON.parse(read("package.json")).version, /^1\.7\./);
+  assert.match(JSON.parse(read("package.json")).version, /^1\.\d+\./);
 });

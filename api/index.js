@@ -12,6 +12,7 @@ import * as fin from "../lib/actions/finance.js";
 import * as adm from "../lib/actions/admin.js";
 import { getConfig } from "../lib/runtime.js";
 import { captureReferrer } from "../lib/referral.js";
+import * as ntf from "../lib/actions/notify.js";
 
 // Action registry. write=true -> POST only; admin=true -> server-side admin check on every call.
 const ACTIONS = {
@@ -64,6 +65,11 @@ const ACTIONS = {
   adminAudit: { fn: adm.adminAudit, admin: true },
   adminProofList: { fn: com.adminProofList, admin: true },
   adminProofHide: { fn: com.adminProofHide, admin: true, write: true },
+  adminNotifyStatus: { fn: ntf.adminNotifyStatus, admin: true },
+  adminNotifyProcess: { fn: ntf.adminNotifyProcess, admin: true, write: true },
+  adminWebhookSetup: { fn: ntf.adminWebhookSetup, admin: true, write: true },
+  adminBroadcastCreate: { fn: ntf.adminBroadcastCreate, admin: true, write: true },
+  adminBroadcastCancel: { fn: ntf.adminBroadcastCancel, admin: true, write: true },
 };
 
 export default async function handler(req, res) {
@@ -77,6 +83,10 @@ export default async function handler(req, res) {
     let body = req.body || {};
     if (typeof body === "string") { try { body = JSON.parse(body); } catch { body = {}; } }
     if (typeof body !== "object") body = {};
+
+    // Server-to-server entry points: NOT Mini App calls, so no initData. Each has its own secret check (see lib/actions/notify.js).
+    if (query.action === "tgWebhook") return send(res, 200, await ntf.tgWebhook({ req, body }));
+    if (query.action === "cron") return send(res, 200, await ntf.cron({ req }));
 
     const tg = verifyInitData(req.headers["x-telegram-init-data"] || body.initData,
       { botToken: process.env.BOT_TOKEN, maxAgeSeconds: INITDATA_MAX_AGE });
@@ -94,7 +104,7 @@ export default async function handler(req, res) {
     if (def.admin && !isAdmin) throw new HttpError(403, "admin_only", "Admin only");
 
     await rateLimit(id, action);
-    return send(res, 200, await def.fn({ id, row, isAdmin, body, query, startParam: tg.startParam }));
+    return send(res, 200, await def.fn({ id, row, isAdmin, body, query, startParam: tg.startParam, host: req.headers["x-forwarded-host"] || req.headers.host }));
   } catch (e) {
     if (e instanceof AuthError) return send(res, e.code === "server_misconfigured" ? 500 : 401, { error: e.message, code: e.code });
     if (e instanceof HttpError) return send(res, e.status, { error: e.message, code: e.code });
