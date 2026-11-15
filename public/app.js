@@ -432,6 +432,8 @@ async function load(id) {
 /* ---------------- popup ads: Tasks / Ads / Games ---------------- */
 const POPUP_FLAG = { tasks: 'on_tasks', taskproof: 'on_tasks', ads: 'on_ads', games: 'on_games' };
 let popupBusy = false, adsgramLoading = null, monetagLoading = null;
+let lastCsp = ''; // last thing the browser blocked (CSP): shown to admins so the missing domain is easy to find
+document.addEventListener('securitypolicyviolation', (e) => { lastCsp = String(e.blockedURI || 'inline').replace(/^https?:\/\//, '').slice(0, 40) + ' [' + String(e.violatedDirective || '').split(' ')[0] + ']'; });
 function loadAdsgram() {
   if (window.Adsgram) return Promise.resolve();
   if (!adsgramLoading) adsgramLoading = new Promise((res, rej) => { const s = document.createElement('script'); s.src = 'https://sad.adsgram.ai/js/sad.min.js'; s.onload = res; s.onerror = () => { adsgramLoading = null; rej(new Error('adsgram blocked')); }; document.head.appendChild(s); });
@@ -472,7 +474,7 @@ async function showPopupAd(section) {
   if (Date.now() - last < (Number(p.cooldown) || 120) * 1000) return;
   popupBusy = true;
   const why = []; // admins get a short reason on screen when no ad could be shown (easy to debug on a phone)
-  const err = (e) => String((e && (e.message || e.description || e.error)) || e || 'no ad').slice(0, 60);
+  const err = (e) => String((e && (e.message || e.description || e.error)) || e || 'no ad').slice(0, 60) + (lastCsp ? ' / blocked: ' + lastCsp : '');
   try {
     let shown = false;
     if (p.type === 'adsgram' || p.type === 'both') {
