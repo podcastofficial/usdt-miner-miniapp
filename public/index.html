@@ -113,7 +113,7 @@ nav button.on::after{content:"";position:absolute;left:25%;right:25%;bottom:0;he
 
 <script>
 const tg=window.Telegram?.WebApp;tg?.ready();tg?.expand();try{tg?.setHeaderColor('#07080b');tg?.setBackgroundColor('#07080b')}catch(e){}
-const init=tg?.initData||'';let data={},filter='all',opened={};
+let init=tg?.initData||'';let data={},filter='all',opened={};
 async function api(action,p={}){let r;try{r=await fetch('/api?action='+action,{method:'POST',headers:{'Content-Type':'application/json','X-Telegram-Init-Data':init},body:JSON.stringify(p)})}catch(e){throw Error('Network error - check your connection')}let j={};try{j=await r.json()}catch(e){}if(!r.ok)throw Error(j.error||('Request failed ('+r.status+')'));return j}
 function say(s){document.getElementById('msg').textContent=s;try{tg?.HapticFeedback?.impactOccurred('light')}catch(e){}}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
@@ -149,7 +149,7 @@ function renderVerify(){const box=document.getElementById('verifybox'),u=data.us
   vlinks.innerHTML=ch.map(c=>`<p><a href="#" onclick="openCh('${esc(c)}');return false" style="color:var(--or1)">${esc(c)}</a></p>`).join('');box.style.display='block'}
 function openCh(c){const l='https://t.me/'+String(c).replace('@','');if(tg?.openTelegramLink)tg.openTelegramLink(l);else window.open(l,'_blank')}
 async function verifyChannels(){try{const r=await api('referralVerify');if(r.verified){say(r.reward_granted?'✅ Verified — your inviter was rewarded':'✅ Channels verified');await boot()}else say('Join first: '+r.missing.join(', '))}catch(e){say(e.message)}}
-async function boot(){try{data=await api('bootstrap');points.textContent=Number(data.user.points).toLocaleString();initTimers();renderDaily();renderVerify();renderTasks();renderTx(data.transactions||[],false);if(data.admin){document.getElementById('admin').classList.add('on');let q=await api('adminOverview');adminstats.textContent=JSON.stringify(q)}}catch(e){say(e.message)}}
+async function boot(){try{data=await api('bootstrap');points.textContent=Number(data.user.points).toLocaleString();document.getElementById('msg').textContent='';initTimers();renderDaily();renderVerify();renderTasks();renderTx(data.transactions||[],false);if(data.admin){document.getElementById('admin').classList.add('on');let q=await api('adminOverview');adminstats.textContent=JSON.stringify(q)}}catch(e){say(e.message)}}
 function go(id){document.querySelectorAll('body>section').forEach(s=>s.classList.remove('on'));document.getElementById(id).classList.add('on');document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.go===id));window.scrollTo(0,0);load(id)}
 async function load(id){try{if(id==='ref'){let r=await api('referral');refLink=r.link;refurl.textContent=r.link;refreward.textContent=Number(r.reward).toLocaleString();refcount.textContent='Qualified: '+r.qualified+' · Pending: '+r.pending;reflist.innerHTML=r.referrals.map(x=>`<div class="card row"><div class="ic">${x.qualified?'✅':'⏳'}</div><div class="mid"><b>${esc(x.name)}</b><small>${x.qualified?'Verified — reward paid':'Waiting for channel verification'}</small></div></div>`).join('')}if(id==='rank'){let r=await api('leaderboard');ranklist.innerHTML=r.top.map((u,i)=>`<div class="card rk"><div class="n">${i<3?['🥇','🥈','🥉'][i]:i+1}</div><div class="nm">${esc(u.first_name||u.username||u.telegram_id)}</div><div class="pt">${Number(u.points).toLocaleString()}</div></div>`).join('')}}catch(e){say(e.message)}}
 async function daily(){try{let r=await api('daily');say('🎁 Claimed '+r.reward+' Points');await boot()}catch(e){say(e.message)}}
@@ -158,5 +158,6 @@ async function withdraw(){try{let r=await api('withdraw',{amount:amount.value,wa
 async function deposit(){try{let r=await api('depositSubmit',{amount:depamount.value,txHash:txhash.value});say('Deposit request #'+r.id+' pending review')}catch(e){say(e.message)}}
 async function campaign(){try{let r=await api('campaignCreate',{type:ctype.value,title:ctitle.value,link:clink.value,reward:creward.value,target:ctarget.value});say('Campaign #'+r.id+' submitted');await boot()}catch(e){say(e.message)}}
 async function copyRef(){try{await navigator.clipboard.writeText(refurl.textContent);say('Copied ✅')}catch(e){say('Copy failed')}}
-if(!init){document.getElementById('gate').style.display='block';document.querySelectorAll('body>section,#nav').forEach(e=>e.style.display='none');document.getElementById('msg').textContent=''}else boot();
+function showGate(){document.getElementById('gate').style.display='block';document.querySelectorAll('body>section,#nav').forEach(e=>e.style.display='none');document.getElementById('msg').textContent=''}
+(function start(){let n=0;const t=setInterval(()=>{init=window.Telegram?.WebApp?.initData||init;if(init){clearInterval(t);boot()}else if(++n>=15){clearInterval(t);showGate()}},200);init=window.Telegram?.WebApp?.initData||init;if(init){clearInterval(t);boot()}})();
 </script></body></html>
