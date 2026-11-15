@@ -160,6 +160,8 @@ async function loadRewards() {
   $('promocard').hidden = !e.promo_enabled;
 }
 let refLink = '';
+let gateTitles = {};
+const chName = (c) => (gateTitles[c] || (data.channel_titles || {})[c] || c); // channel NAME when Telegram gives it, else the @username
 let gateMissing = null; // channels the user still has to join (set after a verify check); non-null = full-screen join gate
 function renderVerify() {
   const box = $('verifybox'), u = data.user || {};
@@ -170,7 +172,7 @@ function renderVerify() {
   if (block && box.parentElement !== document.body) document.body.appendChild(box);
   box.classList.toggle('gate', block);
   $('vtext').textContent = block ? 'Join these channels to use the app, then tap Verify.' : u.has_referrer ? 'Join these channels, then tap Verify. Your inviter gets rewarded after you verify.' : 'Join these channels, then tap Verify.';
-  setHtml('vlinks', ch.map((c) => `<p><a href="${esc(chUrl(c))}" data-act="openCh" data-ch="${esc(c)}">${esc(c)}</a></p>`).join('')); box.hidden = false;
+  setHtml('vlinks', ch.map((c) => `<p><a href="${esc(chUrl(c))}" data-act="openCh" data-ch="${esc(c)}">${esc(chName(c))}</a></p>`).join('')); box.hidden = false;
 }
 
 /* ---------------- finance (Part 4) ---------------- */
@@ -443,7 +445,7 @@ async function autoVerify(force) {
   try {
     const r = await api('referralVerify');
     if (r.verified) { gateMissing = null; if (r.reward_granted) say('✅ Verified — your inviter was rewarded'); await boot(); }
-    else { gateMissing = r.missing || []; renderVerify(); } // not joined yet: show the join screen
+    else { gateTitles = r.titles || {}; gateMissing = r.missing || []; renderVerify(); } // not joined yet: show the join screen
   } catch (e) { /* check unavailable (bot not admin in a channel ...): never lock people out, the normal Verify card stays */ }
 }
 document.addEventListener('visibilitychange', () => { if (!document.hidden && gateMissing !== null) autoVerify(true); }); // came back from joining -> check again by itself
@@ -496,7 +498,7 @@ const ACT = {
     filter = d.f; document.querySelectorAll('[role=tab]').forEach((b) => { const on = b === el; b.setAttribute('aria-selected', on); b.tabIndex = on ? 0 : -1; });
     $('tasklist').setAttribute('aria-labelledby', el.id); renderTasks();
   },
-  async verify() { const r = await api('referralVerify'); if (r.verified) { gateMissing = null; say(r.reward_granted ? '✅ Verified — your inviter was rewarded' : '✅ Channels verified'); await boot(); } else { gateMissing = r.missing || []; renderVerify(); say('Join first: ' + r.missing.join(', ')); } },
+  async verify() { const r = await api('referralVerify'); if (r.verified) { gateMissing = null; say(r.reward_granted ? '✅ Verified — your inviter was rewarded' : '✅ Channels verified'); await boot(); } else { gateTitles = r.titles || {}; gateMissing = r.missing || []; renderVerify(); say('Join first: ' + r.missing.map(chName).join(', ')); } },
   openCh(d) { openUrl(chUrl(d.ch)); },
   openUrl(d) { openUrl(d.url); },
   openProofChannel() { openUrl(proofChannel); },
