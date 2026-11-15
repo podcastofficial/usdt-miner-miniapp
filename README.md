@@ -10,7 +10,7 @@ Fresh database and registration. This does NOT connect to or modify the existing
 
 ## Deploy
 1. Create a Neon PostgreSQL database.
-2. Run `db/schema.sql`, then `db/migrations/001_foundation.sql` `002_points_and_tasks.sql` and `003_referrals.sql`, in Neon SQL Editor.
+2. Run `db/schema.sql`, then `db/migrations/001_foundation.sql` `002_points_and_tasks.sql` and `003_referrals.sql` … `006_community.sql` (in order), in Neon SQL Editor.
 3. Upload this project to a new GitHub repository.
 4. Import repository into Vercel.
 5. Add environment variables from `.env.example`.

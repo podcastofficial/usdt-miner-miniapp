@@ -17,3 +17,5 @@
 - [ ] Run db/migrations/005_admin.sql
 - [ ] Open Admin → Settings and confirm withdrawal fee/min, deposit wallet, channels, bot username
 - [ ] Test: campaign approve + reject refund, Points adjust, block/unblock, maintenance mode (as admin you stay in)
+- [ ] Run db/migrations/006_community.sql; set official/payments channel + support in Admin → Settings → Community & Ads
+- [ ] Test: Advertise create → cancel (refund), Payment Proof opens, leaderboard paging

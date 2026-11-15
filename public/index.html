@@ -1,175 +1,227 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#050507">
 <title>USDT Miner</title>
+<link rel="stylesheet" href="/styles.css">
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<style>
-:root{--bg:#07080b;--card:#15161b;--card2:#0e0f13;--or1:#ffb02e;--or2:#ff7a00;--or3:#c24e00;--line:rgba(255,140,0,.45);--txt:#fff4e6;--mut:#b9a58f;--green:#26a17b}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{margin:0;background:radial-gradient(ellipse at 50% -10%,#3a1a00 0%,#12090a 45%,#07080b 80%) fixed;color:var(--txt);font:15px/1.35 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:12px 14px 96px;min-height:100vh}
-.top{display:flex;align-items:center;gap:10px;margin-bottom:6px}
-.logo{font-size:30px;filter:drop-shadow(0 0 10px #ff7a00)}
-.top h1{margin:0;font-size:26px;font-style:italic;font-weight:900;letter-spacing:.3px;background:linear-gradient(180deg,#fff,#ffd9a0 60%,#ff9d2e);-webkit-background-clip:text;background-clip:text;color:transparent}
-.top small{display:block;color:var(--mut);font-style:normal;font-size:13px;font-weight:500;-webkit-text-fill-color:var(--mut)}
-#msg{color:var(--or1);font-size:13px;min-height:16px;margin:2px 2px 6px}
-section{display:none;animation:in .35s ease}section.on{display:block}
-@keyframes in{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
-h2{margin:6px 2px 10px;font-size:20px;font-style:italic;font-weight:800}
-/* hero 3D */
-.hero{position:relative;height:190px;perspective:700px;display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:22px;background:radial-gradient(ellipse at 50% 100%,rgba(255,122,0,.35),transparent 65%)}
-.glow{position:absolute;bottom:14px;width:230px;height:46px;border-radius:50%;border:3px solid var(--or2);box-shadow:0 0 28px var(--or2),inset 0 0 22px var(--or2);transform:rotateX(70deg);animation:pulse 2.4s ease-in-out infinite}
-@keyframes pulse{50%{box-shadow:0 0 44px var(--or1),inset 0 0 34px var(--or1)}}
-.coin{position:relative;width:112px;height:112px;transform-style:preserve-3d;animation:spin 6s linear infinite;margin-top:-14px}
-@keyframes spin{from{transform:rotateY(0)}to{transform:rotateY(360deg)}}
-.coin .f{position:absolute;inset:0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:64px;font-weight:900;color:#fff;backface-visibility:hidden;background:radial-gradient(circle at 35% 30%,#52d6a8,#26a17b 55%,#0d5c45);border:7px solid #ffb02e;box-shadow:inset 0 0 18px rgba(0,0,0,.5),0 0 30px rgba(255,150,0,.6);text-shadow:0 4px 6px rgba(0,0,0,.5)}
-.coin .b{transform:rotateY(180deg)}
-.coin .edge{position:absolute;inset:0;border-radius:50%;transform:translateZ(0)}
-.gem{position:absolute;font-size:30px;filter:drop-shadow(0 0 8px #ff9d00);animation:fl 3s ease-in-out infinite}
-@keyframes fl{50%{transform:translateY(-8px) rotate(8deg)}}
-.pick{position:absolute;right:14px;top:6px;font-size:64px;transform:rotate(25deg);filter:drop-shadow(0 6px 10px #000)}
-/* 3D cards */
-.card{position:relative;background:linear-gradient(160deg,#1d1e25,#0e0f13);border:1.5px solid var(--line);border-radius:18px;padding:14px;margin:10px 0;box-shadow:0 10px 22px rgba(0,0,0,.65),0 0 18px rgba(255,122,0,.15),inset 0 1px 0 rgba(255,255,255,.12),inset 0 -10px 18px rgba(0,0,0,.4);transition:transform .15s}
-.balance{display:flex;align-items:center;justify-content:space-between;border-color:var(--or2);box-shadow:0 10px 26px rgba(0,0,0,.7),0 0 26px rgba(255,122,0,.4),inset 0 0 18px rgba(255,122,0,.12)}
-.balance .l{font-weight:700;font-size:17px}
-.big{font-size:40px;font-weight:900;color:var(--or1);text-shadow:0 0 16px rgba(255,150,0,.6),0 3px 0 #7a3000;line-height:1.1}
-.rate{color:var(--mut);font-size:13px}
-.wallet3d{font-size:54px;filter:drop-shadow(0 6px 10px #000);transform:perspective(300px) rotateY(-18deg)}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;perspective:900px}
-.tile{text-align:center;margin:0;padding:12px 8px 12px}
-.tile:active{transform:rotateX(8deg) scale(.96)}
-.tile .ic{font-size:46px;filter:drop-shadow(0 8px 8px rgba(0,0,0,.8)) drop-shadow(0 0 10px rgba(255,140,0,.4));animation:bob 3.5s ease-in-out infinite}
-@keyframes bob{50%{transform:translateY(-4px)}}
-.tile b{display:block;font-size:17px;margin-top:2px}.tile small{display:block;color:var(--mut);font-size:12px;margin-bottom:8px}
-/* 3D buttons */
-button{font:inherit;cursor:pointer}
-.btn{display:block;width:100%;border:0;border-radius:999px;padding:9px 12px;font-weight:800;font-size:15px;color:#2b1200;background:linear-gradient(180deg,#ffc552,#ff8a00 55%,#e66a00);box-shadow:0 5px 0 #8f3d00,0 9px 14px rgba(255,110,0,.35),inset 0 2px 0 rgba(255,255,255,.55);transition:transform .08s,box-shadow .08s}
-.btn:active{transform:translateY(4px);box-shadow:0 1px 0 #8f3d00,0 2px 6px rgba(255,110,0,.3),inset 0 2px 0 rgba(255,255,255,.4)}
-.btn:disabled{opacity:.6;filter:grayscale(.35);cursor:default;transform:none}
-.btn.sm{width:auto;padding:8px 16px;font-size:14px}
-.btn.done{background:linear-gradient(180deg,#5de3b0,#26a17b);box-shadow:0 5px 0 #0d5c45,0 9px 14px rgba(38,161,123,.35),inset 0 2px 0 rgba(255,255,255,.5);color:#00261a}
-input,select{width:100%;padding:12px;margin:6px 0;background:#08090c;color:#fff;border:1.5px solid #3a2a1a;border-radius:12px;font:inherit;box-shadow:inset 0 3px 8px rgba(0,0,0,.7)}
-input:focus,select:focus{outline:0;border-color:var(--or2);box-shadow:inset 0 3px 8px rgba(0,0,0,.7),0 0 12px rgba(255,122,0,.4)}
-.card p{margin:4px 0;word-break:break-all}.muted,small{color:var(--mut)}
-/* tabs */
-.tabs{display:flex;gap:8px;margin:12px 0}
-.tab{flex:1;padding:10px 4px;border-radius:14px;border:1.5px solid #2c2d35;background:linear-gradient(180deg,#1b1c22,#0e0f13);color:var(--txt);font-size:13px;font-weight:700;box-shadow:0 4px 0 #050507,inset 0 1px 0 rgba(255,255,255,.1)}
-.tab.on{border-color:var(--or2);background:linear-gradient(180deg,#4a2300,#26120a);box-shadow:0 4px 0 #6b2c00,0 0 16px rgba(255,122,0,.5)}
-/* task row */
-.row{display:flex;align-items:center;gap:12px;padding:11px 12px}
-.row .ic{font-size:34px;filter:drop-shadow(0 4px 5px #000)}
-.row .mid{flex:1;min-width:0}.row b{display:block;font-size:15px}.row .pts{color:var(--or1);font-weight:700;font-size:14px}
-.row small{display:block}
-/* rank */
-.rk{display:flex;align-items:center;gap:10px;padding:11px 14px}
-.rk .n{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;background:linear-gradient(180deg,#ffc552,#e66a00);color:#2b1200;box-shadow:0 3px 0 #8f3d00}
-.rk .nm{flex:1;font-weight:700}.rk .pt{color:var(--or1);font-weight:800}
-/* nav */
-nav{position:fixed;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px));display:flex;justify-content:space-around;padding:6px;border-radius:24px;background:linear-gradient(180deg,#1a1b21,#0b0c10);border:1.5px solid var(--line);box-shadow:0 10px 30px rgba(0,0,0,.8),0 0 22px rgba(255,122,0,.25),inset 0 1px 0 rgba(255,255,255,.1)}
-nav button{flex:1;background:transparent;border:0;color:#d9c9b5;font-size:11px;padding:6px 0;border-radius:16px;position:relative}
-nav button i{display:block;font-style:normal;font-size:22px;filter:drop-shadow(0 3px 3px #000);transition:transform .2s}
-nav button.on{color:var(--or1);font-weight:700}
-nav button.on i{transform:translateY(-3px) scale(1.15);filter:drop-shadow(0 0 8px #ff8a00)}
-nav button.on::after{content:"";position:absolute;left:25%;right:25%;bottom:0;height:3px;border-radius:3px;background:var(--or2);box-shadow:0 0 8px var(--or2)}
-.empty{text-align:center;color:var(--mut);padding:24px}
-</style></head><body>
-<div class="top"><div class="logo">⛏️</div><h1>USDT Miner<small>Mine Points &amp; Earn USDT</small></h1></div>
-<div id="msg">Connecting to Telegram…</div>
-<div id="gate" class="card" style="display:none"><h2>🔒 Open in Telegram</h2><p>USDT Miner works only inside Telegram. Open the official bot and tap the Mini App button to log in.</p></div>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
 
-<section id="home" class="on">
- <div class="hero"><div class="glow"></div><div class="pick">⛏️</div><div class="gem" style="left:18px;bottom:36px">💎</div><div class="gem" style="right:26px;bottom:30px;animation-delay:1s">🔶</div>
-  <div class="coin"><div class="f">₮</div><div class="f b">₮</div></div></div>
- <div class="card balance"><div><div class="l">🪙 Your Points</div><div id="points" class="big">—</div><div class="rate">10,000 Points = 1 USDT</div></div><div class="wallet3d">👛</div></div>
- <div id="verifybox" class="card" style="display:none"><b>✅ Verify required channels</b><p id="vtext" class="muted"></p><div id="vlinks"></div><button class="btn" onclick="verifyChannels()">Verify ›</button></div>
- <div class="grid">
-  <div class="card tile"><div class="ic">⛏️</div><b>Points Miner</b><small>Mine &amp; Earn Points</small><button class="btn" onclick="go('tasks')">Tasks ›</button></div>
-  <div class="card tile"><div class="ic">🎁</div><b>Daily Rewards</b><small>Claim Free Points</small><button class="btn" id="dailybtn" onclick="daily()">Claim ›</button></div>
-  <div class="card tile"><div class="ic">👥</div><b>Referral</b><small>Invite &amp; Earn More</small><button class="btn" onclick="go('ref')">Invite ›</button></div>
-  <div class="card tile"><div class="ic">🏆</div><b>Leaderboard</b><small>Top Miners Ranking</small><button class="btn" onclick="go('rank')">View ›</button></div>
-  <div class="card tile"><div class="ic">💸</div><b>Withdraw</b><small>Convert Points to USDT</small><button class="btn" onclick="go('withdraw')">Request ›</button></div>
-  <div class="card tile"><div class="ic">📢</div><b>Advertise</b><small>Promote &amp; Get Referrals</small><button class="btn" onclick="go('ads')">Promote ›</button></div>
- </div>
+<header class="top">
+  <span class="logo" aria-hidden="true">⛏️</span>
+  <div><h1>USDT Miner</h1><small>Mine Points &amp; Earn USDT</small></div>
+</header>
+<div id="banner" role="note" hidden></div>
+<p id="status" class="muted" role="status">Connecting to Telegram…</p>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<div id="gate" class="card" hidden>
+  <h2>🔒 Open in Telegram</h2>
+  <p>USDT Miner works only inside Telegram. Open the official bot and tap the Mini App button to log in.</p>
+</div>
+
+<main id="main" tabindex="-1">
+
+<!-- ============ HOME ============ -->
+<section id="home" class="on" aria-labelledby="h-home">
+  <h2 id="h-home" class="sr">Home</h2>
+  <div class="hero" aria-hidden="true">
+    <div class="floor"></div><div class="pick">⛏️</div><div class="gem l">💎</div><div class="gem r">🔶</div>
+    <div class="coin">
+      <div class="face front">₮</div><div class="face back">₮</div>
+      <div class="rim"><i style="--z:-8px"></i><i style="--z:-6px"></i><i style="--z:-4px"></i><i style="--z:-2px"></i><i style="--z:0px"></i><i style="--z:2px"></i><i style="--z:4px"></i><i style="--z:6px"></i><i style="--z:8px"></i></div>
+    </div>
+  </div>
+  <div class="card balance">
+    <div>
+      <div class="l"><span aria-hidden="true">🪙</span> Your Points</div>
+      <div id="points" class="big">—</div>
+      <div id="rate" class="muted">10,000 Points = 1 USDT</div>
+    </div>
+    <div class="wallet3d" aria-hidden="true">👛</div>
+  </div>
+  <div id="verifybox" class="card" hidden>
+    <h3>✅ Verify required channels</h3>
+    <p id="vtext" class="muted"></p>
+    <div id="vlinks"></div>
+    <button class="btn" data-act="verify">Verify ›</button>
+  </div>
+  <div class="grid">
+    <article class="card tile"><span class="ic" aria-hidden="true">⛏️</span><h3>Points Miner</h3><small>Mine &amp; earn Points</small><button class="btn" data-go="tasks">Tasks ›</button></article>
+    <article class="card tile"><span class="ic" aria-hidden="true">🎁</span><h3>Daily Rewards</h3><small>Claim free Points</small><button class="btn" id="dailybtn" data-act="daily">Claim ›</button></article>
+    <article class="card tile"><span class="ic" aria-hidden="true">👥</span><h3>Referral</h3><small>Invite &amp; earn more</small><button class="btn" data-go="ref">Invite ›</button></article>
+    <article class="card tile"><span class="ic" aria-hidden="true">🏆</span><h3>Leaderboard</h3><small>Top miners ranking</small><button class="btn" data-go="rank">View ›</button></article>
+    <article class="card tile"><span class="ic" aria-hidden="true">💸</span><h3>Withdraw</h3><small>Convert Points to USDT</small><button class="btn" data-go="withdraw">Request ›</button></article>
+    <article class="card tile"><span class="ic" aria-hidden="true">📢</span><h3>Advertise</h3><small>Promote &amp; get joins</small><button class="btn" data-go="ads">Promote ›</button></article>
+  </div>
 </section>
 
-<section id="tasks"><h2>⛏️ Points Miner <small style="font-style:normal;font-weight:400">Complete tasks and earn points</small></h2>
- <div class="tabs"><button class="tab on" data-f="all" onclick="tab(this)">⛏️ Mining</button><button class="tab" data-f="social" onclick="tab(this)">👥 Social</button><button class="tab" data-f="other" onclick="tab(this)">🧩 Other</button></div>
- <div id="tasklist"></div></section>
+<!-- ============ TASKS ============ -->
+<section id="tasks" aria-labelledby="h-tasks">
+  <h2 id="h-tasks">⛏️ Points Miner<small>Complete tasks and earn Points</small></h2>
+  <div class="tabs" role="tablist" aria-label="Task type">
+    <button class="tab" role="tab" id="tab-all" aria-selected="true" aria-controls="tasklist" data-act="tab" data-f="all">⛏️ Mining</button>
+    <button class="tab" role="tab" id="tab-social" aria-selected="false" aria-controls="tasklist" tabindex="-1" data-act="tab" data-f="social">👥 Social</button>
+    <button class="tab" role="tab" id="tab-other" aria-selected="false" aria-controls="tasklist" tabindex="-1" data-act="tab" data-f="other">🧩 Other</button>
+  </div>
+  <div id="tasklist" role="tabpanel" aria-labelledby="tab-all"></div>
+</section>
 
-<section id="ref"><h2>👥 Referral</h2><div class="card"><p>Your invite link</p><p id="refurl" style="color:var(--or1)"></p><button class="btn" onclick="copyRef()">Copy link</button><button class="btn" style="margin-top:8px" onclick="shareRef()">Share ›</button><p id="refcount" class="muted"></p><small>You earn <span id="refreward">1,000</span> Points when your invited friend joins and verifies the required channels.</small></div><div id="reflist"></div></section>
-<section id="rank"><h2>🏆 Leaderboard</h2><div id="ranklist"></div></section>
-<section id="withdraw"><h2>💸 Withdraw</h2><div class="card"><input id="amount" type="number" inputmode="decimal" placeholder="USDT amount (min 15)" oninput="quoteW()"><input id="wallet" placeholder="BEP-20 wallet address"><p id="wquote" class="muted"></p><button class="btn" onclick="withdraw()">Submit request ›</button><small id="wnote">Admin review required.</small></div><button class="btn" id="depbtn" style="display:none;margin:10px 0" onclick="go('deposit')">Deposit USDT ›</button><div id="wlist"></div></section>
-<section id="deposit"><h2>⬇️ Deposit</h2><div class="card"><p id="depinfo" class="muted"></p><div id="depform"><button class="btn sm" onclick="copyDep()" style="margin:6px 0">Copy address</button><input id="depfrom" placeholder="Your wallet address (the one you sent from)"><input id="txhash" placeholder="BSC transaction hash (0x…)"><button class="btn" onclick="deposit()">Verify deposit ›</button><small>Checked on-chain. Only USDT sent from the address above to our wallet counts.</small></div></div><div id="deplist"></div></section>
-<section id="ads"><h2>📢 Advertise</h2><div class="card"><select id="ctype"><option>channel</option><option>bot</option><option>website</option></select><input id="ctitle" placeholder="Campaign title"><input id="clink" placeholder="https:// link"><input id="creward" type="number" placeholder="Points per completion"><input id="ctarget" type="number" placeholder="Target"><button class="btn" onclick="campaign()">Create campaign ›</button></div></section>
-<section id="history"><h2>📜 History</h2><div id="txlist"></div><button class="btn" id="moreTx" style="display:none;margin-top:10px" onclick="moreTx()">Load more</button></section>
-<section id="admin"><h2>🛡 Admin</h2><div id="adm"></div></section>
+<!-- ============ REFERRAL ============ -->
+<section id="ref" aria-labelledby="h-ref">
+  <h2 id="h-ref">👥 Referral</h2>
+  <div class="card">
+    <p class="muted">Your invite link</p>
+    <p id="refurl" style="color:var(--or1)"></p>
+    <button class="btn" data-act="copyRef">Copy link</button>
+    <button class="btn" data-act="shareRef">Share ›</button>
+    <p id="refcount" class="muted"></p>
+    <small>You earn <span id="refreward">1,000</span> Points when your invited friend joins and verifies the required channels.</small>
+  </div>
+  <div id="reflist"></div>
+</section>
 
-<nav id="nav">
- <button data-go="home" class="on" onclick="go('home')"><i>🏠</i>Home</button>
- <button data-go="tasks" onclick="go('tasks')"><i>📋</i>Tasks</button>
- <button data-go="ref" onclick="go('ref')"><i>👥</i>Referral</button>
- <button data-go="withdraw" onclick="go('withdraw')"><i>💸</i>Withdraw</button>
- <button data-go="history" onclick="go('history')"><i>🕘</i>History</button>
+<!-- ============ LEADERBOARD (Part 6) ============ -->
+<section id="rank" aria-labelledby="h-rank">
+  <h2 id="h-rank">🏆 Leaderboard<small>Top 200 miners by Points</small></h2>
+  <div id="rankme"></div>
+  <div id="ranklist"></div>
+  <div class="pager" id="rankpager" hidden>
+    <button class="btn sm ghost" id="rankprev" data-act="rankPage" data-d="-1">‹ Prev</button>
+    <span id="rankinfo" aria-live="polite"></span>
+    <button class="btn sm" id="ranknext" data-act="rankPage" data-d="1">Next ›</button>
+  </div>
+</section>
+
+<!-- ============ WITHDRAW / DEPOSIT ============ -->
+<section id="withdraw" aria-labelledby="h-withdraw">
+  <h2 id="h-withdraw">💸 Withdraw</h2>
+  <div class="card">
+    <label for="amount">USDT amount</label>
+    <input id="amount" type="text" inputmode="decimal" autocomplete="off" placeholder="USDT amount (min 15)" data-input="quote">
+    <label for="wallet">BEP-20 wallet address</label>
+    <input id="wallet" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="0x…">
+    <p id="wquote" class="hint" role="status"></p>
+    <button class="btn" data-act="withdraw">Submit request ›</button>
+    <small id="wnote">Admin review required.</small>
+  </div>
+  <button class="btn" id="depbtn" data-go="deposit" hidden>Deposit USDT ›</button>
+  <div id="wlist"></div>
+</section>
+
+<section id="deposit" aria-labelledby="h-deposit">
+  <h2 id="h-deposit">⬇️ Deposit</h2>
+  <div class="card">
+    <p id="depinfo" class="muted"></p>
+    <div id="depform">
+      <button class="btn sm" data-act="copyDep">Copy address</button>
+      <label for="depfrom">Your wallet address (the one you sent from)</label>
+      <input id="depfrom" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="0x…">
+      <label for="txhash">BSC transaction hash</label>
+      <input id="txhash" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="0x…">
+      <button class="btn" data-act="deposit">Verify deposit ›</button>
+      <small>Checked on-chain. Only USDT sent from the address above to our wallet counts.</small>
+    </div>
+  </div>
+  <div id="deplist"></div>
+</section>
+
+<section id="history" aria-labelledby="h-history">
+  <h2 id="h-history">📜 History</h2>
+  <div id="txlist"></div>
+  <button class="btn" id="moreTx" data-act="moreTx" hidden>Load more</button>
+</section>
+
+<!-- ============ MORE / COMMUNITY HUB (Part 6) ============ -->
+<section id="more" aria-labelledby="h-more">
+  <h2 id="h-more">✨ More<small>Community, help and history</small></h2>
+  <button class="card hub" data-go="rank"><span class="ic" aria-hidden="true">🏆</span><span><b>Leaderboard</b><small>See the top miners</small></span><span class="chev" aria-hidden="true">›</span></button>
+  <button class="card hub" data-go="ads"><span class="ic" aria-hidden="true">📢</span><span><b>Advertise</b><small>Promote your channel, bot or site</small></span><span class="chev" aria-hidden="true">›</span></button>
+  <button class="card hub" data-go="channel"><span class="ic" aria-hidden="true">✈️</span><span><b>Official Channel</b><small>News, updates and support</small></span><span class="chev" aria-hidden="true">›</span></button>
+  <button class="card hub" data-go="proof"><span class="ic" aria-hidden="true">🧾</span><span><b>Payment Proof</b><small>Recent paid withdrawals</small></span><span class="chev" aria-hidden="true">›</span></button>
+  <button class="card hub" data-go="howto"><span class="ic" aria-hidden="true">📖</span><span><b>How to Use</b><small>Step by step guide and FAQ</small></span><span class="chev" aria-hidden="true">›</span></button>
+  <button class="card hub" data-go="games"><span class="ic" aria-hidden="true">🎮</span><span><b>Games</b><small>Coming soon</small></span><span class="chev" aria-hidden="true">›</span></button>
+  <button class="card hub" data-go="history"><span class="ic" aria-hidden="true">📜</span><span><b>History</b><small>Your Points transactions</small></span><span class="chev" aria-hidden="true">›</span></button>
+</section>
+
+<!-- ============ ADVERTISE (Part 6) ============ -->
+<section id="ads" aria-labelledby="h-ads">
+  <h2 id="h-ads">📢 Advertise<small>Pay with Points, get real joins</small></h2>
+  <div class="card">
+    <p id="adinfo" class="muted"></p>
+    <div id="adform">
+      <label for="c_type">Campaign type</label>
+      <select id="c_type" data-input="adcalc"><option value="channel">Channel (people join)</option><option value="bot">Bot (people start it)</option><option value="website">Website (people visit)</option></select>
+      <label for="c_title">Title</label>
+      <input id="c_title" type="text" maxlength="100" autocomplete="off" placeholder="e.g. Join My Crypto News">
+      <label for="c_link">Link</label>
+      <input id="c_link" type="url" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="https://t.me/YourChannel">
+      <p id="c_hint" class="hint"></p>
+      <label for="c_reward">Points paid to each user</label>
+      <input id="c_reward" type="text" inputmode="numeric" autocomplete="off" placeholder="e.g. 50" data-input="adcalc">
+      <label for="c_target">Number of completions wanted</label>
+      <input id="c_target" type="text" inputmode="numeric" autocomplete="off" placeholder="e.g. 100" data-input="adcalc">
+      <p id="c_budget" class="hint" role="status"></p>
+      <button class="btn" data-act="campaign">Create campaign ›</button>
+      <small>Your budget is held when you submit. An admin reviews every campaign. If it is rejected or cancelled, the unused budget is refunded.</small>
+    </div>
+  </div>
+  <h3 style="margin:14px 2px 6px">My campaigns</h3>
+  <div id="camplist"></div>
+</section>
+
+<!-- ============ OFFICIAL CHANNEL (Part 6) ============ -->
+<section id="channel" aria-labelledby="h-channel">
+  <h2 id="h-channel">✈️ Official Channel<small>Only trust these official links</small></h2>
+  <div id="chlist"></div>
+</section>
+
+<!-- ============ PAYMENT PROOF (Part 6) ============ -->
+<section id="proof" aria-labelledby="h-proof">
+  <h2 id="h-proof">🧾 Payment Proof<small>Latest paid withdrawals, verifiable on-chain</small></h2>
+  <div id="proofstats"></div>
+  <div id="prooflist"></div>
+  <button class="btn" id="moreProof" data-act="moreProof" hidden>Load more</button>
+  <button class="btn ghost" id="proofch" data-act="openProofChannel" hidden>See the payments channel ›</button>
+</section>
+
+<!-- ============ HOW TO USE (Part 6) ============ -->
+<section id="howto" aria-labelledby="h-howto">
+  <h2 id="h-howto">📖 How to Use<small>Everything you need to start earning</small></h2>
+  <div id="howbody"></div>
+</section>
+
+<!-- ============ GAMES (Part 6) ============ -->
+<section id="games" aria-labelledby="h-games">
+  <h2 id="h-games">🎮 Games<small>Coming soon</small></h2>
+  <div class="card row"><span class="ic" aria-hidden="true">⛏️</span><div class="mid"><b>Mining Race</b><small>Compete with other miners for a place on the board.</small></div><span class="badge soon">Soon</span></div>
+  <div class="card row"><span class="ic" aria-hidden="true">🧠</span><div class="mid"><b>Quiz Rush</b><small>Answer crypto questions against the clock.</small></div><span class="badge soon">Soon</span></div>
+  <div class="card row"><span class="ic" aria-hidden="true">🗺️</span><div class="mid"><b>Treasure Hunt</b><small>Find hidden rewards across the app.</small></div><span class="badge soon">Soon</span></div>
+  <p class="hint">Games are not available yet. No Points are used or awarded by games, and nothing here can cost you Points. Follow the official channel to hear when they launch.</p>
+  <button class="btn" data-act="openOfficial">Follow the official channel ›</button>
+</section>
+
+<!-- ============ ADMIN ============ -->
+<section id="admin" aria-labelledby="h-admin">
+  <h2 id="h-admin">🛡 Admin</h2>
+  <div id="adm"></div>
+</section>
+
+</main>
+
+<nav id="nav" aria-label="Main">
+  <button data-go="home" aria-current="page"><span class="ic" aria-hidden="true">🏠</span>Home</button>
+  <button data-go="tasks"><span class="ic" aria-hidden="true">📋</span>Tasks</button>
+  <button data-go="ref"><span class="ic" aria-hidden="true">👥</span>Referral</button>
+  <button data-go="withdraw"><span class="ic" aria-hidden="true">💸</span>Withdraw</button>
+  <button data-go="more"><span class="ic" aria-hidden="true">✨</span>More</button>
 </nav>
 
-<script>
-const tg=window.Telegram?.WebApp;tg?.ready();tg?.expand();try{tg?.setHeaderColor('#07080b');tg?.setBackgroundColor('#07080b')}catch(e){}
-let init=tg?.initData||'';let data={},filter='all',opened={};
-async function api(action,p={}){let r;try{r=await fetch('/api?action='+action,{method:'POST',headers:{'Content-Type':'application/json','X-Telegram-Init-Data':init},body:JSON.stringify(p)})}catch(e){throw Error('Network error - check your connection')}let j={};try{j=await r.json()}catch(e){}if(!r.ok)throw Error(j.error||('Request failed ('+r.status+')'));return j}
-function say(s){document.getElementById('msg').textContent=s;try{tg?.HapticFeedback?.impactOccurred('light')}catch(e){}}
-function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function icon(t){return t==='channel'?'✈️':t==='bot'?'🤖':t==='website'?'🌐':'🎯'}
-function taskBtn(t){
-  if(t.done)return '<button class="btn sm done" disabled>Done ✓</button>';
-  if(t.type==='channel')return opened[t.id]?`<button class="btn sm done" onclick="complete(${t.id})">Verify ✓</button>`:`<button class="btn sm" onclick="openTask(${t.id})">Join ›</button>`;
-  if(t.started_at)return t.seconds_left>0?`<button class="btn sm" disabled>⏳ ${t.seconds_left}s</button>`:`<button class="btn sm done" onclick="complete(${t.id})">Claim ✓</button>`;
-  return `<button class="btn sm" onclick="openTask(${t.id})">${t.type==='website'?'Visit':'Start'} ›</button>`}
-function renderTasks(){
-  const list=(data.tasks||[]).filter(t=>filter==='all'||(filter==='social'&&['channel','bot'].includes(t.type))||(filter==='other'&&!['channel','bot'].includes(t.type)));
-  document.getElementById('tasklist').innerHTML=list.map(t=>`<div class="card row"><div class="ic">${icon(t.type)}</div><div class="mid"><b>${esc(t.title)}</b>${t.description?`<small>${esc(t.description)}</small>`:''}<span class="pts">🪙 +${Number(t.reward).toLocaleString()} Points</span>${t.type!=='channel'&&!t.done?`<small>Stay ${t.timer_seconds}s on the task, then claim</small>`:''}</div>${taskBtn(t)}</div>`).join('')||'<div class="empty">No tasks</div>'}
-function initTimers(){(data.tasks||[]).forEach(t=>{t.deadline=Date.now()+(t.seconds_left||0)*1000})}
-setInterval(()=>{let ch=false;(data.tasks||[]).forEach(t=>{if(t.started_at&&!t.done&&t.deadline){const l=Math.max(0,Math.ceil((t.deadline-Date.now())/1000));if(l!==t.seconds_left){t.seconds_left=l;ch=true}}});if(ch)renderTasks()},1000);
-async function openTask(id){const t=(data.tasks||[]).find(x=>x.id===id);if(!t)return;
-  try{if(t.type!=='channel'){const r=await api('taskStart',{taskId:id});t.started_at=t.started_at||new Date().toISOString();t.seconds_left=r.seconds_left;t.deadline=Date.now()+r.seconds_left*1000}else opened[id]=true}catch(e){say(e.message);return}
-  if(/t\.me\//.test(t.link)&&tg?.openTelegramLink)tg.openTelegramLink(t.link);else if(tg?.openLink)tg.openLink(t.link);else window.open(t.link,'_blank');
-  renderTasks()}
-function tab(el){document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));el.classList.add('on');filter=el.dataset.f;renderTasks()}
-
-let txNext=null;
-function renderTx(items,append){const h=items.map(t=>`<div class="card row"><div class="ic">${t.points_change>=0?'🟢':'🔴'}</div><div class="mid"><b>${esc(t.type)}</b><small>${esc(t.description||'')}</small></div><span class="pts">${t.points_change>0?'+':''}${Number(t.points_change).toLocaleString()}</span></div>`).join('');
-  const el=document.getElementById('txlist');if(append)el.insertAdjacentHTML('beforeend',h);else el.innerHTML=h||'<div class="empty">No transactions yet</div>';
-  txNext=items.length>=25?items[items.length-1].id:null;document.getElementById('moreTx').style.display=txNext?'block':'none'}
-async function moreTx(){try{const r=await api('history',{before:txNext});renderTx(r.items,true);txNext=r.next;document.getElementById('moreTx').style.display=txNext?'block':'none'}catch(e){say(e.message)}}
-function renderDaily(){const b=document.getElementById('dailybtn'),d=data.daily||{};if(!b)return;b.disabled=!!d.claimed;b.textContent=d.claimed?'Claimed ✓':'Claim ›'}
-
-let refLink='';
-function shareRef(){if(!refLink)return;const u='https://t.me/share/url?url='+encodeURIComponent(refLink)+'&text='+encodeURIComponent('Mine Points & earn USDT 🚀');if(tg?.openTelegramLink)tg.openTelegramLink(u);else window.open(u,'_blank')}
-function renderVerify(){const box=document.getElementById('verifybox'),u=data.user||{};if(!u.verify_needed){box.style.display='none';return}
-  const ch=(data.settings&&data.settings.required_channels)||[];
-  vtext.textContent=u.has_referrer?'Join these channels, then tap Verify. Your inviter gets rewarded after you verify.':'Join these channels, then tap Verify.';
-  vlinks.innerHTML=ch.map(c=>`<p><a href="#" onclick="openCh('${esc(c)}');return false" style="color:var(--or1)">${esc(c)}</a></p>`).join('');box.style.display='block'}
-function openCh(c){const l='https://t.me/'+String(c).replace('@','');if(tg?.openTelegramLink)tg.openTelegramLink(l);else window.open(l,'_blank')}
-async function verifyChannels(){try{const r=await api('referralVerify');if(r.verified){say(r.reward_granted?'✅ Verified — your inviter was rewarded':'✅ Channels verified');await boot()}else say('Join first: '+r.missing.join(', '))}catch(e){say(e.message)}}
-async function boot(){try{data=await api('bootstrap');points.textContent=Number(data.user.points).toLocaleString();document.getElementById('msg').textContent=(data.settings&&data.settings.announcement)||'';initTimers();renderDaily();renderVerify();renderTasks();renderTx(data.transactions||[],false);if(data.admin)initAdmin();}catch(e){say(e.message)}}
-let fin=null;const WI={pending:'⏳',approved:'👍',paid:'✅',rejected:'❌',cancelled:'🚫'},DI={pending:'⏳',verified:'🔎',confirmed:'✅',rejected:'❌'};
-const RS={not_found:'Transaction not found yet',confirming:'Waiting for confirmations',tx_failed:'Transaction failed on-chain',no_matching_transfer:'No matching USDT transfer to our wallet from that address',below_minimum:'Below the minimum deposit',not_found_expired:'Transaction never appeared',chain_unavailable:'Blockchain check unavailable, try again'};
-const short=h=>h?String(h).slice(0,10)+'…'+String(h).slice(-6):'';
-function DS(r){return r.status==='confirmed'?'✅ Deposit credited':r.status==='verified'?'🔎 Verified on-chain - waiting for admin approval':r.status==='rejected'?'❌ '+(RS[r.reason]||r.reason||'Rejected'):'⏳ '+(RS[r.reason]||'Pending')+(r.confirmations!=null?' ('+r.confirmations+')':'')}
-async function getFin(){if(!fin)fin=await api('financeInfo');return fin}
-let qt;function quoteW(){clearTimeout(qt);qt=setTimeout(async()=>{const v=amount.value.trim();if(!v){wquote.textContent='';return}try{const q=await api('withdrawQuote',{amount:v});wquote.textContent='Fee '+q.fee+' USDT · You receive '+q.net+' USDT · Reserves '+Number(q.points).toLocaleString()+' Points'+(q.enough?'':' (not enough Points)')}catch(e){wquote.textContent=e.message}},350)}
-async function loadWithdraw(){const f=await getFin();amount.placeholder='USDT amount (min '+f.withdraw.min+')';wnote.textContent=f.withdraw.feePercent+'% fee. Points are reserved when you submit and refunded if rejected or cancelled.';depbtn.style.display=f.deposit.enabled?'block':'none';const r=await api('withdrawList');wlist.innerHTML=r.items.map(w=>`<div class="card row"><div class="ic">${WI[w.status]||'•'}</div><div class="mid"><b>#${w.id} · ${esc(w.net_usdt)} USDT</b><small>${esc(w.status)}${w.reject_reason?' - '+esc(w.reject_reason):''}${w.tx_hash?' · '+esc(short(w.tx_hash)):''}</small></div>${w.status==='pending'?`<button class="btn sm" onclick="cancelW(${w.id})">Cancel</button>`:''}</div>`).join('')||'<div class="empty">No withdrawals yet</div>'}
-async function cancelW(id){if(!confirm('Cancel this withdrawal? Points will be refunded.'))return;try{await api('withdrawCancel',{id});say('Cancelled - Points refunded');await boot();await loadWithdraw()}catch(e){say(e.message)}}
-async function loadDeposit(){const f=await getFin(),d=f.deposit;if(!d.enabled){depinfo.textContent='Deposits are not enabled yet.';depform.style.display='none'}else{depform.style.display='block';depinfo.innerHTML='Send USDT on <b>BSC (BEP-20)</b> only, to:<br><span style="color:var(--or1);word-break:break-all">'+esc(d.wallet)+'</span><br>Minimum '+d.min+' USDT · '+d.confirmations+' confirmations needed.'}const r=await api('depositList');deplist.innerHTML=r.items.map(x=>`<div class="card row"><div class="ic">${DI[x.status]||'•'}</div><div class="mid"><b>${x.amount_usdt?esc(x.amount_usdt)+' USDT':'Deposit #'+x.id}</b><small>${esc(x.status)}${x.reject_reason?' - '+esc(RS[x.reject_reason]||x.reject_reason):''} · ${esc(short(x.tx_hash))}</small></div>${x.status==='pending'?`<button class="btn sm" onclick="recheckD(${x.id})">Recheck</button>`:''}</div>`).join('')||'<div class="empty">No deposits yet</div>'}
-async function recheckD(id){try{const r=await api('depositRecheck',{id});say(DS(r));await boot();await loadDeposit()}catch(e){say(e.message)}}
-async function copyDep(){try{await navigator.clipboard.writeText(fin.deposit.wallet);say('Address copied ✅')}catch(e){say('Copy failed')}}
-function initAdmin(){if(!document.querySelector('#nav [data-go=admin]')){const b=document.createElement('button');b.dataset.go='admin';b.onclick=()=>go('admin');b.innerHTML='<i>🛡</i>Admin';nav.appendChild(b)}if(!document.getElementById('admjs')){const s=document.createElement('script');s.id='admjs';s.src='/admin.js';document.body.appendChild(s)}}
-function go(id){document.querySelectorAll('body>section').forEach(s=>s.classList.remove('on'));document.getElementById(id).classList.add('on');document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.go===id));window.scrollTo(0,0);load(id)}
-async function load(id){try{if(id==='admin'){if(window.Admin)Admin.open();else setTimeout(()=>load('admin'),400)}if(id==='withdraw')await loadWithdraw();if(id==='deposit')await loadDeposit();if(id==='ref'){let r=await api('referral');refLink=r.link;refurl.textContent=r.link;refreward.textContent=Number(r.reward).toLocaleString();refcount.textContent='Qualified: '+r.qualified+' · Pending: '+r.pending;reflist.innerHTML=r.referrals.map(x=>`<div class="card row"><div class="ic">${x.qualified?'✅':'⏳'}</div><div class="mid"><b>${esc(x.name)}</b><small>${x.qualified?'Verified — reward paid':'Waiting for channel verification'}</small></div></div>`).join('')}if(id==='rank'){let r=await api('leaderboard');ranklist.innerHTML=r.top.map((u,i)=>`<div class="card rk"><div class="n">${i<3?['🥇','🥈','🥉'][i]:i+1}</div><div class="nm">${esc(u.first_name||u.username||u.telegram_id)}</div><div class="pt">${Number(u.points).toLocaleString()}</div></div>`).join('')}}catch(e){say(e.message)}}
-async function daily(){try{let r=await api('daily');say('🎁 Claimed '+r.reward+' Points');await boot()}catch(e){say(e.message)}}
-async function complete(taskId){try{let r=await api('taskComplete',{taskId});delete opened[taskId];say('✅ Earned '+r.reward+' Points');await boot()}catch(e){say(e.message)}}
-async function withdraw(){try{let r=await api('withdraw',{amount:amount.value,wallet:wallet.value});say('Withdrawal request #'+r.id+' submitted - '+r.net+' USDT after fee');amount.value='';wquote.textContent='';await boot();await loadWithdraw()}catch(e){say(e.message)}}
-async function deposit(){try{let r=await api('depositSubmit',{txHash:txhash.value.trim(),from:depfrom.value.trim()});say(DS(r));txhash.value='';await boot();await loadDeposit()}catch(e){say(e.message)}}
-async function campaign(){try{let r=await api('campaignCreate',{type:ctype.value,title:ctitle.value,link:clink.value,reward:creward.value,target:ctarget.value});say('Campaign #'+r.id+' submitted');await boot()}catch(e){say(e.message)}}
-async function copyRef(){try{await navigator.clipboard.writeText(refurl.textContent);say('Copied ✅')}catch(e){say('Copy failed')}}
-function showGate(){document.getElementById('gate').style.display='block';document.querySelectorAll('body>section,#nav').forEach(e=>e.style.display='none');document.getElementById('msg').textContent=''}
-(function start(){let n=0;const t=setInterval(()=>{init=window.Telegram?.WebApp?.initData||init;if(init){clearInterval(t);boot()}else if(++n>=15){clearInterval(t);showGate()}},200);init=window.Telegram?.WebApp?.initData||init;if(init){clearInterval(t);boot()}})();
-</script></body></html>
+<script src="/app.js"></script>
+</body>
+</html>

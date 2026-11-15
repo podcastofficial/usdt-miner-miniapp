@@ -5,7 +5,7 @@ import { sql } from "../lib/db.js";
 import { HttpError, send } from "../lib/http.js";
 import { INITDATA_MAX_AGE } from "../lib/config.js";
 import * as core from "../lib/actions/core.js";
-import * as legacy from "../lib/actions/legacy.js";
+import * as com from "../lib/actions/community.js";
 import * as earn from "../lib/actions/earn.js";
 import * as ref from "../lib/actions/referral.js";
 import * as fin from "../lib/actions/finance.js";
@@ -18,7 +18,9 @@ const ACTIONS = {
   bootstrap: { fn: core.bootstrap },
   referral: { fn: ref.referral },
   referralVerify: { fn: ref.referralVerify, write: true },
-  leaderboard: { fn: legacy.leaderboard },
+  leaderboard: { fn: com.leaderboard },
+  communityInfo: { fn: com.communityInfo },
+  proofList: { fn: com.proofList },
   daily: { fn: earn.daily, write: true },
   taskStart: { fn: earn.taskStart, write: true },
   taskComplete: { fn: earn.taskComplete, write: true },
@@ -31,7 +33,9 @@ const ACTIONS = {
   depositSubmit: { fn: fin.depositSubmit, write: true },
   depositRecheck: { fn: fin.depositRecheck, write: true },
   depositList: { fn: fin.depositList },
-  campaignCreate: { fn: legacy.campaignCreate, write: true },
+  campaignList: { fn: com.campaignList },
+  campaignCreate: { fn: com.campaignCreate, write: true },
+  campaignCancel: { fn: com.campaignCancel, write: true },
   adminOverview: { fn: core.adminOverview, admin: true },
   adminDiagnostics: { fn: core.adminDiagnostics, admin: true },
   adminCreateTask: { fn: earn.adminCreateTask, admin: true, write: true },
@@ -58,6 +62,8 @@ const ACTIONS = {
   adminSettings: { fn: adm.adminSettings, admin: true },
   adminSettingsUpdate: { fn: adm.adminSettingsUpdate, admin: true, write: true },
   adminAudit: { fn: adm.adminAudit, admin: true },
+  adminProofList: { fn: com.adminProofList, admin: true },
+  adminProofHide: { fn: com.adminProofHide, admin: true, write: true },
 };
 
 export default async function handler(req, res) {

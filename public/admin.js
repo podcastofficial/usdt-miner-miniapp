@@ -5,8 +5,8 @@ const $=id=>document.getElementById(id),E=esc,A=(a,p)=>api(a,p||{}),N=Number;
 const D=x=>x?new Date(x).toLocaleString():'';
 const short=h=>h?String(h).slice(0,10)+'…'+String(h).slice(-6):'';
 const nm=x=>E(x.first_name||x.username||x.telegram_id||x.owner_id);
-const TABS=[['home','📊','Home'],['wd','💸','Withdraw'],['dep','⬇️','Deposits'],['usr','👤','Users'],['tsk','📋','Tasks'],['cmp','📢','Campaigns'],['set','⚙️','Settings'],['aud','🧾','Audit']];
-let tab='home',cur={tasks:[],setItems:[],audNext:null};
+const TABS=[['home','📊','Home'],['wd','💸','Withdraw'],['dep','⬇️','Deposits'],['usr','👤','Users'],['tsk','📋','Tasks'],['cmp','📢','Campaigns'],['set','⚙️','Settings'],['prf','🧾','Proof'],['aud','🧾','Audit']];
+let tab='home',cur={tasks:[],setItems:[],audNext:null,prfNext:null};
 
 const st=document.createElement('style');st.textContent=`#admtabs{display:flex;gap:6px;overflow-x:auto;margin:8px 0;padding-bottom:4px}#admtabs .tab{flex:0 0 auto;padding:8px 12px}
 #admnote{color:var(--or1);font-size:13px;min-height:16px}.admodal{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:50;display:flex;align-items:center;justify-content:center;padding:16px}.admodal .card{width:100%;max-width:420px}
@@ -53,9 +53,11 @@ const VIEWS={
     :`<input id="${id}" type="${i.type==='text'?'text':'number'}" step="any" value="${E(v)}">`;
    return `<small><b>${E(i.label)}</b>${i.custom?'':' (default)'}${i.help?' — '+E(i.help):''}</small>${ctl}`}).join('')}</div>`).join('')+
   `<button class="btn" onclick="Admin.saveSettings()">Save settings ›</button><div class="card"><small>Secrets stay in Vercel env: ${Object.entries(r.env).map(([k,v])=>E(k)+(v?' ✅':' ❌')).join(' · ')}</small></div>`},
+ async prf(){const r=await A('adminProofList');cur.prfNext=r.next;return `<small class="muted">Paid withdrawals shown on the public Payment Proof screen. Hide any you do not want shown.</small><div id="prfl">${prfRows(r.items)}</div>`+(r.next?`<button class="btn" id="prfmore" onclick="Admin.prfMore()">Load more</button>`:'')},
  async aud(){const f=$('audf')?$('audf').value:'';const r=await A('adminAudit',{action:f==='all'?'':f});cur.audNext=r.next;
-  return sel('audf',['all','withdrawal','deposit','user','task','campaign','settings'],"Admin.go('aud')",f||'all')+`<div id="audl">${audRows(r.items)}</div>`+(r.next?`<button class="btn" id="audmore" onclick="Admin.more()">Load more</button>`:'')},
+  return sel('audf',['all','withdrawal','deposit','user','task','campaign','proof','settings'],"Admin.go('aud')",f||'all')+`<div id="audl">${audRows(r.items)}</div>`+(r.next?`<button class="btn" id="audmore" onclick="Admin.more()">Load more</button>`:'')},
 };
+function prfRows(items){return items.map(x=>`<div class="card row"><div class="mid"><b>#${N(x.id)} · ${E(x.amount)} USDT</b><small>${E(x.name)} · ${E(D(x.paid_at))} · ${E(short(x.tx))}</small><small>${x.hidden?'Hidden from users':'Visible to users'}</small></div><button class="btn sm ghost" onclick="Admin.prfHide(${N(x.id)},${!x.hidden})">${x.hidden?'Show':'Hide'}</button></div>`).join('')||empty('No paid withdrawals yet')}
 function audRows(items){return items.map(a=>`<div class="card"><b>${E(a.action)}</b><small>#${N(a.id)} · ${E(D(a.created_at))} · by ${E(a.actor_id)}</small><small>${E(a.target_type||'')} ${E(a.target_id||'')}${a.reason?' · '+E(a.reason):''}</small>${a.after_data?`<pre>${E(JSON.stringify(a.after_data)).slice(0,300)}</pre>`:''}</div>`).join('')||empty('Nothing here')}
 
 window.Admin={
@@ -89,6 +91,8 @@ window.Admin={
    if(JSON.stringify(v)!==JSON.stringify(i.value))changes[i.key]=v}
   if(!Object.keys(changes).length){note('No changes');return}
   await run(async()=>{const r=await A('adminSettingsUpdate',{changes});note('Saved '+r.changed.length+' setting(s)'+(r.warnings.length?' ⚠️ '+r.warnings.join(' '):''));await show()})},
+ async prfHide(id,hidden){await run(async()=>{await A('adminProofHide',{id,hidden});note('Proof #'+id+(hidden?' hidden':' shown'));await show()})},
+ async prfMore(){await run(async()=>{const r=await A('adminProofList',{before:cur.prfNext});cur.prfNext=r.next;$('prfl').insertAdjacentHTML('beforeend',prfRows(r.items));if(!r.next)$('prfmore').remove()})},
  async more(){await run(async()=>{const f=$('audf').value,r=await A('adminAudit',{action:f==='all'?'':f,before:cur.audNext});cur.audNext=r.next;$('audl').insertAdjacentHTML('beforeend',audRows(r.items));if(!r.next)$('audmore').remove()})},
 };
 })();
