@@ -30,7 +30,7 @@ Fresh database and registration. This does NOT connect to or modify the existing
 See `docs/DEPLOYMENT_GUIDE.md`, `docs/TEST_MATRIX.md` and `DEPLOYMENT_CHECKLIST.md`. Run `npm test` (92 tests).
 
 ## Important before real launch
-This is a functional starter, not a completed audited financial platform. Deposit hashes are queued for admin review; **automatic BEP-20 on-chain verification is not implemented**. Withdrawals create requests and require secure manual payout. Do not place private keys in GitHub or Vercel. Referral rewards are not yet granted because qualifying channel-join verification and referral attribution need a separate Telegram webhook flow. Bot/website task claims need stronger verification before awarding meaningful Points. Games are informational placeholder only. Advertising campaign creation reserves Points, but the full campaign delivery/verification workflow is not yet complete. Add rate limits, idempotent DB transactions, monitoring, backups, terms and privacy policy before production.
+This is a functional starter, not a completed audited financial platform. Deposit hashes are queued for admin review; **automatic BEP-20 on-chain verification is not implemented**. Withdrawals create requests and require secure manual payout. Do not place private keys in GitHub or Vercel. Referral rewards are not yet granted because qualifying channel-join verification and referral attribution need a separate Telegram webhook flow. Bot/website task claims need stronger verification before awarding meaningful Points. Games (v1.10.0) use Points only and ship OFF. Advertising campaign creation reserves Points, but the full campaign delivery/verification workflow is not yet complete. Add rate limits, idempotent DB transactions, monitoring, backups, terms and privacy policy before production.
 
 ## API actions
 `bootstrap`, `referral`, `leaderboard`, `daily`, `taskComplete`, `withdraw`, `depositSubmit`, `campaignCreate`, `adminOverview`, plus (v1.8.0) `adminNotifyStatus`, `adminNotifyProcess`, `adminWebhookSetup`, `adminBroadcastCreate`, `adminBroadcastCancel`, plus (v1.9.0) `engagement`, `referralList`, `promoRedeem`, `adminPromoList`, `adminPromoCreate`, `adminPromoSetActive`. Server-to-server only: `tgWebhook`, `cron`.
@@ -67,12 +67,13 @@ Rule for every part: new options live in Admin > Settings (default OFF where mon
 - Promo codes: admin creates (reward, per-user limit, total limit, expiry), users redeem on the Rewards screen (**OFF** until you enable it)
 - Admin > Promo tab; Admin > Settings > Engagement; Migration `008_engagement.sql`; no new env variables
 
-### Part 3 — Games & Boosters (v1.10.0)
-- Games screen goes live: Spin Wheel, Scratch Card, Lucky Box (server-side random, never client-side)
-- Daily play limits + Points entry cost options, house-edge shown in Admin
-- Weekly Lucky Draw (Points = ticket, winner picked and logged by admin action)
-- Mining Boosters (Points-only, time-limited multiplier on daily reward)
-- Migration `009_games.sql`
+### Part 3 — Games & Boosters (v1.10.0) ✅ DONE
+- Games screen is live: Spin Wheel, Scratch Card, Lucky Box (prize drawn on the server with crypto-random and stored before it is shown) (**OFF** until you enable it)
+- Daily free plays, optional Points entry fee (starts at 0), daily max plays and a per-user win cap; expected payout / house edge shown in Admin > Games
+- Lucky Draw: Points = ticket, admin draws the winner (audited) or cancels with refunds (**OFF** until you enable it)
+- Mining Boosters: Points-only, time-limited multiplier on the daily reward, one at a time (**OFF** until you enable it)
+- Admin > Games tab; Admin > Settings > Games & Boosters; Migration `009_games.sql` (run it BEFORE redeploying); no new env variables
+- Read the legal note in `CHANGELOG_PART10.md` before setting an entry fee or enabling the Lucky Draw
 
 ### Part 4 — Tasks, Ads & Contests (v1.11.0)
 - Bot / website task verification (proof upload + admin review queue, optional postback)

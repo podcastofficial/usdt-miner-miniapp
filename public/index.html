@@ -50,6 +50,10 @@
     <div id="ladder" class="ladder" role="list" aria-label="7-day streak ladder" hidden></div>
     <small id="streaknote" class="muted" role="status"></small>
   </div>
+  <div id="boostbox" class="card" hidden>
+    <b>⚡ <span id="boosttitle">Booster active</span></b>
+    <small id="boosttext" class="muted"></small>
+  </div>
   <div id="verifybox" class="card" hidden>
     <h3>✅ Verify required channels</h3>
     <p id="vtext" class="muted"></p>
@@ -178,7 +182,7 @@
   <button class="card hub" data-go="channel"><span class="ic" aria-hidden="true">✈️</span><span><b>Official Channel</b><small>News, updates and support</small></span><span class="chev" aria-hidden="true">›</span></button>
   <button class="card hub" data-go="proof"><span class="ic" aria-hidden="true">🧾</span><span><b>Payment Proof</b><small>Recent paid withdrawals</small></span><span class="chev" aria-hidden="true">›</span></button>
   <button class="card hub" data-go="howto"><span class="ic" aria-hidden="true">📖</span><span><b>How to Use</b><small>Step by step guide and FAQ</small></span><span class="chev" aria-hidden="true">›</span></button>
-  <button class="card hub" data-go="games"><span class="ic" aria-hidden="true">🎮</span><span><b>Games</b><small>Coming soon</small></span><span class="chev" aria-hidden="true">›</span></button>
+  <button class="card hub" data-go="games"><span class="ic" aria-hidden="true">🎮</span><span><b>Games</b><small>Spin, scratch, lucky draw, boosters</small></span><span class="chev" aria-hidden="true">›</span></button>
   <button class="card hub" data-go="history"><span class="ic" aria-hidden="true">📜</span><span><b>History</b><small>Your Points transactions</small></span><span class="chev" aria-hidden="true">›</span></button>
 </section>
 
@@ -229,14 +233,20 @@
   <div id="howbody"></div>
 </section>
 
-<!-- ============ GAMES (Part 6) ============ -->
+<!-- ============ GAMES & BOOSTERS (Phase 2 / Part 3) ============ -->
 <section id="games" aria-labelledby="h-games">
-  <h2 id="h-games">🎮 Games<small>Coming soon</small></h2>
-  <div class="card row"><span class="ic" aria-hidden="true">⛏️</span><div class="mid"><b>Mining Race</b><small>Compete with other miners for a place on the board.</small></div><span class="badge soon">Soon</span></div>
-  <div class="card row"><span class="ic" aria-hidden="true">🧠</span><div class="mid"><b>Quiz Rush</b><small>Answer crypto questions against the clock.</small></div><span class="badge soon">Soon</span></div>
-  <div class="card row"><span class="ic" aria-hidden="true">🗺️</span><div class="mid"><b>Treasure Hunt</b><small>Find hidden rewards across the app.</small></div><span class="badge soon">Soon</span></div>
-  <p class="hint">Games are not available yet. No Points are used or awarded by games, and nothing here can cost you Points. Follow the official channel to hear when they launch.</p>
-  <button class="btn" data-act="openOfficial">Follow the official channel ›</button>
+  <h2 id="h-games">🎮 Games<small>Spin, scratch and win Points</small></h2>
+  <div class="card" id="gamenote" hidden></div>
+  <div class="card row" id="gamebal"><span class="ic" aria-hidden="true">🪙</span><div class="mid"><b id="gamebalv">—</b><small>Your Points</small></div></div>
+  <div class="card result" id="gameresult" role="status" aria-live="polite" hidden></div>
+  <div id="gamelist"></div>
+  <h3 class="sec">⚡ Mining Booster</h3>
+  <div class="card" id="boostcard"><div class="empty">Loading…</div></div>
+  <h3 class="sec">🎫 Lucky Draw</h3>
+  <div class="card" id="drawcard"><div class="empty">Loading…</div></div>
+  <h3 class="sec">Your recent plays</h3>
+  <div id="playlist"></div>
+  <p class="hint">Games use Points only, never real money. Every result is decided by the server before you see it, and the odds are shown on each game. Daily limits and prize caps apply. Play for fun.</p>
 </section>
 
 <!-- ============ ADMIN ============ -->

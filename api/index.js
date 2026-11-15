@@ -14,6 +14,7 @@ import { getConfig } from "../lib/runtime.js";
 import { captureReferrer } from "../lib/referral.js";
 import * as ntf from "../lib/actions/notify.js";
 import * as eng from "../lib/actions/engage.js";
+import * as gam from "../lib/actions/games.js";
 
 // Action registry. write=true -> POST only; admin=true -> server-side admin check on every call.
 const ACTIONS = {
@@ -77,6 +78,17 @@ const ACTIONS = {
   adminPromoList: { fn: eng.adminPromoList, admin: true },
   adminPromoCreate: { fn: eng.adminPromoCreate, admin: true, write: true },
   adminPromoSetActive: { fn: eng.adminPromoSetActive, admin: true, write: true },
+  games: { fn: gam.games },
+  gamePlay: { fn: gam.gamePlay, write: true },
+  drawBuy: { fn: gam.drawBuy, write: true },
+  boosterBuy: { fn: gam.boosterBuy, write: true },
+  adminGamesReport: { fn: gam.adminGamesReport, admin: true },
+  adminGamePrizeSave: { fn: gam.adminGamePrizeSave, admin: true, write: true },
+  adminGamePrizeSetActive: { fn: gam.adminGamePrizeSetActive, admin: true, write: true },
+  adminDrawList: { fn: gam.adminDrawList, admin: true },
+  adminDrawCreate: { fn: gam.adminDrawCreate, admin: true, write: true },
+  adminDrawPick: { fn: gam.adminDrawPick, admin: true, write: true },
+  adminDrawCancel: { fn: gam.adminDrawCancel, admin: true, write: true },
 };
 
 export default async function handler(req, res) {

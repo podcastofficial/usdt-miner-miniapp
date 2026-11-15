@@ -50,4 +50,19 @@ Also run once (done in this build): headless Chromium at 390×844 against the st
 | 32 | Promo with Promo codes setting OFF | Redeem refused, tile hidden on Home |
 | 33 | Admin > Audit filter "promo" | `promo.create` / `promo.enable` / `promo.disable` rows with the admin ID |
 | 34 | Admin > Ledger check after rows 24-33 | Reports no mismatch |
-
+| 35 | Settings > Games & Boosters: Games OFF; open More > Games | "Games are not open yet", no play buttons; calling `gamePlay` directly returns `game_disabled` |
+| 36 | Turn Games ON (1 free play, fee 0). Play Spin as user A | Highlight lands on the server's result; one `Game Prize` ledger row if the prize is above 0; balance matches; second Spin refused "No free plays left today" |
+| 37 | Play Scratch Card and Lucky Box once each | Each has its own free play; Box shows the prize in the box you tapped; Games > recent plays lists all three |
+| 38 | Double-tap Play, or play from two devices at once | Only ONE play is recorded and ONE ledger row exists |
+| 39 | Win cap: set cap 20 and play until a prize above 20 is drawn (use a tiny test prize table) | Credited prize is cut to what is left of the cap, the result says it was cut, `game_daily.won` never exceeds the cap |
+| 40 | Entry fee 5, daily max 3, free plays 1. Use the free play, then try a paid play with 4 Points | Refused "Not enough Points"; balance unchanged; the day's play counter did NOT go up (you can play again after topping up) |
+| 41 | Same setup with enough Points: play 2 paid plays, then a 4th | Ledger shows `Game Entry` −5 then `Game Prize` per play; the 4th play is refused (daily limit) |
+| 42 | Admin > Games: edit a prize, disable prizes one by one | Odds and expected payout update; the last active prize cannot be disabled; audit shows `game.prize_*` |
+| 43 | Lucky Draw ON. Create draw (ticket 10, prize 100, max 3). A buys 1, then 3. B buys 2 | A's second purchase is refused (max 3, holds 1) with NO Points taken; B gets 2 tickets; ledger has `Lucky Draw Ticket` rows |
+| 44 | Create a second draw while one is open | Refused "already an open draw" |
+| 45 | Admin presses Draw winner (type DRAW), then presses it again | Exactly one winner, prize paid once (`Lucky Draw Win`), second press refused (closed); Games shows the masked winner; audit `draw.pick` |
+| 46 | Cancel an open draw that has tickets | Every buyer refunded once (`Lucky Draw Refund`); no more ticket sales; audit `draw.cancel` |
+| 47 | Boosters ON. Buy a booster as A, then tap Buy twice fast (or two devices) | Points drop by the price ONCE; Home shows the booster; a second purchase is refused "already active" |
+| 48 | Claim the daily reward while the booster is active, then after it expires | Reward = base × booster % ÷ 100 rounded down, ledger text mentions the booster; after expiry the base reward again |
+| 49 | Switch Boosters / Games / Lucky Draw OFF after purchases | An already-bought booster still applies; new purchases / plays / tickets are refused with clear messages |
+| 50 | Admin > Audit filter `game` and `draw`, then Admin > Ledger check | Rows present with the admin ID; ledger check reports no mismatch |

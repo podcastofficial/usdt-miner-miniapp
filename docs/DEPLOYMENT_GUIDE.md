@@ -60,3 +60,10 @@ Vercel → Deployments → previous deployment → **Promote to Production**. Da
 4. Turning **Referral milestone bonuses** ON also pays inviters who already passed 5 / 10 / 50 qualified referrals (once, the next time they open the app). Check your numbers first.
 5. **Admin → Promo**: a total redeem cap is required. Worst-case cost = reward × total redeems, shown when you create the code. Run rows 24-34 of `docs/TEST_MATRIX.md` with tiny numbers before announcing anything.
 
+## 12. Games & Boosters (v1.10.0)
+1. Neon SQL Editor: run `db/migrations/009_games.sql` (safe to run twice). **Do this BEFORE redeploying**: the daily claim now reads `users.booster_until`. No new Vercel env variables. Redeploy.
+2. **Admin → Settings → Games & Boosters**. Games, Lucky Draw and Mining Boosters all start **OFF**. The entry fee starts at 0 (free plays only).
+3. **Admin → Games**: review the starter prize tables. Expected payout per play is Spin 11.6, Scratch 4.65, Box 9.75 Points, and every free play is Points you create. Edit weights / prizes until you are happy. At least 1 prize must stay active per game.
+4. Turn on in this order, testing each with tiny numbers: Games (free plays only) → Mining Boosters → Lucky Draw. Set free plays, daily max and the win cap before you switch Games ON.
+5. **Legal**: Points can be withdrawn as USDT. Before you set an **entry fee above 0** or switch the **Lucky Draw** (paid tickets) ON, check what your local law says about games of chance and lotteries. Run rows 35-50 of `docs/TEST_MATRIX.md` first.
+6. Lucky Draw: create the draw (Admin → Games), set a sales end date, and after it ends press **Draw winner** (type DRAW). One draw can be open at a time. **Cancel + refund** returns every ticket.

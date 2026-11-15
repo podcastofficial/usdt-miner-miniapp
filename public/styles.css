@@ -186,3 +186,22 @@ progress::-moz-progress-bar{background:linear-gradient(90deg,var(--btn-a),var(--
 .badges .card .ic{display:block;font-size:2rem}.badges .card b{display:block}.badges .card small{display:block;margin-bottom:6px}
 .bdg{border-style:dashed}.bdg.got{border-style:solid}
 #refmilestones{margin-top:10px}#refmilestones b,#refmilestones small{display:block}
+
+/* Phase 2 / Part 3: games, booster, lucky draw (reuses the contrast-checked tokens; no inline styles, CSP-safe) */
+.gcard{text-align:center}.gcard .row{text-align:left}.gcard .btn{width:100%;margin-top:10px}.gcard>small{display:block;margin-top:8px}
+.wheel{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:12px 0 2px}
+.seg{min-height:52px;padding:6px 2px;border-radius:12px;border:1.5px dashed #4a3623;background:var(--field);display:flex;flex-direction:column;justify-content:center;text-align:center}
+.seg b{display:block;font-size:.95rem}.seg small{display:block;font-size:.68rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.seg.hot{border-style:solid;border-color:var(--or2);background:linear-gradient(180deg,#4a2300,#26120a);box-shadow:0 0 14px rgba(255,122,0,.6)}
+.scratch{min-height:96px;margin:12px 0 2px;border-radius:16px;border:2px dashed #4a3623;background:repeating-linear-gradient(45deg,#2c2d35,#2c2d35 10px,#1a1b21 10px,#1a1b21 20px);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--txt);transition:background .4s}
+.scratch.open{border-style:solid;border-color:var(--or2);background:linear-gradient(180deg,#4a2300,#26120a);font-size:1.6rem}
+.boxes{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0 4px}
+.gbox{min-height:84px;border-radius:16px;border:2px solid #4a3623;background:linear-gradient(180deg,#3a1a00,#26120a);color:var(--txt);font-size:2rem;font-weight:700;cursor:pointer;transition:transform .15s}
+.gbox:active{transform:scale(.96)}.gbox:disabled{opacity:.6;cursor:default}
+.gbox.open{border-color:var(--or2);box-shadow:0 0 14px rgba(255,122,0,.6);font-size:1.3rem}
+.result{text-align:center}.result b{display:block;font-size:1.1rem}.result small{display:block;margin-top:4px}
+.result.win{border-color:#1f8a68;background:rgba(38,161,123,.15)}
+.odds{margin-top:10px;text-align:left}.odds summary{cursor:pointer;min-height:44px;display:flex;align-items:center;color:var(--or1)}
+.odds ul{list-style:none;margin:6px 0;padding:0}.odds li{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #2c2d35}
+#boostbox b,#boostbox small{display:block}
+@media (prefers-reduced-motion:reduce){.scratch,.gbox{transition:none}}

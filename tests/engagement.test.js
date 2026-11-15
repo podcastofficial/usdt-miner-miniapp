@@ -239,6 +239,7 @@ test("referral verification pays milestones + badges AFTER the reward, inside tr
 test("admin audit covers promo actions; version and check script are bumped", () => {
   const eng = read("lib/actions/engage.js"), pkg = JSON.parse(read("package.json"));
   for (const a of ["promo.create", "promo.enable", "promo.disable"]) assert.ok(eng.includes(a), a);
-  assert.equal(pkg.version, "1.9.0");
+  const [maj, min] = pkg.version.split(".").map(Number); // Part 2 shipped 1.9.0; later parts only go up
+  assert.ok(maj > 1 || (maj === 1 && min >= 9), pkg.version);
   for (const f of ["lib/engagement.js", "lib/badges.js", "lib/actions/engage.js"]) assert.ok(pkg.scripts.check.includes(f), f);
 });

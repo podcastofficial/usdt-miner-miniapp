@@ -24,7 +24,7 @@ Defaults are editable in Admin > Settings. Anything touching money/abuse ships *
 | DB | `008_engagement.sql`: `streaks`, `milestones_paid`, `badges`, `promo_codes`, `promo_redemptions` |
 | Tests | streak reset, milestone once-only, promo limits and double-redeem |
 
-## Part 3 — Games & Boosters (v1.10.0)
+## Part 3 — Games & Boosters (v1.10.0) — DONE
 | Feature | Details |
 |---|---|
 | Spin / Scratch / Lucky Box | outcome chosen on the server with crypto-random, stored before shown; prize table editable by admin |

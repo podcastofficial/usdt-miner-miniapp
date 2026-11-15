@@ -75,7 +75,13 @@ function renderTx(items, append) {
   const el = $('txlist'); if (append) el.insertAdjacentHTML('beforeend', h); else el.innerHTML = h || empty('No transactions yet');
   txNext = items.length >= 25 ? items[items.length - 1].id : null; $('moreTx').hidden = !txNext;
 }
-function renderDaily() { const b = $('dailybtn'), d = data.daily || {}; b.disabled = !!d.claimed; b.textContent = d.claimed ? 'Claimed ✓' : 'Claim ›'; renderStreak(); }
+function renderDaily() { const b = $('dailybtn'), d = data.daily || {}; b.disabled = !!d.claimed; b.textContent = d.claimed ? 'Claimed ✓' : 'Claim ›'; renderStreak(); renderBoostBox(d.booster); }
+function leftText(sec) { const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60); return h > 0 ? h + 'h ' + m + 'm' : Math.max(1, m) + ' min'; }
+function renderBoostBox(bs) {
+  const box = $('boostbox'); if (!bs) { box.hidden = true; return; }
+  box.hidden = false; $('boosttitle').textContent = 'Booster ' + bs.label + ' active';
+  $('boosttext').textContent = (data.daily.claimed ? 'Your next daily reward' : 'Today’s daily reward') + ' is boosted: +' + N(data.daily.reward) + ' Points (base ' + N(bs.base_reward) + '). ' + leftText(bs.seconds_left) + ' left.';
+}
 
 /* ---------------- engagement (Phase 2 / Part 2) ---------------- */
 const lastDayOf = (c) => (c > 0 ? ((c - 1) % 7) + 1 : 0); // mirrors ladderDay() on the server
@@ -235,6 +241,8 @@ async function loadHow() {
     r.withdrawalsEnabled ? `<b>Withdraw</b>: ${N(r.pointsPerUsdt)} Points = 1 USDT. Minimum ${esc(r.minWithdraw)} USDT, fee ${esc(r.feePercent)}%. Enter your BEP-20 (BSC) address. Points are reserved when you submit and refunded if the request is rejected or cancelled. Every request is reviewed by an admin.` : `<b>Withdrawals</b> are paused right now. Your Points stay safe in your balance.`,
   ];
   if (r.depositsEnabled) steps.push(`<b>Deposit</b> USDT (BEP-20, minimum ${esc(r.minDeposit)} USDT) from the Withdraw screen. Deposits are checked on-chain.`);
+  if (c.games && c.games.enabled) steps.push(`<b>Play games</b> (More &gt; Games): Spin Wheel, Scratch Card and Lucky Box use Points only, with daily free plays.`);
+  if (c.games && c.games.boosterEnabled) steps.push(`<b>Booster</b>: spend Points on a time-limited multiplier for your daily reward.`);
   if (c.ads.enabled) steps.push(`<b>Advertise</b>: spend Points to promote your channel, bot or website. An admin reviews each campaign.`);
   const faq = [
     ['Why can’t I claim a task?', 'Timer tasks only unlock after the timer ends. Channel tasks need you to join first. A task can also be finished already or full.'],
@@ -242,9 +250,77 @@ async function loadHow() {
     ['How long does a withdrawal take?', 'Each request is reviewed and paid manually by an admin. Follow its status on the Withdraw screen, and see recent payouts in Payment Proof.'],
     ['Will the rate or fee change?', 'The team can change them. The quote you see before you submit is what applies to your request.'],
     ['Is it safe?', 'Never share your private key, seed phrase or Telegram login code with anyone. Nobody from the team will ask for them.'],
-    ['Are games available?', 'Not yet. See the Games screen for what is planned.'],
+    ['Are games available?', (c.games && c.games.enabled) ? 'Yes - open More > Games. Games use Points only, the odds are shown on each game, and daily limits apply.' : 'Not yet. Follow the official channel to hear when they start.'],
   ];
   setHtml('howbody', `<div class="card"><ol class="steps">${steps.map((s) => `<li>${s}</li>`).join('')}</ol></div><h3 class="sub">FAQ</h3>${faq.map((f) => `<details class="card faq"><summary>${esc(f[0])}</summary><p>${esc(f[1])}</p></details>`).join('')}${c.support ? `<button class="btn" data-act="openUrl" data-url="${esc(c.support)}">Contact support ›</button>` : ''}`);
+}
+
+/* ---------------- games & boosters (Phase 2 / Part 3) ---------------- */
+let gamesData = null, playing = false;
+const reduceMotion = () => { try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; } };
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const costText = (g) => (g.plays_left === 0 ? 'No plays left today' : g.next_fee === 0 ? 'Free play' : 'Costs ' + N(g.next_fee) + ' Points') + ' · ' + g.plays_left + ' left today';
+function oddsList(g) { return `<details class="odds"><summary>Prizes &amp; odds</summary><ul>${g.prizes.map((p) => `<li><span>${esc(p.label)}</span><b>${p.pct}%</b></li>`).join('')}</ul><small>Max prize per day: ${N(g.win_cap)} Points (${N(g.win_left)} left today)</small></details>`; }
+function gameCard(g) {
+  const head = `<div class="row flat">${ic(g.icon)}<div class="mid"><b>${esc(g.name)}</b><small>${esc(g.help)}</small></div></div>`;
+  if (!g.enabled) return `<div class="card gcard">${head}<small class="muted">Not available right now</small></div>`;
+  const off = playing || g.plays_left === 0 ? ' disabled' : '';
+  let body;
+  if (g.code === 'spin') body = `<div class="wheel" id="wheel" role="list" aria-label="Wheel segments">${g.prizes.map((p, i) => `<div class="seg" role="listitem" data-i="${i}"><b>${N(p.points)}</b><small>${esc(p.label)}</small></div>`).join('')}</div><button class="btn" data-act="play" data-game="spin"${off}>Spin ›</button>`;
+  else if (g.code === 'scratch') body = `<div class="scratch" id="scratchtile" aria-live="polite"><span>Scratch to reveal</span></div><button class="btn" data-act="play" data-game="scratch"${off}>Scratch ›</button>`;
+  else body = `<div class="boxes" id="boxes">${Array.from({ length: gamesData.box_count }, (_, i) => `<button class="gbox" data-act="play" data-game="box" data-pick="${i}" aria-label="Open box ${i + 1}"${off}><span aria-hidden="true">🎁</span></button>`).join('')}</div><small class="muted">Tap a box to open it</small>`;
+  return `<div class="card gcard">${head}${body}<small class="muted">${esc(costText(g))}</small>${oddsList(g)}</div>`;
+}
+function boostCardHtml(b) {
+  if (b.active) return `<div class="row flat">${ic('⚡')}<div class="mid"><b>Booster ${esc(b.active.label)} active</b><small>${leftText(b.active.seconds_left)} left · your daily reward is multiplied</small></div></div>`;
+  if (!b.enabled) return '<div class="empty">Boosters are not available right now.</div>';
+  return `<div class="row flat">${ic('⚡')}<div class="mid"><b>Daily reward ${esc(b.label)} for ${b.hours}h</b><small>Costs ${N(b.cost)} Points · one booster at a time · whole Points, rounded down</small></div></div><button class="btn" data-act="boost">Buy booster ›</button>`;
+}
+function drawCardHtml(d) {
+  const last = d.last ? `<small class="muted">Last draw: ${esc(d.last.winner)}${d.last.you_won ? ' (you!) 🎉' : ''} won ${N(d.last.prize)} Points · ${N(d.last.tickets)} tickets</small>` : '';
+  if (!d.enabled || !d.open) return `<div class="empty">${d.enabled ? 'No draw is open right now. Check back soon.' : 'Lucky Draw is not active right now.'}</div>${last}`;
+  const o = d.open, room = Math.max(0, o.max_tickets - o.my_tickets), can = !o.ended && room > 0 && !playing;
+  const sizes = [1, 5].filter((n) => n <= room), buy = (n) => `<button class="btn sm" data-act="drawBuy" data-n="${n}"${can ? '' : ' disabled'}>Buy ${n} ›</button>`;
+  return `<div class="row flat">${ic('🎫')}<div class="mid"><b>${esc(o.title)}</b><small>Prize ${N(o.prize)} Points · ticket ${N(o.ticket_price)} Points</small></div></div>`
+    + `<small class="muted">You hold ${o.my_tickets} of max ${o.max_tickets} tickets · ${N(o.total_tickets)} sold in total${o.ends_at ? ' · ' + (o.ended ? 'sales ended' : 'ends ' + esc(dt(o.ends_at))) : ''}</small>`
+    + `<div class="acts">${sizes.map(buy).join('') || (o.ended ? '' : '<small class="muted">You hold the maximum number of tickets.</small>')}</div>${last}`;
+}
+function renderGames() {
+  const g = gamesData; if (!g) return;
+  $('gamebalv').textContent = N(g.balance);
+  const note = $('gamenote'); note.hidden = g.enabled; note.innerHTML = g.enabled ? '' : '<b>Games are not open yet</b><small class="muted">Follow the official channel to hear when they start. Boosters and the Lucky Draw may still be available below.</small>';
+  setHtml('gamelist', g.enabled ? g.games.map(gameCard).join('') : '');
+  setHtml('boostcard', boostCardHtml(g.booster)); setHtml('drawcard', drawCardHtml(g.draw));
+  const GI = { spin: '🎡', scratch: '🎟️', box: '🎁' };
+  setHtml('playlist', g.recent.map((r) => `<div class="card row">${ic(GI[r.game] || '🎮')}<div class="mid"><b>${r.prize > 0 ? '+' + N(r.prize) + ' Points' : 'No prize'}</b><small>${esc(r.game)} · ${esc(dt(r.at))}${r.fee > 0 ? ' · entry ' + N(r.fee) : ''}</small></div></div>`).join('') || empty('No plays yet'));
+}
+async function loadGames() { gamesData = await api('games'); renderGames(); }
+function showResult(r) {
+  const el = $('gameresult'); el.hidden = false;
+  const win = r.prize > 0;
+  el.className = 'card result ' + (win ? 'win' : 'lose');
+  el.innerHTML = `<b>${win ? '🎉 You won +' + N(r.prize) + ' Points' : '😅 No prize this time'}</b>`
+    + `<small>${esc(r.label)}${r.capped ? ' · prize cut to today’s limit (' + N(r.prize_drawn) + ' drawn)' : ''}${r.fee > 0 ? ' · entry fee −' + N(r.fee) : ''} · balance ${N(r.balance)}</small>`;
+}
+async function animateSpin(index) {
+  const segs = [...document.querySelectorAll('#wheel .seg')]; if (!segs.length) return;
+  const mark = (i) => segs.forEach((e, k) => e.classList.toggle('hot', k === i));
+  if (reduceMotion()) { mark(index); return; }
+  const n = segs.length, steps = n * 2 + index + 1; // two laps, then land on the server's result
+  for (let k = 0; k < steps; k++) { mark(k % n); await sleep(60 + Math.floor((k / steps) * 220)); }
+  mark(index);
+}
+async function playGame(d) {
+  if (playing) return; playing = true;
+  document.querySelectorAll('#gamelist [data-act=play]').forEach((b) => { b.disabled = true; });
+  try {
+    const r = await api('gamePlay', { game: d.game, pick: d.pick === undefined ? undefined : Number(d.pick) });
+    if (d.game === 'spin') await animateSpin(r.index);
+    else if (d.game === 'scratch') { const t = document.getElementById('scratchtile'); if (t) { t.classList.add('open'); t.textContent = r.prize > 0 ? '+' + N(r.prize) : '—'; await sleep(reduceMotion() ? 0 : 500); } }
+    else { const bx = [...document.querySelectorAll('#boxes .gbox')]; bx.forEach((e, i) => { e.classList.toggle('open', i === r.pick); if (i === r.pick) e.textContent = r.prize > 0 ? '+' + N(r.prize) : '—'; }); await sleep(reduceMotion() ? 0 : 500); }
+    showResult(r); try { tg?.HapticFeedback?.notificationOccurred(r.prize > 0 ? 'success' : 'warning'); } catch (e) {}
+  } finally { playing = false; }
+  await boot(); await loadGames();
 }
 
 /* ---------------- navigation ---------------- */
@@ -279,6 +355,7 @@ async function load(id) {
     if (id === 'channel') await loadChannel();
     if (id === 'proof') await loadProof(false);
     if (id === 'howto') await loadHow();
+    if (id === 'games') await loadGames();
   } catch (e) { say(e.message); }
 }
 
@@ -342,6 +419,18 @@ const ACT = {
   },
   async cancelCamp(d) { if (!(await confirmAsk('Cancel this campaign? The full budget is refunded.'))) return; const r = await api('campaignCancel', { id: Number(d.id) }); say('Cancelled - ' + N(r.refunded_points) + ' Points refunded'); await boot(); await loadAds(); },
   async moreProof() { await loadProof(true); },
+  async play(d) { await playGame(d); },
+  async boost() {
+    const b = gamesData && gamesData.booster; if (!b) return;
+    if (!(await confirmAsk('Buy a ' + b.label + ' booster for ' + N(b.cost) + ' Points? It lasts ' + b.hours + ' hours.'))) return;
+    await api('boosterBuy'); say('⚡ Booster active'); await boot(); await loadGames();
+  },
+  async drawBuy(d) {
+    const o = gamesData && gamesData.draw && gamesData.draw.open; if (!o) return;
+    const n = Number(d.n), cost = n * o.ticket_price;
+    if (!(await confirmAsk('Buy ' + n + ' ticket(s) for ' + N(cost) + ' Points?'))) return;
+    const r = await api('drawBuy', { tickets: n }); say('🎫 You now hold ' + r.tickets + ' ticket(s)'); await boot(); await loadGames();
+  },
 };
 const INPUT = { quote: quoteW, adcalc: adcalc };
 
