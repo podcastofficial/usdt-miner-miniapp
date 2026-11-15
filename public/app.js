@@ -162,7 +162,7 @@ async function loadRewards() {
   const e = await api('engagement'), lv = e.level;
   $('lvlcard').innerHTML = `<div class="row">${ic(lv.icon)}<div class="mid"><b>${esc(lv.name)} miner</b><small>${N(e.lifetime_earned)} Points earned in total</small></div></div>`
     + (lv.next_at ? `<progress max="100" value="${lv.progress}" aria-label="Progress to ${esc(lv.next_name)}"></progress><small>${N(Math.max(0, lv.next_at - e.lifetime_earned))} more Points to reach ${esc(lv.next_name)}</small>` : '<small>Highest level reached 🎉</small>')
-    + '<small class="hint">Levels count Points you earned from daily rewards, tasks, referrals, bonuses and promo codes. They are for fun and pay nothing.</small>';
+    + '<small class="hint">Levels count Points you earned from daily rewards, tasks, referrals, bonuses and promo codes.</small>';
   const m = e.milestones;
   setHtml('mslist', m.enabled
     ? m.items.map((x) => `<div class="card row">${ic(x.paid ? '✅' : x.reached ? '🎁' : '🎯')}<div class="mid"><b>${x.milestone} qualified referrals</b><small>${x.paid ? 'Bonus paid' : x.reached ? 'Reached — bonus is added when you open the app' : m.qualified + ' / ' + x.milestone + ' so far'}</small></div><span class="pts">+${N(x.reward)}</span></div>`).join('')
