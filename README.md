@@ -10,7 +10,7 @@ Fresh database and registration. This does NOT connect to or modify the existing
 
 ## Deploy
 1. Create a Neon PostgreSQL database.
-2. Run `db/schema.sql`, then `db/migrations/001_foundation.sql`, in Neon SQL Editor.
+2. Run `db/schema.sql`, then `db/migrations/001_foundation.sql` and `002_points_and_tasks.sql`, in Neon SQL Editor.
 3. Upload this project to a new GitHub repository.
 4. Import repository into Vercel.
 5. Add environment variables from `.env.example`.
@@ -38,4 +38,4 @@ Only Telegram Mini App signed initData is accepted. Admin IDs are set in `ADMIN_
 ## Project status
 Built in 7 parts — see `docs/ROADMAP_7_PARTS.md`, `docs/AUDIT_REPORT.md` and `CHANGELOG_PART1.md`.
 Structure: `api/index.js` (router) · `lib/` (auth, db, ledger, ratelimit, audit, config) · `lib/actions/` · `db/` · `tests/`.
-New flags: `DEPOSITS_ENABLED`, `ALLOW_UNVERIFIED_TASKS` (both default off). Run tests: `npm test`.
+New flag: `DEPOSITS_ENABLED` (default off). Daily reward (100) and its time zone live in the `settings` table. Run tests: `npm test`.

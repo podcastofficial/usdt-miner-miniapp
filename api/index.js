@@ -6,20 +6,25 @@ import { HttpError, send } from "../lib/http.js";
 import { INITDATA_MAX_AGE } from "../lib/config.js";
 import * as core from "../lib/actions/core.js";
 import * as legacy from "../lib/actions/legacy.js";
+import * as earn from "../lib/actions/earn.js";
 
 // Action registry. write=true -> POST only; admin=true -> server-side admin check on every call.
 const ACTIONS = {
   bootstrap: { fn: core.bootstrap },
   referral: { fn: legacy.referral },
   leaderboard: { fn: legacy.leaderboard },
-  daily: { fn: legacy.daily, write: true },
-  taskComplete: { fn: legacy.taskComplete, write: true },
+  daily: { fn: earn.daily, write: true },
+  taskStart: { fn: earn.taskStart, write: true },
+  taskComplete: { fn: earn.taskComplete, write: true },
+  history: { fn: earn.history },
   withdraw: { fn: legacy.withdraw, write: true },
   depositSubmit: { fn: legacy.depositSubmit, write: true },
   campaignCreate: { fn: legacy.campaignCreate, write: true },
   adminOverview: { fn: core.adminOverview, admin: true },
   adminDiagnostics: { fn: core.adminDiagnostics, admin: true },
-  adminCreateTask: { fn: legacy.adminCreateTask, admin: true, write: true },
+  adminCreateTask: { fn: earn.adminCreateTask, admin: true, write: true },
+  adminSetTaskActive: { fn: earn.adminSetTaskActive, admin: true, write: true },
+  adminReconcile: { fn: earn.adminReconcile, admin: true },
 };
 
 export default async function handler(req, res) {
