@@ -431,11 +431,16 @@ async function load(id) {
 
 /* ---------------- popup ads: Tasks / Ads / Games ---------------- */
 const POPUP_FLAG = { tasks: 'on_tasks', taskproof: 'on_tasks', ads: 'on_ads', games: 'on_games' };
-let popupBusy = false, adsgramLoading = null;
+let popupBusy = false, adsgramLoading = null, monetagLoading = null;
 function loadAdsgram() {
   if (window.Adsgram) return Promise.resolve();
   if (!adsgramLoading) adsgramLoading = new Promise((res, rej) => { const s = document.createElement('script'); s.src = 'https://sad.adsgram.ai/js/sad.min.js'; s.onload = res; s.onerror = () => { adsgramLoading = null; rej(new Error('adsgram blocked')); }; document.head.appendChild(s); });
   return adsgramLoading;
+}
+function loadMonetag(zone) {
+  if (typeof window['show_' + zone] === 'function') return Promise.resolve();
+  if (!monetagLoading) monetagLoading = new Promise((res, rej) => { const s = document.createElement('script'); s.src = 'https://libtl.com/sdk.js'; s.dataset.zone = zone; s.dataset.sdk = 'show_' + zone; s.onload = res; s.onerror = () => { monetagLoading = null; rej(new Error('monetag blocked')); }; document.head.appendChild(s); });
+  return monetagLoading;
 }
 function showOwnPopup(p) {
   return new Promise((res) => {
@@ -465,6 +470,9 @@ async function showPopupAd(section) {
     let shown = false;
     if ((p.type === 'adsgram' || p.type === 'both') && p.adsgram_block_id) {
       try { await loadAdsgram(); await window.Adsgram.init({ blockId: p.adsgram_block_id }).show(); shown = true; } catch (e) { /* no ad / blocked: fall back below */ }
+    }
+    if (!shown && (p.type === 'monetag' || p.type === 'both') && /^\d{1,15}$/.test(p.monetag_zone_id || '')) {
+      try { await loadMonetag(p.monetag_zone_id); await window['show_' + p.monetag_zone_id](); shown = true; } catch (e) { /* no ad / blocked: fall back below */ }
     }
     if (!shown && (p.type === 'own' || p.type === 'both')) shown = await showOwnPopup(p);
     if (shown) { try { localStorage.setItem('popup_ad_at', String(Date.now())); } catch (e) { /* ignore */ } }
