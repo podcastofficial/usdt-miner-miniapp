@@ -554,8 +554,7 @@ document.addEventListener('click', (e) => {
   if (el.dataset.act === 'openCh' || el.dataset.act === 'openTaskLink') e.preventDefault();
   const fn = ACT[el.dataset.act];
   if (fn) {
-    // Invoke immediately in the trusted click event. Deferring to a microtask
-    // loses Telegram WebView user activation and can block openTelegramLink/openLink.
+// Run immediately inside the trusted click event. Deferring can lose Telegram WebView user activation.
     try {
       const result = fn(el.dataset, el);
       Promise.resolve(result).catch((err) => say(err.message));
