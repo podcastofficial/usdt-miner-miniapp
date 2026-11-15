@@ -460,22 +460,32 @@ function showOwnPopup(p) {
     box.hidden = false;
   });
 }
+/* Monetag preloads its ads when the tag is on the page, so load it early (only when popup ads + a zone are set). */
+function preloadPopupSdk() {
+  const p = data && data.popup_ad; if (!p || !p.enabled) return;
+  if ((p.type === 'monetag' || p.type === 'both') && /^\d{1,15}$/.test(p.monetag_zone_id || '')) loadMonetag(p.monetag_zone_id).catch(() => {});
+}
 async function showPopupAd(section) {
   const p = data && data.popup_ad, flag = POPUP_FLAG[section];
   if (!p || !flag || !p.enabled || !p[flag] || popupBusy) return;
   let last = 0; try { last = Number(localStorage.getItem('popup_ad_at')) || 0; } catch (e) { /* storage blocked: show every time */ }
   if (Date.now() - last < (Number(p.cooldown) || 120) * 1000) return;
   popupBusy = true;
+  const why = []; // admins get a short reason on screen when no ad could be shown (easy to debug on a phone)
+  const err = (e) => String((e && (e.message || e.description || e.error)) || e || 'no ad').slice(0, 60);
   try {
     let shown = false;
-    if ((p.type === 'adsgram' || p.type === 'both') && p.adsgram_block_id) {
-      try { await loadAdsgram(); await window.Adsgram.init({ blockId: p.adsgram_block_id }).show(); shown = true; } catch (e) { /* no ad / blocked: fall back below */ }
+    if (p.type === 'adsgram' || p.type === 'both') {
+      if (!p.adsgram_block_id) why.push('Adsgram: block ID empty');
+      else { try { await loadAdsgram(); await window.Adsgram.init({ blockId: p.adsgram_block_id }).show(); shown = true; } catch (e) { why.push('Adsgram: ' + err(e)); } }
     }
-    if (!shown && (p.type === 'monetag' || p.type === 'both') && /^\d{1,15}$/.test(p.monetag_zone_id || '')) {
-      try { await loadMonetag(p.monetag_zone_id); await window['show_' + p.monetag_zone_id](); shown = true; } catch (e) { /* no ad / blocked: fall back below */ }
+    if (!shown && (p.type === 'monetag' || p.type === 'both')) {
+      if (!/^\d{1,15}$/.test(p.monetag_zone_id || '')) why.push('Monetag: zone ID empty');
+      else { try { await loadMonetag(p.monetag_zone_id); await window['show_' + p.monetag_zone_id](); shown = true; } catch (e) { why.push('Monetag: ' + err(e)); } }
     }
-    if (!shown && (p.type === 'own' || p.type === 'both')) shown = await showOwnPopup(p);
+    if (!shown && (p.type === 'own' || p.type === 'both')) { shown = await showOwnPopup(p); if (!shown) why.push('Own popup: title/text/image/link all empty'); }
     if (shown) { try { localStorage.setItem('popup_ad_at', String(Date.now())); } catch (e) { /* ignore */ } }
+    else if (data.admin && why.length) say('Popup ad not shown (admin note) - ' + why.join(' | '));
   } finally { popupBusy = false; }
 }
 
@@ -535,7 +545,7 @@ async function boot() {
     initTimers(); renderDaily(); renderVerify(); renderTasks(); renderTx(data.transactions || [], false);
     if (data.admin) initAdmin();
     autoVerify();
-    autoGift();
+    autoGift(); preloadPopupSdk();
   } catch (e) { status(e.message); say(e.message); }
 }
 /* Gift link: t.me/<bot>/<app>?startapp=gift_CODE opens the app and redeems the code once, by itself. */
