@@ -549,7 +549,17 @@ function preloadPopupSdk() {
   const p = data && data.popup_ad, w = data && data.watch_ad; if (!p || !(p.enabled || (w && w.enabled))) return;
   if (((w && w.enabled) || p.type === 'monetag' || p.type === 'both') && /^\d{1,15}$/.test(p.monetag_zone_id || '')) loadMonetag(p.monetag_zone_id).catch(() => {});
 }
+let cspChecked = false;
+/* admin-only debug: read the CSP header the server really sends (shows if the latest vercel.json is live) */
+async function adminCspCheck() {
+  if (cspChecked || !data || !data.admin) return; cspChecked = true;
+  try {
+    const c = (await fetch('/index.html', { cache: 'no-store' })).headers.get('content-security-policy') || 'none';
+    say('Live CSP -> style: ' + (/style-src[^;]*'unsafe-inline'/.test(c) ? 'OK' : 'STRICT (old deploy)') + ' | script: ' + (/script-src[^;]*\shttps:(\s|;|$)/.test(c) ? 'OK' : 'STRICT (old deploy)'));
+  } catch (e) { /* ignore */ }
+}
 async function showPopupAd(section) {
+  adminCspCheck();
   const p = data && data.popup_ad, flag = POPUP_FLAG[section];
   if (!p || !flag || !p.enabled || !p[flag] || popupBusy) return;
   let last = 0; try { last = Number(localStorage.getItem('popup_ad_at')) || 0; } catch (e) { /* storage blocked: show every time */ }
