@@ -150,6 +150,7 @@
     <p id="wquote" class="hint" role="status"></p>
     <button class="btn" data-act="withdraw">Submit request ›</button>
     <small id="wnote">Admin review required.</small>
+    <button class="btn sm ghost" data-go="terms">Terms &amp; Privacy</button>
   </div>
   <button class="btn" id="depbtn" data-go="deposit" hidden>Deposit USDT ›</button>
   <div id="wlist"></div>
@@ -189,8 +190,10 @@
   <button class="card hub" data-go="howto"><span class="ic" aria-hidden="true">📖</span><span><b data-i18n="hub.howto.t">How to Use</b><small data-i18n="hub.howto.s">Step by step guide and FAQ</small></span><span class="chev" aria-hidden="true">›</span></button>
   <button class="card hub" data-go="games"><span class="ic" aria-hidden="true">🎮</span><span><b data-i18n="hub.games.t">Games</b><small data-i18n="hub.games.s">Spin, scratch, lucky draw, boosters</small></span><span class="chev" aria-hidden="true">›</span></button>
   <button class="card hub" data-go="contests"><span class="ic" aria-hidden="true">🏁</span><span><b data-i18n="hub.contests.t">Contests</b><small data-i18n="hub.contests.s">Invite friends and win prizes</small></span><span class="chev" aria-hidden="true">›</span></button>
+  <button class="card hub" data-go="missions"><span class="ic" aria-hidden="true">🎯</span><span><b data-i18n="hub.missions.t">Weekly Missions</b><small data-i18n="hub.missions.s">Finish goals, earn bonus Points</small></span><span class="chev" aria-hidden="true">›</span></button>
   <button class="card hub" data-go="history"><span class="ic" aria-hidden="true">📜</span><span><b data-i18n="hub.history.t">History</b><small data-i18n="hub.history.s">Your Points transactions</small></span><span class="chev" aria-hidden="true">›</span></button>
   <button class="card hub" data-go="prefs"><span class="ic" aria-hidden="true">⚙️</span><span><b data-i18n="hub.prefs.t">Settings</b><small data-i18n="hub.prefs.s">Language and light / dark theme</small></span><span class="chev" aria-hidden="true">›</span></button>
+  <button class="card hub" data-go="terms"><span class="ic" aria-hidden="true">📜</span><span><b data-i18n="hub.terms.t">Terms &amp; Privacy</b><small data-i18n="hub.terms.s">Rules and how we use your data</small></span><span class="chev" aria-hidden="true">›</span></button>
 </section>
 
 <!-- ============ ADVERTISE (Part 6) ============ -->
@@ -281,6 +284,20 @@
   <h2 id="h-contests">🏁 Contests<small>Invite friends and win Points</small></h2>
   <div id="ctlist"><div class="empty">Loading…</div></div>
   <p class="hint">Only friends who join and verify the required channels count. Rankings are live; prizes are paid by the admin after the contest ends. Ties go to whoever reached the number first.</p>
+</section>
+
+<!-- ============ WEEKLY MISSIONS (Part 14) ============ -->
+<section id="missions" aria-labelledby="h-missions">
+  <h2 id="h-missions">🎯 Weekly Missions<small>Finish the goals before Monday and earn Points</small></h2>
+  <div id="mslist"><div class="empty">Loading…</div></div>
+  <p class="hint">Progress counts from Monday 00:00. Each reward can be claimed once per week.</p>
+</section>
+
+<!-- ============ TERMS & PRIVACY (Part 14) ============ -->
+<section id="terms" aria-labelledby="h-terms">
+  <h2 id="h-terms">📜 Terms &amp; Privacy<small>Rules and how we use your data</small></h2>
+  <div id="termsbox"><div class="empty">Loading…</div></div>
+  <button class="btn" id="termsbtn" data-act="termsAccept" hidden>I agree ›</button>
 </section>
 
 <!-- ============ SETTINGS: language + theme (Phase 2 / Part 5) ============ -->

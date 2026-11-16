@@ -105,6 +105,7 @@ const VIEWS={
   return groups.map(g=>`<div class="card"><h2>${E(g)}</h2>${r.items.filter(i=>i.group===g).map(i=>{const id='st_'+i.key,v=i.value;
    const ctl=i.type==='bool'?`<select id="${id}"><option value="true"${v?' selected':''}>ON</option><option value="false"${v?'':' selected'}>OFF</option></select>`
     :i.type==='list'?`<textarea id="${id}">${E((v||[]).join('\n'))}</textarea>`
+     :i.type==='longtext'?`<textarea id="${id}" rows="10">${E(v)}</textarea>`
     :`<input id="${id}" type="${i.type==='text'?'text':'number'}" step="any" value="${E(v)}">`;
    return `<small><b>${E(i.label)}</b>${i.custom?'':' (default)'}${i.help?' — '+E(i.help):''}</small>${ctl}`}).join('')}</div>`).join('')+
   `<button class="btn" data-adm="saveSettings">Save settings ›</button><div class="card"><small>Secrets stay in Vercel env: ${Object.entries(r.env).map(([k,v])=>E(k)+(v?' ✅':' ❌')).join(' · ')}</small></div>`},

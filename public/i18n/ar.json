@@ -82,5 +82,9 @@
  "prefs.fsize": "حجم النص",
  "size.small": "صغير",
  "size.normal": "عادي",
- "size.large": "كبير"
+ "size.large": "كبير",
+ "hub.missions.t": "مهام أسبوعية",
+ "hub.missions.s": "أنجز الأهداف واكسب نقاطًا إضافية",
+ "hub.terms.t": "الشروط والخصوصية",
+ "hub.terms.s": "القواعد وكيف نستخدم بياناتك"
 }

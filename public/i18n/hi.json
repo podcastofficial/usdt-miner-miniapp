@@ -82,5 +82,9 @@
  "prefs.fsize": "टेक्स्ट का आकार",
  "size.small": "छोटा",
  "size.normal": "सामान्य",
- "size.large": "बड़ा"
+ "size.large": "बड़ा",
+ "hub.missions.t": "साप्ताहिक मिशन",
+ "hub.missions.s": "लक्ष्य पूरे करें, बोनस Points पाएँ",
+ "hub.terms.t": "शर्तें और गोपनीयता",
+ "hub.terms.s": "नियम और आपका डेटा कैसे उपयोग होता है"
 }

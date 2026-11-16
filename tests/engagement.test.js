@@ -87,7 +87,7 @@ test("levels: Bronze -> Silver -> Gold on lifetime earned Points, with progress"
 });
 
 test("only real earnings count towards levels (never deposits, refunds or admin adjustments)", () => {
-  assert.deepEqual([...EARN_TYPES].sort(), ["Daily Reward", "Milestone Reward", "Promo Code", "Referral Reward", "Task Reward"]);
+  assert.deepEqual([...EARN_TYPES].sort(), ["Daily Reward", "Milestone Reward", "Mission Reward", "Promo Code", "Referral Reward", "Task Reward"]);
   for (const t of ["Deposit", "Admin Adjustment", "Campaign Refund", "Withdrawal Refund"]) assert.ok(!EARN_TYPES.includes(t), t);
 });
 

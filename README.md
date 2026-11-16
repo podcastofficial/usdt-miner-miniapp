@@ -97,3 +97,11 @@ Rule for every part: new options live in Admin > Settings (default OFF where mon
 - Run `db/migrations/012_languages.sql` in Neon BEFORE redeploying (9 languages: en, hi, es, ar, ru, pt, fr, tr, id; Hinglish users move to English)
 - 7 new language files in `public/i18n/`, `hinglish.json` and `DELETE_THIS.txt` removed
 - CSP: `script-src` limited to self, telegram.org, Adsgram and Monetag; `style-src 'self'` (the app has no inline styles)
+
+
+### Part 14 (v1.14.0) — Wallet cooldown, Weekly Missions, Terms & Privacy
+- New withdrawal wallet address waits 24 h (setting, `0` = off); old addresses are trusted by the migration
+- Weekly Missions (**OFF** until enabled): daily streak / tasks / referrals + all-three bonus, paid once per week through the ledger
+- Terms & Privacy screen with admin-editable texts; optional acceptance before the first withdrawal (**OFF** until enabled)
+- Run `012_languages.sql` then `013_missions_terms_wallets.sql` BEFORE redeploying. Details: `CHANGELOG_PART14.md`
+- New API actions: `missions`, `missionClaim`, `terms`, `termsAccept`

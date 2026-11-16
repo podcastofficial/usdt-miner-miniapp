@@ -82,5 +82,9 @@
  "prefs.fsize": "Taille du texte",
  "size.small": "Petite",
  "size.normal": "Normale",
- "size.large": "Grande"
+ "size.large": "Grande",
+ "hub.missions.t": "Missions hebdomadaires",
+ "hub.missions.s": "Atteignez des objectifs, gagnez des Points bonus",
+ "hub.terms.t": "Conditions et confidentialité",
+ "hub.terms.s": "Règles et usage de vos données"
 }

@@ -45,7 +45,7 @@ async function api(action, p = {}) {
   try { r = await fetch('/api?action=' + action, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Telegram-Init-Data': init }, body: JSON.stringify(p) }); }
   catch (e) { throw Error('Network error - check your connection'); }
   let j = {}; try { j = await r.json(); } catch (e) {}
-  if (!r.ok) throw Error(j.error || 'Request failed (' + r.status + ')');
+  if (!r.ok) { const er = Error(j.error || 'Request failed (' + r.status + ')'); er.code = j.code; throw er; }
   return j;
 }
 function confirmAsk(msg) {
@@ -82,7 +82,7 @@ function taskIcon(type, link, title) {
   return type === 'channel' ? '✈️' : type === 'bot' ? '🤖' : type === 'website' ? '🌐' : '🎯';
 }
 /* Ledger type -> icon (History). Unknown types fall back to green / red dot. */
-const TX_ICONS = { 'Task Reward': '✅', 'Daily Reward': '📅', 'Referral Reward': '👥', 'Milestone Reward': '🏅', 'Promo Code': '🎟️', 'Ad Reward': '📺', 'Campaign Budget': '📢', 'Campaign Refund': '↩️', 'Withdrawal': '💸', 'Withdrawal Refund': '↩️', 'Deposit': '⬇️', 'Game Entry': '🎮', 'Game Prize': '🏆', 'Lucky Draw Ticket': '🎫', 'Lucky Draw Win': '🎉', 'Lucky Draw Refund': '↩️', 'Booster Purchase': '⚡', 'Contest Prize': '🏁', 'Admin Adjustment': '🛠️' };
+const TX_ICONS = { 'Task Reward': '✅', 'Daily Reward': '📅', 'Referral Reward': '👥', 'Milestone Reward': '🏅', 'Promo Code': '🎟️', 'Mission Reward': '🎯', 'Ad Reward': '📺', 'Campaign Budget': '📢', 'Campaign Refund': '↩️', 'Withdrawal': '💸', 'Withdrawal Refund': '↩️', 'Deposit': '⬇️', 'Game Entry': '🎮', 'Game Prize': '🏆', 'Lucky Draw Ticket': '🎫', 'Lucky Draw Win': '🎉', 'Lucky Draw Refund': '↩️', 'Booster Purchase': '⚡', 'Contest Prize': '🏁', 'Admin Adjustment': '🛠️' };
 const txIcon = (t) => TX_ICONS[t.type] || (t.points_change >= 0 ? '🟢' : '🔴');
 function taskBtn(t) {
   const a = `data-id="${Number(t.id)}"`, nm = ' — ' + t.title;
@@ -389,9 +389,34 @@ function renderContests(c) {
 }
 async function loadContests() { setHtml('ctlist', skel(2)); renderContests(await api('contests')); }
 
+/* ---------------- weekly missions + terms (Part 14) ---------------- */
+let termsFrom = null;
+const msCard = (m) => {
+  const act = m.claimed ? '<button class="btn sm done" disabled>Claimed ✓</button>' : m.done ? btn('Claim ›', 'missionClaim', `data-m="${esc(m.id)}"`, 'btn sm', 'Claim ' + m.title) : '<button class="btn sm" disabled>In progress</button>';
+  return `<div class="card"><div class="mtop"><b>${esc(m.icon)} ${esc(m.title)}</b><span class="pts">🪙 +${N(m.reward)}</span></div><small>${esc(m.hint)}</small><progress class="bar" max="${Number(m.target)}" value="${Number(m.progress)}" aria-label="${esc(m.title)} progress"></progress><div class="mtop"><small>${N(m.progress)} / ${N(m.target)}</small>${act}</div></div>`;
+};
+function renderMissions(m) {
+  if (!m.enabled) return setHtml('mslist', empty('Weekly missions are not open yet'));
+  let h = `<small class="hint">New week starts in ${esc(fmtLeft(m.seconds_left))}</small>` + m.items.map(msCard).join('');
+  if (m.bonus && m.bonus.enabled) {
+    const b = m.bonus, act = b.claimed ? '<button class="btn sm done" disabled>Claimed ✓</button>' : b.available ? btn('Claim bonus ›', 'missionClaim', 'data-m="bonus"', 'btn sm', 'Claim the all missions bonus') : '<button class="btn sm" disabled>Claim all three first</button>';
+    h += `<div class="card"><div class="mtop"><b>🎁 All missions bonus</b><span class="pts">🪙 +${N(b.reward)}</span></div><small>Claim all three missions this week</small><div class="mtop"><span></span>${act}</div></div>`;
+  }
+  setHtml('mslist', h);
+}
+async function loadMissions() { setHtml('mslist', skel(3)); renderMissions(await api('missions')); }
+const termsParas = (t) => String(t || '').split(/\n\s*\n/).filter((x) => x.trim()).map((x) => `<p class="wrap">${esc(x.trim())}</p>`).join('');
+async function loadTerms() {
+  setHtml('termsbox', skel(2));
+  const t = await api('terms');
+  setHtml('termsbox', `<div class="card"><h3 class="sub">Terms of Use</h3>${termsParas(t.terms)}</div><div class="card"><h3 class="sub">Privacy</h3>${termsParas(t.privacy)}</div>`
+    + (t.accepted ? `<small class="hint">✅ You accepted version ${N(t.version)}${t.accepted_at ? ' on ' + esc(new Date(t.accepted_at).toLocaleDateString()) : ''}.</small>` : t.required ? '<small class="hint">You need to accept before your first withdrawal.</small>' : ''));
+  $('termsbtn').hidden = !!t.accepted;
+}
+
 /* ---------------- navigation ---------------- */
-const PARENT = { deposit: 'withdraw', rewards: 'more', rank: 'more', ads: 'more', channel: 'more', proof: 'more', howto: 'more', games: 'more', contests: 'more', taskproof: 'tasks', history: 'more', prefs: 'more' };
-const NAVOF = { deposit: 'withdraw', rewards: 'more', rank: 'more', ads: 'more', channel: 'more', proof: 'more', howto: 'more', games: 'more', contests: 'more', taskproof: 'tasks', history: 'more', prefs: 'more' };
+const PARENT = { deposit: 'withdraw', rewards: 'more', rank: 'more', ads: 'more', channel: 'more', proof: 'more', howto: 'more', games: 'more', contests: 'more', missions: 'more', terms: 'more', taskproof: 'tasks', history: 'more', prefs: 'more' };
+const NAVOF = { deposit: 'withdraw', rewards: 'more', rank: 'more', ads: 'more', channel: 'more', proof: 'more', howto: 'more', games: 'more', contests: 'more', missions: 'more', terms: 'more', taskproof: 'tasks', history: 'more', prefs: 'more' };
 let cur = 'home', backBound = false;
 function go(id) {
   if (!$(id)) return; cur = id;
@@ -424,6 +449,8 @@ async function load(id) {
     if (id === 'howto') await loadHow();
     if (id === 'games') await loadGames();
     if (id === 'contests') await loadContests();
+    if (id === 'missions') await loadMissions();
+    if (id === 'terms') await loadTerms();
     if (id === 'prefs') loadPrefs();
   } catch (e) { say(e.message); }
 }
@@ -653,7 +680,7 @@ const ACT = {
   async copyRef() { try { await navigator.clipboard.writeText($('refurl').textContent); say('Copied ✅'); } catch (e) { say('Copy failed'); } },
   shareRef() { if (!refLink) return; const u = 'https://t.me/share/url?url=' + encodeURIComponent(refLink) + '&text=' + encodeURIComponent('Mine Points & earn USDT 🚀'); if (tg?.openTelegramLink) tg.openTelegramLink(u); else window.open(u, '_blank', 'noopener'); },
   async moreTx() { const r = await api('history', { before: txNext }); renderTx(r.items, true); txNext = r.next; $('moreTx').hidden = !txNext; },
-  async withdraw() { const r = await api('withdraw', { amount: $('amount').value, wallet: $('wallet').value }); say('Withdrawal request #' + r.id + ' submitted - ' + r.net + ' USDT after fee'); $('amount').value = ''; $('wquote').textContent = ''; await boot(); await loadWithdraw(); },
+  async withdraw() { let r; try { r = await api('withdraw', { amount: $('amount').value, wallet: $('wallet').value }); } catch (e) { if (e.code === 'terms_required') { termsFrom = 'withdraw'; say(e.message); go('terms'); return; } throw e; } say('Withdrawal request #' + r.id + ' submitted - ' + r.net + ' USDT after fee'); $('amount').value = ''; $('wquote').textContent = ''; await boot(); await loadWithdraw(); },
   async cancelW(d) { if (!(await confirmAsk('Cancel this withdrawal? Points will be refunded.'))) return; await api('withdrawCancel', { id: Number(d.id) }); say('Cancelled - Points refunded'); await boot(); await loadWithdraw(); },
   async deposit() { const r = await api('depositSubmit', { txHash: $('txhash').value.trim(), from: $('depfrom').value.trim() }); say(DS(r)); $('txhash').value = ''; await boot(); await loadDeposit(); },
   async recheckD(d) { const r = await api('depositRecheck', { id: Number(d.id) }); say(DS(r)); await boot(); await loadDeposit(); },
@@ -679,6 +706,8 @@ const ACT = {
     await api('taskProofSubmit', { taskId: Number(proofTask.id), proof: txt }); proofTask = null; say('🧾 Proof sent — an admin will check it'); await boot(); go('tasks');
   },
   goRef() { go('ref'); },
+  async missionClaim(d) { const r = await api('missionClaim', { mission: d.m }); say('🎯 +' + N(r.reward) + ' Points'); await boot(); await loadMissions(); },
+  async termsAccept() { await api('termsAccept'); say('Thank you ✅'); await loadTerms(); if (termsFrom) { const f = termsFrom; termsFrom = null; go(f); } },
   async moreProof() { await loadProof(true); },
   async play(d) { await playGame(d); },
   async boost() {

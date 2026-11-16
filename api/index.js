@@ -19,6 +19,8 @@ import * as gam from "../lib/actions/games.js";
 import * as tsk from "../lib/actions/tasks.js";
 import * as cts from "../lib/actions/contests.js";
 import * as saf from "../lib/actions/safety.js";
+import * as mis from "../lib/actions/missions.js";
+import * as trm from "../lib/actions/terms.js";
 import { roleOf, can } from "../lib/roles.js";
 import { reportApiError } from "../lib/health.js";
 
@@ -120,6 +122,11 @@ const ACTIONS = {
   adminHealth: { fn: saf.adminHealth, admin: true },
   adminHealthRun: { fn: saf.adminHealthRun, admin: true, write: true },
   setLang: { fn: saf.setLang, write: true },
+  // Part 14: weekly missions, terms & privacy
+  missions: { fn: mis.missions },
+  missionClaim: { fn: mis.missionClaim, write: true },
+  terms: { fn: trm.terms },
+  termsAccept: { fn: trm.termsAccept, write: true },
 };
 
 const query_action = (req) => String((req.query && req.query.action) || (req.body && req.body.action) || "bootstrap");

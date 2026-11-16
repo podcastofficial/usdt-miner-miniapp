@@ -246,3 +246,10 @@ html[data-fsize="large"]{font-size:18px}
 .popad-box p{margin:0}
 .popad-x{position:absolute;top:8px;right:8px;min-width:44px;min-height:44px;border-radius:50%;border:1.5px solid #34353f;background:#1b1c22;color:inherit;font-weight:700}
 .popad-x:disabled{opacity:.6}
+
+/* Part 14: weekly missions */
+.mtop{display:flex;align-items:center;justify-content:space-between;gap:10px}
+progress.bar{display:block;width:100%;height:10px;margin:8px 0;border:0;border-radius:99px;background:var(--field);overflow:hidden;appearance:none;-webkit-appearance:none}
+progress.bar::-webkit-progress-bar{background:var(--field);border-radius:99px}
+progress.bar::-webkit-progress-value{background:linear-gradient(90deg,var(--or1),var(--or2));border-radius:99px}
+progress.bar::-moz-progress-bar{background:linear-gradient(90deg,var(--or1),var(--or2));border-radius:99px}

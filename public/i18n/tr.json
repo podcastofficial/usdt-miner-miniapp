@@ -82,5 +82,9 @@
  "prefs.fsize": "Yazı boyutu",
  "size.small": "Küçük",
  "size.normal": "Normal",
- "size.large": "Büyük"
+ "size.large": "Büyük",
+ "hub.missions.t": "Haftalık görevler",
+ "hub.missions.s": "Hedefleri tamamla, bonus Puan kazan",
+ "hub.terms.t": "Şartlar ve gizlilik",
+ "hub.terms.s": "Kurallar ve verilerini nasıl kullandığımız"
 }
