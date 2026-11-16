@@ -82,7 +82,7 @@ function taskIcon(type, link, title) {
   return type === 'channel' ? '✈️' : type === 'bot' ? '🤖' : type === 'website' ? '🌐' : '🎯';
 }
 /* Ledger type -> icon (History). Unknown types fall back to green / red dot. */
-const TX_ICONS = { 'Task Reward': '✅', 'Daily Reward': '📅', 'Referral Reward': '👥', 'Milestone Reward': '🏅', 'Promo Code': '🎟️', 'Campaign Budget': '📢', 'Campaign Refund': '↩️', 'Withdrawal': '💸', 'Withdrawal Refund': '↩️', 'Deposit': '⬇️', 'Game Entry': '🎮', 'Game Prize': '🏆', 'Lucky Draw Ticket': '🎫', 'Lucky Draw Win': '🎉', 'Lucky Draw Refund': '↩️', 'Booster Purchase': '⚡', 'Contest Prize': '🏁', 'Admin Adjustment': '🛠️' };
+const TX_ICONS = { 'Task Reward': '✅', 'Daily Reward': '📅', 'Referral Reward': '👥', 'Milestone Reward': '🏅', 'Promo Code': '🎟️', 'Ad Reward': '📺', 'Campaign Budget': '📢', 'Campaign Refund': '↩️', 'Withdrawal': '💸', 'Withdrawal Refund': '↩️', 'Deposit': '⬇️', 'Game Entry': '🎮', 'Game Prize': '🏆', 'Lucky Draw Ticket': '🎫', 'Lucky Draw Win': '🎉', 'Lucky Draw Refund': '↩️', 'Booster Purchase': '⚡', 'Contest Prize': '🏁', 'Admin Adjustment': '🛠️' };
 const txIcon = (t) => TX_ICONS[t.type] || (t.points_change >= 0 ? '🟢' : '🔴');
 function taskBtn(t) {
   const a = `data-id="${Number(t.id)}"`, nm = ' — ' + t.title;
@@ -462,10 +462,49 @@ function showOwnPopup(p) {
     box.hidden = false;
   });
 }
+/* ---------------- Watch & Earn: rewarded ad -> Points (server checks limit, cooldown, minimum watch time) ---------------- */
+let adWatching = false;
+async function renderAdTile() {
+  const w = data && data.watch_ad, tile = $('adtile'); if (!tile) return;
+  tile.hidden = !(w && w.enabled); if (tile.hidden) return;
+  $('adtilesub').textContent = 'Watch an ad, get +' + N(w.reward) + ' Points';
+  try {
+    const i = await api('adWatchInfo');
+    if (i.enabled) $('adtilesub').textContent = '+' + N(i.reward) + ' Points per ad \u00b7 ' + i.left + ' left today';
+  } catch (e) { /* keep the simple text */ }
+}
+/** Plays a rewarded ad from the configured network(s). -> 'done' | 'skipped' | 'none' */
+async function playRewardAd() {
+  const p = (data && data.popup_ad) || {}, net = (data && data.watch_ad && data.watch_ad.network) || 'monetag';
+  const order = net === 'adsgram' ? ['adsgram'] : net === 'both' ? ['adsgram', 'monetag'] : ['monetag'];
+  for (const n of order) {
+    if (n === 'adsgram' && p.adsgram_block_id) {
+      try { await loadAdsgram(); await window.Adsgram.init({ blockId: p.adsgram_block_id }).show(); return 'done'; }
+      catch (e) { if (e && e.error === false) return 'skipped'; /* error: try the next network */ }
+    }
+    if (n === 'monetag' && /^\d{1,15}$/.test(p.monetag_zone_id || '')) {
+      try { await loadMonetag(p.monetag_zone_id); await window['show_' + p.monetag_zone_id](); return 'done'; } catch (e) { /* try the next network */ }
+    }
+  }
+  return 'none';
+}
+async function watchAd(el) {
+  if (adWatching) return; adWatching = true; if (el) el.disabled = true;
+  try {
+    const st = await api('adWatchStart'), t0 = Date.now();
+    const res = await playRewardAd();
+    if (res === 'skipped') { say('Watch the full ad to earn Points'); return; }
+    if (res === 'none') { say('No ad available right now. Please try again in a little while.'); return; }
+    const wait = st.min_seconds * 1000 - (Date.now() - t0) + 300; if (wait > 0) await new Promise((r) => setTimeout(r, wait));
+    const r = await api('adWatchClaim', { token: st.token });
+    say('\ud83d\udcfa +' + N(r.reward) + ' Points \u00b7 ' + r.left + ' ads left today');
+    await boot();
+  } finally { adWatching = false; if (el) el.disabled = false; renderAdTile(); }
+}
 /* Monetag preloads its ads when the tag is on the page, so load it early (only when popup ads + a zone are set). */
 function preloadPopupSdk() {
-  const p = data && data.popup_ad; if (!p || !p.enabled) return;
-  if ((p.type === 'monetag' || p.type === 'both') && /^\d{1,15}$/.test(p.monetag_zone_id || '')) loadMonetag(p.monetag_zone_id).catch(() => {});
+  const p = data && data.popup_ad, w = data && data.watch_ad; if (!p || !(p.enabled || (w && w.enabled))) return;
+  if (((w && w.enabled) || p.type === 'monetag' || p.type === 'both') && /^\d{1,15}$/.test(p.monetag_zone_id || '')) loadMonetag(p.monetag_zone_id).catch(() => {});
 }
 async function showPopupAd(section) {
   const p = data && data.popup_ad, flag = POPUP_FLAG[section];
@@ -547,7 +586,7 @@ async function boot() {
     initTimers(); renderDaily(); renderVerify(); renderTasks(); renderTx(data.transactions || [], false);
     if (data.admin) initAdmin();
     autoVerify();
-    autoGift(); preloadPopupSdk();
+    autoGift(); preloadPopupSdk(); renderAdTile();
   } catch (e) { status(e.message); say(e.message); }
 }
 /* Gift link: t.me/<bot>/<app>?startapp=gift_CODE opens the app and redeems the code once, by itself. */
@@ -574,6 +613,7 @@ const ACT = {
     await loadRefs(true);
   },
   async moreRef() { refPage += 1; await loadRefs(false); },
+  async watchAd(d, el) { await watchAd(el); },
   async promo() {
     const code = $('promo').value.trim(); if (!code) { say('Enter a promo code first'); return; }
     const r = await api('promoRedeem', { code }); $('promo').value = ''; say('🎟️ +' + N(r.reward) + ' Points added'); await boot(); await loadRewards();

@@ -14,6 +14,7 @@ import { getConfig } from "../lib/runtime.js";
 import { captureReferrer } from "../lib/referral.js";
 import * as ntf from "../lib/actions/notify.js";
 import * as eng from "../lib/actions/engage.js";
+import * as adw from "../lib/actions/adwatch.js";
 import * as gam from "../lib/actions/games.js";
 import * as tsk from "../lib/actions/tasks.js";
 import * as cts from "../lib/actions/contests.js";
@@ -81,6 +82,9 @@ const ACTIONS = {
   engagement: { fn: eng.engagement },
   referralList: { fn: eng.referralList },
   promoRedeem: { fn: eng.promoRedeem, write: true },
+  adWatchInfo: { fn: adw.adWatchInfo },
+  adWatchStart: { fn: adw.adWatchStart, write: true },
+  adWatchClaim: { fn: adw.adWatchClaim, write: true },
   adminPromoList: { fn: eng.adminPromoList, admin: true },
   adminPromoCreate: { fn: eng.adminPromoCreate, admin: true, write: true },
   adminPromoSetActive: { fn: eng.adminPromoSetActive, admin: true, write: true },
