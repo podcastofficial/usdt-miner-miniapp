@@ -435,7 +435,7 @@ test("migration 011 is idempotent and records itself", () => {
 
 test("release: version 1.12.0, new files syntax-checked by npm run check, static files get revalidated", () => {
   const pkg = JSON.parse(read("package.json")), v = JSON.parse(read("vercel.json"));
-  assert.equal(pkg.version, "1.12.0");
+  assert.match(pkg.version, /^1\.(1[2-9]|[2-9]\d)\.\d+$/); // 1.12.0 or newer
   for (const f of ["lib/roles.js", "lib/csv.js", "lib/fraud.js", "lib/analytics.js", "lib/health.js", "lib/i18n.js", "lib/safetyRules.js", "lib/actions/safety.js", "public/i18n.js"]) assert.ok(pkg.scripts.check.includes("node --check " + f), f + " is not in npm run check");
   const h = v.headers.find((x) => x.source.includes("admin"));
   const re = new RegExp("^" + h.source.replace(/\\\\/g, "\\") + "$");

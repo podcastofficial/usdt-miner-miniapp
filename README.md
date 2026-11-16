@@ -31,7 +31,7 @@ Fresh database and registration. This does NOT connect to or modify the existing
 See `docs/DEPLOYMENT_GUIDE.md`, `docs/TEST_MATRIX.md` and `DEPLOYMENT_CHECKLIST.md`. Run `npm test` (146 tests).
 
 ## Important before real launch
-This is a functional starter, not a completed audited financial platform. Deposit hashes are queued for admin review; **automatic BEP-20 on-chain verification is not implemented**. Withdrawals create requests and require secure manual payout. Do not place private keys in GitHub or Vercel. Referral rewards are not yet granted because qualifying channel-join verification and referral attribution need a separate Telegram webhook flow. Bot/website task claims need stronger verification before awarding meaningful Points. Games (v1.10.0) use Points only and ship OFF. Task proofs and contests (v1.11.0) ship OFF. Advertising campaigns reserve Points; delivery, budget use and refunds are tracked per campaign (v1.11.0). Add rate limits, idempotent DB transactions, monitoring, backups, terms and privacy policy before production.
+This is a functional starter, not a completed audited financial platform. BEP-20 deposits are verified on-chain (`lib/chain.js`); auto-credit (`DEPOSITS_AUTO_CREDIT`) stays OFF until a small real test passes. Withdrawals create requests and require secure manual payout. Do not place private keys in GitHub or Vercel. Referral qualification and channel-join checks use Telegram `getChatMember`. Games, task proofs and contests ship OFF. Add backups, monitoring, terms and privacy policy before production.
 
 ## API actions
 `bootstrap`, `referral`, `leaderboard`, `daily`, `taskComplete`, `withdraw`, `depositSubmit`, `campaignCreate`, `adminOverview`, plus (v1.8.0) `adminNotifyStatus`, `adminNotifyProcess`, `adminWebhookSetup`, `adminBroadcastCreate`, `adminBroadcastCancel`, plus (v1.9.0) `engagement`, `referralList`, `promoRedeem`, `adminPromoList`, `adminPromoCreate`, `adminPromoSetActive`, plus (v1.11.0) `taskProofSubmit`, `contests`, `adminTaskProofs`, `adminTaskProofApprove`, `adminTaskProofReject`, `adminContestList`, `adminContestCreate`, `adminContestCancel`, `adminContestPay`, plus (v1.12.0) `setLang`, `adminFraudList`, `adminFraudReview`, `adminFraudScan`, `adminRoles`, `adminRoleSet`, `adminRoleRemove`, `adminExport`, `adminAnalytics`, `adminHealth`, `adminHealthRun`. Server-to-server only: `tgWebhook`, `cron`.
@@ -91,3 +91,9 @@ Rule for every part: new options live in Admin > Settings (default OFF where mon
 - Health alerts to admin on Telegram (errors, ledger mismatch, open withdrawals)
 - Deposit auto-credit hardening (stays OFF until a small real test passes)
 - Migration `011_safety_admin.sql`; no new env variables. Details: `CHANGELOG_PART12.md`
+
+
+### Part 13 (v1.13.0) — Languages & CSP
+- Run `db/migrations/012_languages.sql` in Neon BEFORE redeploying (9 languages: en, hi, es, ar, ru, pt, fr, tr, id; Hinglish users move to English)
+- 7 new language files in `public/i18n/`, `hinglish.json` and `DELETE_THIS.txt` removed
+- CSP: `script-src` limited to self, telegram.org, Adsgram and Monetag; `style-src 'self'` (the app has no inline styles)

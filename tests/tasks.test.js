@@ -204,10 +204,10 @@ test("frontend: screens, handlers, admin tabs, version and check script", () => 
   assert.match(html, /data-go="contests"/); assert.match(html, /<label for="pf_text">/);
   for (const h of ["proofOpen", "proofOpenLink", "proofSend", "goRef"]) assert.match(app, new RegExp(`^  (async )?${h}\\(`, "m"), h);
   assert.match(app, /taskProofSubmit/); assert.match(app, /api\('contests'\)/); assert.match(app, /taskproof: 'tasks'/); assert.match(app, /contests: 'more'/);
-  assert.match(a, /\['tpf','🧾','Task proofs'\]/); assert.match(a, /\['cts','🏁','Contests'\]/);
+  assert.match(a, /\['tpf','🧾','Task proofs'/); assert.match(a, /\['cts','🏁','Contests'/);
   for (const m of ["tp", "ctCreate", "ctPay", "ctCancel"]) assert.match(a, new RegExp(`^ (async )?${m}\\(`, "m"), m);
   assert.match(a, /'tp','ctPay','ctCancel'/); assert.match(a, /proofRequired:v\('proof'\)==='yes'/);
-  assert.equal(pkg.version, "1.11.0");
+  assert.match(pkg.version, /^1\.(1[1-9]|[2-9]\d)\.\d+$/); // 1.11.0 or newer
   for (const f of ["lib/tasks.js", "lib/contests.js", "lib/campaigns.js", "lib/actions/tasks.js", "lib/actions/contests.js"]) assert.ok(pkg.scripts.check.includes(f), f);
 });
 
