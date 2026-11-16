@@ -96,7 +96,7 @@ Rule for every part: new options live in Admin > Settings (default OFF where mon
 ### Part 13 (v1.13.0) — Languages & CSP
 - Run `db/migrations/012_languages.sql` in Neon BEFORE redeploying (9 languages: en, hi, es, ar, ru, pt, fr, tr, id; Hinglish users move to English)
 - 7 new language files in `public/i18n/`, `hinglish.json` and `DELETE_THIS.txt` removed
-- CSP: `script-src` limited to self, telegram.org, Adsgram and Monetag; `style-src 'self'` (the app has no inline styles)
+- CSP unchanged on purpose: Monetag / Adsgram need `style-src 'unsafe-inline'` and `script-src https:` (a tighter CSP broke the ads)
 
 
 ### Part 14 (v1.14.0) — Wallet cooldown, Weekly Missions, Terms & Privacy

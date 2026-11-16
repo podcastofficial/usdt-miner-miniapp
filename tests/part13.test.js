@@ -23,10 +23,10 @@ test("every language in the picker has a file, and Hinglish is gone", () => {
   assert.equal(fs.existsSync(new URL("../DELETE_THIS.txt", import.meta.url)), false);
 });
 
-test("CSP: scripts only from self + telegram + the two ad SDKs, no inline styles allowed", () => {
+test("CSP keeps what the ad SDKs (Monetag / Adsgram) need: https scripts and inline styles; no eval", () => {
   const v = JSON.parse(read("vercel.json")), h = v.headers.find((x) => x.source === "/(.*)").headers;
   const csp = h.find((x) => x.key === "Content-Security-Policy").value;
-  assert.match(csp, /script-src 'self' https:\/\/telegram\.org https:\/\/sad\.adsgram\.ai https:\/\/libtl\.com;/);
-  assert.match(csp, /style-src 'self';/);
-  assert.doesNotMatch(csp, /unsafe-inline|unsafe-eval/);
+  assert.match(csp, /script-src 'self' https:;/);
+  assert.match(csp, /style-src 'self' 'unsafe-inline';/);
+  assert.doesNotMatch(csp, /unsafe-eval/);
 });

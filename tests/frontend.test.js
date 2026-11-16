@@ -81,15 +81,17 @@ test("no inline event handlers, inline styles, inline scripts or <style> blocks 
   assert.doesNotMatch(app + adm, /\beval\(|new Function\(|setTimeout\(\s*['"`]|setInterval\(\s*['"`]/);
 });
 
-test("vercel.json CSP forbids unsafe-inline/eval and limits script sources", () => {
+test("vercel.json CSP: no eval, no wildcards, locked defaults (ad SDKs need https: scripts and inline styles)", () => {
   const h = vercel.headers.find((x) => x.source === "/(.*)").headers, get = (k) => (h.find((x) => x.key === k) || {}).value;
   const csp = get("Content-Security-Policy"); assert.ok(csp, "no CSP header");
-  assert.doesNotMatch(csp, /unsafe-inline|unsafe-eval|\*(?!\.telegram\.org|\.adsgram\.ai)/); // *.adsgram.ai only: popup ads (Adsgram)
-  assert.match(csp, /default-src 'none'/); assert.match(csp, /script-src 'self' https:\/\/telegram\.org( https:\/\/sad\.adsgram\.ai)?( https:\/\/libtl\.com)?(;|$)/);
+  // Monetag / Adsgram inject their own <style> and load more scripts from changing https hosts: style-src keeps 'unsafe-inline' and script-src keeps https:.
+  // Tightening these broke the ads (unstyled "Check Bonuses / ads by Monetag" text), so do not remove them without testing ads in Telegram.
+  assert.doesNotMatch(csp, /unsafe-eval|\*(?!\.telegram\.org)/);
+  assert.match(csp, /default-src 'none'/); assert.match(csp, /script-src 'self' https:(;|$)/); assert.match(csp, /style-src 'self' 'unsafe-inline'(;|$)/);
   assert.match(csp, /connect-src 'self'/); assert.match(csp, /object-src 'none'/); assert.match(csp, /base-uri 'none'/); assert.match(csp, /frame-ancestors [^;]*telegram\.org/);
   assert.equal(get("X-Content-Type-Options"), "nosniff"); assert.equal(get("Referrer-Policy"), "no-referrer");
   assert.match(get("Strict-Transport-Security"), /max-age=\d{7,}/); assert.match(get("Permissions-Policy"), /camera=\(\)/);
-  const externals = [...html.matchAll(/(?:src|href)="(https?:\/\/[^"]+)"/g)].map((m) => m[1]);
+const externals = [...html.matchAll(/(?:src|href)="(https?:\/\/[^"]+)"/g)].map((m) => m[1]);
   for (const u of externals) assert.ok(u.startsWith("https://telegram.org/"), "unexpected external resource " + u);
 });
 
