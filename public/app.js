@@ -224,7 +224,7 @@ async function loadRank(page) {
   const want = page || rankPage; if (!$('ranklist').children.length) setHtml('ranklist', skel());
   const r = await api('leaderboard', { page: want }); rankPage = r.page;
   setHtml('rankme', r.me ? `<div class="card"><b>Your rank: #${N(r.me.rank)}</b> <span class="muted">of ${N(r.total)} miners · ${N(r.me.points)} Points</span>${r.me.rank > 200 ? '<small>Only the top 200 are listed.</small>' : ''}</div>` : '');
-  setHtml('ranklist', r.items.map((u) => `<div class="card rk${u.me ? ' me' : ''}"><span class="n" role="img" aria-label="Rank ${u.rank}">${u.rank <= 3 ? ['🥇', '🥈', '🥉'][u.rank - 1] : u.rank}</span><span class="nm">${esc(u.name)}${u.me ? ' (you)' : ''}${u.refs !== undefined ? `<small class="rf">👥 ${N(u.refs)} referral${u.refs === 1 ? '' : 's'}</small>` : ''}</span><span class="pt">${N(u.points)}</span></div>`).join('') || empty('No miners yet'));
+  setHtml('ranklist', r.items.map((u) => `<div class="card rk${u.me ? ' me' : ''}"><span class="n" role="img" aria-label="Rank ${u.rank}">${u.rank <= 3 ? ['🥇', '🥈', '🥉'][u.rank - 1] : u.rank}</span><span class="nm">${esc(u.name)}${u.me ? ' (you)' : ''}</span><span class="pt">${N(u.points)}</span></div>`).join('') || empty('No miners yet'));
   $('rankpager').hidden = r.pages <= 1; $('rankinfo').textContent = 'Page ' + r.page + ' of ' + r.pages;
   $('rankprev').disabled = r.page <= 1; $('ranknext').disabled = !r.hasMore;
 }
@@ -374,19 +374,28 @@ async function playGame(d) {
 let proofTask = null;
 const fmtLeft = (sec) => { const d = Math.floor(sec / 86400), h = Math.floor((sec % 86400) / 3600), m = Math.floor((sec % 3600) / 60); return d > 0 ? d + 'd ' + h + 'h' : h > 0 ? h + 'h ' + m + 'm' : m + 'm'; };
 const medal = (r) => (r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '🥉' : '#' + r);
-const prizeLine = (prizes) => (prizes || []).map((p, i) => medal(i + 1) + ' ' + N(p)).join(' · ');
-const ctRows = (rows) => rows.map((r) => `<div class="card row${r.me ? ' me' : ''}"><span class="ic" aria-hidden="true">${esc(medal(r.rank))}</span><div class="mid"><b>${esc(r.name)}${r.me ? ' (you)' : ''}</b><small>${N(r.referrals)} referral${r.referrals === 1 ? '' : 's'}</small></div>${r.prize > 0 ? `<span class="pts">+${N(r.prize)}</span>` : ''}</div>`).join('');
+const prizeTiers = (prizes) => { const out = []; (prizes || []).forEach((p, i) => { const last = out[out.length - 1]; if (last && last.p === p && i + 1 > 3) last.to = i + 1; else out.push({ from: i + 1, to: i + 1, p }); }); return out; };
+const prizeLine = (prizes) => prizeTiers(prizes).map((t) => (t.from === t.to ? medal(t.from) : '#' + t.from + '-' + t.to) + ' ' + N(t.p)).join(' · ');
+const ctRows = (rows) => rows.map((r) => `<div class="card row${r.me ? ' me' : ''}"><span class="ic" aria-hidden="true">${esc(medal(r.rank))}</span><div class="mid"><b>${esc(r.name)}${r.me ? ' (you)' : ''}</b><small>👥 ${N(r.referrals)} referral${r.referrals === 1 ? '' : 's'}</small></div>${r.prize > 0 ? `<span class="pts">🏆 +${N(r.prize)}</span>` : ''}</div>`).join('');
+let ctTimer = null;
+const fmtClock = (sec) => { sec = Math.max(0, Math.floor(sec)); const d = Math.floor(sec / 86400), h = Math.floor((sec % 86400) / 3600), m = Math.floor((sec % 3600) / 60), x = sec % 60, z = (n) => String(n).padStart(2, '0'); return (d > 0 ? d + 'd ' : '') + z(h) + 'h ' + z(m) + 'm ' + z(x) + 's'; };
+function startCtTimer() {
+  if (ctTimer) clearInterval(ctTimer);
+  const tick = () => { const el = document.getElementById('ctclock'); if (!el) { clearInterval(ctTimer); ctTimer = null; return; } const left = (Number(el.dataset.end) - Date.now()) / 1000; el.textContent = left > 0 ? fmtClock(left) : 'Contest ended'; if (left <= 0) { clearInterval(ctTimer); ctTimer = null; } };
+  tick(); ctTimer = setInterval(tick, 1000);
+}
 function renderContests(c) {
   if (!c.enabled) return setHtml('ctlist', empty('Contests are not open yet'));
   let h = '';
   if (c.current) {
     const k = c.current, me = k.me;
-    h += `<div class="card"><b>${esc(k.title)}</b><small>${esc(k.kind)} contest · ${k.over ? 'ended, waiting for the payout' : 'ends in ' + esc(fmtLeft(k.seconds_left))}</small><small>Prizes: ${esc(prizeLine(k.prizes))} Points</small><small>You need at least ${N(k.min_referrals)} qualified referral${k.min_referrals === 1 ? '' : 's'} to win.</small>`
+    h += `<div class="card"><b>${esc(k.title)}</b><small>${esc(k.kind)} contest${k.over ? ' · ended, waiting for the payout' : ''}</small>${k.over ? '' : `<div class="ctclock-wrap"><small>⏳ Ends in</small><b id="ctclock" data-end="${Date.now() + Number(k.seconds_left) * 1000}">${esc(fmtClock(k.seconds_left))}</b></div>`}<small><b>🏆 Winning prizes (Points)</b></small>${prizeTiers(k.prizes).map((t) => `<small>${esc(t.from === t.to ? medal(t.from) : 'Rank ' + t.from + '–' + t.to)}: <b>${N(t.p)}</b> Points</small>`).join('')}<small>You need at least ${N(k.min_referrals)} qualified referral${k.min_referrals === 1 ? '' : 's'} to win.</small>`
       + `<span class="pts">Your referrals: ${N(me.referrals)}${me.rank ? ' · rank #' + N(me.rank) : me.qualifies ? '' : ' · not ranked yet'}</span>${btn('Invite friends ›', 'goRef', '', 'btn sm', 'Invite friends')}</div>`
       + `<h3 class="sub">Live leaderboard</h3>` + (k.top.length ? ctRows(k.top) : empty('No one has qualified yet — be the first!'));
   } else h += empty('No contest is running right now');
   if (c.last && c.last.winners.length) h += `<h3 class="sub">Last winners · ${esc(c.last.title)}</h3>` + ctRows(c.last.winners);
   setHtml('ctlist', h);
+  startCtTimer();
 }
 async function loadContests() { setHtml('ctlist', skel(2)); renderContests(await api('contests')); }
 

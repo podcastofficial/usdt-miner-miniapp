@@ -123,10 +123,10 @@ test("migration 010 is idempotent and records itself", () => {
 });
 
 /* ---------------- contests ---------------- */
-test("parsePrizes: lists or strings, whole Points, never increasing, 1..10 prizes", () => {
+test("parsePrizes: lists or strings, whole Points, never increasing, 1..50 prizes", () => {
   assert.deepEqual(parsePrizes("5000, 3000 1000"), { ok: true, value: [5000, 3000, 1000] });
   assert.deepEqual(parsePrizes([100, 100, 50]).value, [100, 100, 50]);
-  for (const bad of ["", "0", "-5", "1.5", "abc", "100 200", "5000,3000,4000", [], null, Array(11).fill(5), "99999999999"]) assert.equal(parsePrizes(bad).ok, false, JSON.stringify(bad));
+  for (const bad of ["", "0", "-5", "1.5", "abc", "100 200", "5000,3000,4000", [], null, Array(51).fill(5), "99999999999"]) assert.equal(parsePrizes(bad).ok, false, JSON.stringify(bad));
 });
 
 test("validateContestInput: weekly = 7 days, monthly = 30, custom needs 1..90 days", () => {
