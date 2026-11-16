@@ -23,6 +23,7 @@ import * as mis from "../lib/actions/missions.js";
 import * as trm from "../lib/actions/terms.js";
 import { roleOf, can } from "../lib/roles.js";
 import { reportApiError } from "../lib/health.js";
+import { adsgramReward } from "../lib/adsgram.js";
 
 // Action registry. write=true -> POST only; admin=true -> server-side admin check on every call.
 const ACTIONS = {
@@ -140,6 +141,7 @@ export default async function handler(req, res) {
       let db = false; try { await sql`SELECT 1`; db = true; } catch {}
       return send(res, db ? 200 : 503, { ok: db, db });
     }
+    if (query.action === "adsgramReward") { const r = adsgramReward(req.method, query); return send(res, r.status, r.body); } // AdsGram server callback (no initData)
     let body = req.body || {};
     if (typeof body === "string") { try { body = JSON.parse(body); } catch { body = {}; } }
     if (typeof body !== "object") body = {};
