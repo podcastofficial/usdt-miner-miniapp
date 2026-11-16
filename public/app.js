@@ -479,7 +479,7 @@ async function showPopupAd(section) {
     let shown = false;
     if (p.type === 'adsgram' || p.type === 'both') {
       if (!p.adsgram_block_id) why.push('Adsgram: block ID empty');
-      else { try { await loadAdsgram(); await window.Adsgram.init({ blockId: p.adsgram_block_id }).show(); shown = true; } catch (e) { why.push('Adsgram: ' + err(e)); } }
+      else { try { await loadAdsgram(); await window.Adsgram.init({ blockId: p.adsgram_block_id }).show(); shown = true; } catch (e) { if (e && e.error === false) shown = true; /* user skipped a rewarded ad: it was shown, do not stack another */ else why.push('Adsgram: ' + err(e)); } }
     }
     if (!shown && (p.type === 'monetag' || p.type === 'both')) {
       if (!/^\d{1,15}$/.test(p.monetag_zone_id || '')) why.push('Monetag: zone ID empty');
