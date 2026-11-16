@@ -224,7 +224,7 @@ async function loadRank(page) {
   const want = page || rankPage; if (!$('ranklist').children.length) setHtml('ranklist', skel());
   const r = await api('leaderboard', { page: want }); rankPage = r.page;
   setHtml('rankme', r.me ? `<div class="card"><b>Your rank: #${N(r.me.rank)}</b> <span class="muted">of ${N(r.total)} miners · ${N(r.me.points)} Points</span>${r.me.rank > 200 ? '<small>Only the top 200 are listed.</small>' : ''}</div>` : '');
-  setHtml('ranklist', r.items.map((u) => `<div class="card rk${u.me ? ' me' : ''}"><span class="n" role="img" aria-label="Rank ${u.rank}">${u.rank <= 3 ? ['🥇', '🥈', '🥉'][u.rank - 1] : u.rank}</span><span class="nm">${esc(u.name)}${u.me ? ' (you)' : ''}</span><span class="pt">${N(u.points)}</span></div>`).join('') || empty('No miners yet'));
+  setHtml('ranklist', r.items.map((u) => `<div class="card rk${u.me ? ' me' : ''}"><span class="n" role="img" aria-label="Rank ${u.rank}">${u.rank <= 3 ? ['🥇', '🥈', '🥉'][u.rank - 1] : u.rank}</span><span class="nm">${esc(u.name)}${u.me ? ' (you)' : ''}${u.refs !== undefined ? `<small class="rf">👥 ${N(u.refs)} referral${u.refs === 1 ? '' : 's'}</small>` : ''}</span><span class="pt">${N(u.points)}</span></div>`).join('') || empty('No miners yet'));
   $('rankpager').hidden = r.pages <= 1; $('rankinfo').textContent = 'Page ' + r.page + ' of ' + r.pages;
   $('rankprev').disabled = r.page <= 1; $('ranknext').disabled = !r.hasMore;
 }
