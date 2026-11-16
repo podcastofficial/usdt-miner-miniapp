@@ -26,3 +26,6 @@
 New: `db/migrations/013_missions_terms_wallets.sql`, `lib/walletGuard.js`, `lib/terms.js`, `lib/missions.js`, `lib/actions/missions.js`, `lib/actions/terms.js`, `tests/part14.test.js`.
 Changed: `api/index.js`, `lib/actions/finance.js`, `lib/settingsDefs.js`, `lib/ratelimit.js`, `lib/engagement.js`, `public/index.html`, `public/app.js`, `public/admin.js`, `public/styles.css`, `public/i18n/*.json` (4 new keys), `package.json`, README.
 New API actions: `missions`, `missionClaim`, `terms`, `termsAccept`.
+
+## Hotfix: AdsGram "Reward" block URL
+AdsGram Reward blocks require a Reward URL containing `[userId]` (they call it from their server). New endpoint `GET /api?action=adsgramReward&userid=[userId]&secret=<ADSGRAM_REWARD_SECRET>` answers 200. It credits nothing (Points still go through the signed-token Watch & Earn flow). Set env `ADSGRAM_REWARD_SECRET` (optional) and use the same value as `&secret=` in the URL.
