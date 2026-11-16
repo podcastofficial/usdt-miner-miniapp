@@ -78,7 +78,7 @@ test("conservation: paid to users + refunded to owner = budget, for any number o
 test("claim statement: task row locked, campaign budget + completion row written in the same statement as the payout", () => {
   const stmt = earn.slice(earn.indexOf("const method ="), earn.indexOf("if (!r.length) {\n    const d = await sql"));
   assert.match(stmt, /FOR UPDATE\)/); assert.match(stmt, /proof_required=FALSE/);
-  assert.match(stmt, /UPDATE campaigns SET spent=campaigns\.spent\+c\.reward/); assert.match(stmt, /INSERT INTO campaign_completions/);
+  assert.match(stmt, /UPDATE campaigns SET spent=campaigns\.spent\+campaigns\.reward/); assert.match(stmt, /platform_fee/); // budget uses the advertiser's full cost, the joiner is paid c.reward (their share) assert.match(stmt, /INSERT INTO campaign_completions/);
   assert.match(stmt, /<= campaigns\.reward\*campaigns\.target/); assert.match(stmt, /'task:'\|\|u\.task_id::text\|\|':'\|\|\$\{id\}::text/);
   assert.equal((stmt.match(/await sql`/g) || []).length, 1, "ONE statement");
   assert.match(earn, /needs a proof/); assert.match(earn, /"proof_required"/);
@@ -214,4 +214,13 @@ test("frontend: screens, handlers, admin tabs, version and check script", () => 
 test("bootstrap hides proof tasks while proofs are OFF and reports each user's proof status", () => {
   const core = read("lib/actions/core.js");
   assert.match(core, /taskProofEnabled\}::boolean OR t\.proof_required=FALSE/); assert.match(core, /AS proof_status/); assert.match(core, /AS proof_reason/);
+});
+
+test("Advertise split: joiner gets the configured share, platform keeps the rest, never 0 for the joiner", async () => {
+  const { splitReward } = await import("../lib/tasks.js");
+  assert.deepEqual(splitReward({ reward: 100, pct: 50 }), { user: 50, platform: 50 });
+  assert.deepEqual(splitReward({ reward: 101, pct: 50 }), { user: 50, platform: 51 });
+  assert.deepEqual(splitReward({ reward: 10, pct: 1 }), { user: 1, platform: 9 });
+  assert.deepEqual(splitReward({ reward: 100, pct: 100 }), { user: 100, platform: 0 });
+  assert.deepEqual(splitReward({ reward: 100, pct: 500 }), { user: 100, platform: 0 });
 });

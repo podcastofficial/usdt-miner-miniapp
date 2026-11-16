@@ -238,7 +238,8 @@ function adcalc() {
   const r = Number($('c_reward').value), n = Number($('c_target').value), el = $('c_budget'), ppu = Number(data.settings?.points_per_usdt) || 10000;
   if (!Number.isInteger(r) || !Number.isInteger(n) || r < 1 || n < 1) { el.textContent = ''; return; }
   const b = r * n, have = ads?.info?.points ?? Number(data.user?.points || 0);
-  el.textContent = 'Budget: ' + N(b) + ' Points (≈ ' + (b / ppu).toFixed(2) + ' USDT)' + (b > have ? ' — more than your balance of ' + N(have) + ' Points' : '');
+  const sp = Number(ads?.info?.userSharePct) || 100, ur = Math.min(r, Math.max(1, Math.floor(r * sp / 100)));
+  el.textContent = 'Budget: ' + N(b) + ' Points (≈ ' + (b / ppu).toFixed(2) + ' USDT)' + (sp < 100 ? ' · each user gets ' + N(ur) + ' Points (' + sp + '%), platform fee ' + N(r - ur) + ' Points' : '') + (b > have ? ' — more than your balance of ' + N(have) + ' Points' : '');
 }
 function campCard(c) {
   const pct = Math.min(Number(c.target), Number(c.completed));
