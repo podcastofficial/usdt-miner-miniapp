@@ -460,7 +460,12 @@ async function load(id) {
 const POPUP_FLAG = { tasks: 'on_tasks', taskproof: 'on_tasks', ads: 'on_ads', games: 'on_games' };
 let popupBusy = false, adsgramLoading = null, monetagLoading = null;
 let lastCsp = ''; // last thing the browser blocked (CSP): shown to admins so the missing domain is easy to find
-document.addEventListener('securitypolicyviolation', (e) => { lastCsp = String(e.blockedURI || 'inline').replace(/^https?:\/\//, '').slice(0, 40) + ' [' + String(e.violatedDirective || '').split(' ')[0] + ']'; });
+const cspSeen = new Set();
+document.addEventListener('securitypolicyviolation', (e) => {
+  lastCsp = String(e.blockedURI || 'inline').replace(/^https?:\/\//, '').slice(0, 40) + ' [' + String(e.violatedDirective || '').split(' ')[0] + ']';
+  // admin-only debug: show each new blocked thing once, so we can see what breaks the ad styling
+  try { if (data && data.admin && !cspSeen.has(lastCsp) && cspSeen.size < 6) { cspSeen.add(lastCsp); say('CSP blocked: ' + lastCsp); } } catch (x) { /* data not ready yet */ }
+});
 function loadAdsgram() {
   if (window.Adsgram) return Promise.resolve();
   if (!adsgramLoading) adsgramLoading = new Promise((res, rej) => { const s = document.createElement('script'); s.src = 'https://sad.adsgram.ai/js/sad.min.js'; s.onload = res; s.onerror = () => { adsgramLoading = null; rej(new Error('adsgram blocked')); }; document.head.appendChild(s); });
