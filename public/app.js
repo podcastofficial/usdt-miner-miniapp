@@ -464,14 +464,25 @@ function showOwnPopup(p) {
 }
 /* ---------------- Watch & Earn: rewarded ad -> Points (server checks limit, cooldown, minimum watch time) ---------------- */
 let adWatching = false;
+let adTimer = null;
+const mmss = (n) => Math.floor(n / 60) + ':' + String(n % 60).padStart(2, '0');
+/** Watch & Earn card: shows reward + ads left today, and a live countdown to the next ad (server enforces the same gap). */
 async function renderAdTile() {
   const w = data && data.watch_ad, tile = $('adtile'); if (!tile) return;
+  clearInterval(adTimer);
   tile.hidden = !(w && w.enabled); if (tile.hidden) return;
-  $('adtilesub').textContent = 'Watch an ad, get +' + N(w.reward) + ' Points';
-  try {
-    const i = await api('adWatchInfo');
-    if (i.enabled) $('adtilesub').textContent = '+' + N(i.reward) + ' Points per ad \u00b7 ' + i.left + ' left today';
-  } catch (e) { /* keep the simple text */ }
+  const sub = $('adtilesub'), btn = $('adtilebtn');
+  let i; try { i = await api('adWatchInfo'); } catch (e) { btn.disabled = false; return; }
+  if (!i.enabled) { tile.hidden = true; return; }
+  if (i.left <= 0) { sub.textContent = 'Daily limit reached \u00b7 come back tomorrow'; btn.disabled = true; btn.textContent = 'Done \u2713'; return; }
+  const until = Date.now() + (Number(i.cooldown_left) || 0) * 1000;
+  const paint = () => {
+    const cd = Math.max(0, Math.ceil((until - Date.now()) / 1000));
+    if (cd > 0) { sub.textContent = '\u23f3 Next ad in ' + mmss(cd) + ' \u00b7 ' + i.left + ' left today'; btn.disabled = true; btn.textContent = mmss(cd); }
+    else { clearInterval(adTimer); sub.textContent = '+' + N(i.reward) + ' Points per ad \u00b7 ' + i.left + ' left today'; btn.disabled = false; btn.textContent = 'Watch \u203a'; }
+  };
+  paint();
+  if (until > Date.now()) adTimer = setInterval(paint, 1000);
 }
 /** Plays a rewarded ad from the configured network(s). -> 'done' | 'skipped' | 'none' */
 async function playRewardAd() {
@@ -499,7 +510,7 @@ async function watchAd(el) {
     const r = await api('adWatchClaim', { token: st.token });
     say('\ud83d\udcfa +' + N(r.reward) + ' Points \u00b7 ' + r.left + ' ads left today');
     await boot();
-  } finally { adWatching = false; if (el) el.disabled = false; renderAdTile(); }
+  } finally { adWatching = false; renderAdTile(); }
 }
 /* Monetag preloads its ads when the tag is on the page, so load it early (only when popup ads + a zone are set). */
 function preloadPopupSdk() {
