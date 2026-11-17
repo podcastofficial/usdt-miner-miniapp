@@ -43,6 +43,7 @@
       <div>
         <div class="l"><span aria-hidden="true">🪙</span> <span data-i18n="home.points">Your MINER</span></div>
         <div id="points" class="big">—</div>
+        <div id="pointsusd" class="usd" hidden></div>
       </div>
       <div id="rate" class="rate">1 Point = 1 MINER</div>
     </div>
@@ -97,7 +98,7 @@
     <button class="btn" data-act="copyRef">Copy link</button>
     <button class="btn" data-act="shareRef">Share ›</button>
     <p id="refcount" class="muted"></p>
-    <small>You earn <span id="refreward">1,000</span> MINER when your invited friend joins and verifies the required channels.</small>
+    <small>You earn <span id="refreward">1,000</span> MINER<span id="refusd"></span> when your invited friend joins and verifies the required channels.</small>
   </div>
   <div class="card" id="refmilestones" hidden></div>
   <h3 class="sec" id="h-myref">My referrals</h3>
@@ -143,6 +144,7 @@
 <section id="withdraw" aria-labelledby="h-withdraw">
   <h2 id="h-withdraw" data-i18n="withdraw.title">💸 Withdraw</h2>
   <div class="card">
+    <p id="wbal" class="hint"></p>
     <label for="amount">MINER amount</label>
     <input id="amount" type="text" inputmode="decimal" autocomplete="off" placeholder="MINER amount (min 1000)" data-input="quote">
     <label for="wallet">BEP-20 wallet address</label>
@@ -252,7 +254,7 @@
 <section id="games" aria-labelledby="h-games">
   <h2 id="h-games">🎮 Games<small>Spin, scratch and win MINER</small></h2>
   <div class="card" id="gamenote" hidden></div>
-  <div class="card row" id="gamebal"><span class="ic" aria-hidden="true">🪙</span><div class="mid"><b id="gamebalv">—</b><small>Your MINER</small></div></div>
+  <div class="card row" id="gamebal"><span class="ic" aria-hidden="true">🪙</span><div class="mid"><b id="gamebalv">—</b><small id="gamebalusd">Your MINER</small></div></div>
   <div class="card result" id="gameresult" role="status" aria-live="polite" hidden></div>
   <div id="gamelist"></div>
   <h3 class="sec">⚡ Mining Booster</h3>

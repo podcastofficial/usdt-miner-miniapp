@@ -23,6 +23,12 @@ let data = {}, filter = 'all', opened = {}, community = null, fin = null;
 const $ = (id) => document.getElementById(id);
 const T = (k, v, d) => (window.I18N ? I18N.t(k, v, d) : d !== undefined ? String(d).replace(/\{(\w+)\}/g, (m, n) => (v && n in v ? v[n] : m)) : k);
 const N = (n) => Number(n).toLocaleString();
+/* Part 17: estimated USDT value of MINER (price comes from Admin > Settings > MINER Value; display only) */
+const minerPrice = () => (data.miner && data.miner.show !== false && Number(data.miner.price) > 0 ? Number(data.miner.price) : 0);
+const fmtUsd = (v) => { if (!isFinite(v) || v <= 0) return '0'; if (v < 0.000001) return '<0.000001'; const d = v >= 100 ? 2 : v >= 1 ? 3 : v >= 0.01 ? 4 : 6; return Number(v.toFixed(d)).toLocaleString(undefined, { maximumFractionDigits: d }); };
+const usd = (n) => { const p = minerPrice(); return p ? '≈ ' + fmtUsd(Number(n) * p) + ' USDT' : ''; };
+const withUsd = (n) => { const u = usd(n); return u ? ' (' + u + ')' : ''; };
+function renderUsdBalance() { const el = $('pointsusd'), u = usd(data.user.points); el.textContent = u; el.hidden = !u; }
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const ic = (e, c) => `<span class="ic${c ? ' ' + c : ''}" aria-hidden="true">${e}</span>`;
 const short = (h) => (h ? String(h).slice(0, 10) + '…' + String(h).slice(-6) : '');
@@ -97,7 +103,7 @@ function taskBtn(t) {
 }
 function renderTasks() {
   const list = (data.tasks || []).filter((t) => filter === 'all' || (filter === 'social' && ['channel', 'bot'].includes(t.type)) || (filter === 'other' && !['channel', 'bot'].includes(t.type)));
-  setHtml('tasklist', list.map((t) => `<div class="card row">${ic(taskIcon(t.type, t.link, t.title))}<div class="mid"><b>${esc(t.title)}</b>${t.description ? `<small>${esc(t.description)}</small>` : ''}<span class="pts">🪙 +${N(t.reward)} MINER</span>${t.proof_required && !t.done ? `<small>${t.proof_status === 'rejected' ? 'Rejected' + (t.proof_reason ? ': ' + esc(t.proof_reason) : '') + ' — you can try again' : 'Needs a proof, checked by an admin'}</small>` : ''}${t.type !== 'channel' && !t.proof_required && !t.done ? `<small>Stay ${Number(t.timer_seconds)}s on the task, then claim</small>` : ''}${t.started_at && !t.done && !t.proof_required ? `<small><a href="#" data-act="openTaskLink" data-id="${Number(t.id)}">Open task link again</a></small>` : ''}</div>${taskBtn(t)}</div>`).join('') || empty('No tasks right now'));
+  setHtml('tasklist', list.map((t) => `<div class="card row">${ic(taskIcon(t.type, t.link, t.title))}<div class="mid"><b>${esc(t.title)}</b>${t.description ? `<small>${esc(t.description)}</small>` : ''}<span class="pts">🪙 +${N(t.reward)} MINER${esc(withUsd(t.reward))}</span>${t.proof_required && !t.done ? `<small>${t.proof_status === 'rejected' ? 'Rejected' + (t.proof_reason ? ': ' + esc(t.proof_reason) : '') + ' — you can try again' : 'Needs a proof, checked by an admin'}</small>` : ''}${t.type !== 'channel' && !t.proof_required && !t.done ? `<small>Stay ${Number(t.timer_seconds)}s on the task, then claim</small>` : ''}${t.started_at && !t.done && !t.proof_required ? `<small><a href="#" data-act="openTaskLink" data-id="${Number(t.id)}">Open task link again</a></small>` : ''}</div>${taskBtn(t)}</div>`).join('') || empty('No tasks right now'));
 }
 const initTimers = () => (data.tasks || []).forEach((t) => { t.deadline = Date.now() + (t.seconds_left || 0) * 1000; });
 setInterval(() => {
@@ -110,7 +116,7 @@ setInterval(() => {
 /* ---------------- history / daily / referral / verify ---------------- */
 let txNext = null;
 function renderTx(items, append) {
-  const h = items.map((t) => `<div class="card row">${ic(txIcon(t), t.points_change >= 0 ? 'tx-in' : 'tx-out')}<div class="mid"><b>${esc(t.type)}</b><small>${esc(t.description || '')}</small></div><span class="pts">${t.points_change > 0 ? '+' : ''}${N(t.points_change)}</span></div>`).join('');
+  const h = items.map((t) => `<div class="card row">${ic(txIcon(t), t.points_change >= 0 ? 'tx-in' : 'tx-out')}<div class="mid"><b>${esc(t.type)}</b><small>${esc(t.description || '')}</small>${minerPrice() ? `<small class="muted">${t.points_change > 0 ? '+' : '−'}${esc(usd(Math.abs(t.points_change)))}</small>` : ''}</div><span class="pts">${t.points_change > 0 ? '+' : ''}${N(t.points_change)}</span></div>`).join('');
   const el = $('txlist'); if (append) el.insertAdjacentHTML('beforeend', h); else el.innerHTML = h || empty('No transactions yet');
   txNext = items.length >= 25 ? items[items.length - 1].id : null; $('moreTx').hidden = !txNext;
 }
@@ -119,7 +125,7 @@ function leftText(sec) { const h = Math.floor(sec / 3600), m = Math.floor((sec %
 function renderBoostBox(bs) {
   const box = $('boostbox'); if (!bs) { box.hidden = true; return; }
   box.hidden = false; $('boosttitle').textContent = 'Booster ' + bs.label + ' active';
-  $('boosttext').textContent = (data.daily.claimed ? 'Your next daily reward' : 'Today’s daily reward') + ' is boosted: +' + N(data.daily.reward) + ' MINER (base ' + N(bs.base_reward) + '). ' + leftText(bs.seconds_left) + ' left.';
+  $('boosttext').textContent = (data.daily.claimed ? 'Your next daily reward' : 'Today’s daily reward') + ' is boosted: +' + N(data.daily.reward) + ' MINER' + withUsd(data.daily.reward) + ' (base ' + N(bs.base_reward) + '). ' + leftText(bs.seconds_left) + ' left.';
 }
 
 /* ---------------- engagement (Phase 2 / Part 2) ---------------- */
@@ -140,8 +146,8 @@ function renderStreak() {
     }).join('');
   } else lad.hidden = true;
   $('streaknote').textContent = st.claimed_today
-    ? 'Claimed today ✓ Come back tomorrow' + (st.enabled ? ' for day ' + st.next_day + ' (+' + N(st.next_reward) + ' MINER)' : ' to keep your streak') + '.'
-    : (st.current > 0 ? 'Claim today to keep your streak alive' : 'Claim today to start a streak') + (st.enabled ? ' — day ' + st.next_day + ' pays +' + N(st.next_reward) + ' MINER.' : '.')
+    ? 'Claimed today ✓ Come back tomorrow' + (st.enabled ? ' for day ' + st.next_day + ' (+' + N(st.next_reward) + ' MINER' + withUsd(st.next_reward) + ')' : ' to keep your streak') + '.'
+    : (st.current > 0 ? 'Claim today to keep your streak alive' : 'Claim today to start a streak') + (st.enabled ? ' — day ' + st.next_day + ' pays +' + N(st.next_reward) + ' MINER' + withUsd(st.next_reward) + '.' : '.')
       + (st.best > st.current ? ' Best: ' + st.best + ' days.' : '');
 }
 let refFilter = 'all', refPage = 1;
@@ -156,11 +162,11 @@ function renderMilestonesBrief(m) {
   const box = $('refmilestones'); if (!m || !m.enabled) { box.hidden = true; return; }
   const nxt = m.items.find((x) => !x.paid);
   box.hidden = false;
-  box.innerHTML = nxt ? `<b>🎯 Next bonus: ${nxt.milestone} referrals</b><small>${m.qualified} / ${nxt.milestone} qualified · +${N(nxt.reward)} MINER</small><progress max="${nxt.milestone}" value="${Math.min(m.qualified, nxt.milestone)}" aria-label="Progress to ${nxt.milestone} referrals"></progress>` : '<b>🏆 All referral milestones collected</b>';
+  box.innerHTML = nxt ? `<b>🎯 Next bonus: ${nxt.milestone} referrals</b><small>${m.qualified} / ${nxt.milestone} qualified · +${N(nxt.reward)} MINER${esc(withUsd(nxt.reward))}</small><progress max="${nxt.milestone}" value="${Math.min(m.qualified, nxt.milestone)}" aria-label="Progress to ${nxt.milestone} referrals"></progress>` : '<b>🏆 All referral milestones collected</b>';
 }
 async function loadRewards() {
   const e = await api('engagement'), lv = e.level;
-  $('lvlcard').innerHTML = `<div class="row">${ic(lv.icon)}<div class="mid"><b>${esc(lv.name)} miner</b><small>${N(e.lifetime_earned)} MINER earned in total</small></div></div>`
+  $('lvlcard').innerHTML = `<div class="row">${ic(lv.icon)}<div class="mid"><b>${esc(lv.name)} miner</b><small>${N(e.lifetime_earned)} MINER${esc(withUsd(e.lifetime_earned))} earned in total</small></div></div>`
     + (lv.next_at ? `<progress max="100" value="${lv.progress}" aria-label="Progress to ${esc(lv.next_name)}"></progress><small>${N(Math.max(0, lv.next_at - e.lifetime_earned))} more MINER to reach ${esc(lv.next_name)}</small>` : '<small>Highest level reached 🎉</small>')
     + '<small class="hint">Levels count MINER you earned from daily rewards, tasks, referrals, bonuses and promo codes.</small>';
   const m = e.milestones;
@@ -197,20 +203,21 @@ function quoteW() {
   clearTimeout(qt);
   qt = setTimeout(async () => {
     const v = $('amount').value.trim(); if (!v) { $('wquote').textContent = ''; return; }
-    try { const q = await api('withdrawQuote', { amount: v }); $('wquote').textContent = 'Fee ' + q.fee + ' MINER · You receive ' + q.net + ' MINER · Reserves ' + N(q.points) + ' MINER' + (q.enough ? '' : ' (not enough MINER)'); }
+    try { const q = await api('withdrawQuote', { amount: v }); $('wquote').textContent = 'Fee ' + q.fee + ' MINER · You receive ' + q.net + ' MINER' + withUsd(q.net) + ' · Reserves ' + N(q.points) + ' MINER' + (q.enough ? '' : ' (not enough MINER)'); }
     catch (e) { $('wquote').textContent = e.message; }
   }, 350);
 }
 async function loadWithdraw() {
   const f = await getFin(); $('amount').placeholder = 'MINER amount (min ' + f.withdraw.min + ')';
+  $('wbal').textContent = 'Balance: ' + N(data.user.points) + ' MINER' + withUsd(data.user.points) + ' · Minimum: ' + N(f.withdraw.min) + ' MINER' + withUsd(f.withdraw.min);
   $('wnote').textContent = f.withdraw.feePercent + '% fee. MINER are reserved when you submit and refunded if rejected or cancelled.'; $('depbtn').hidden = !f.deposit.enabled;
   const r = await api('withdrawList');
-  setHtml('wlist', r.items.map((w) => `<div class="card row">${ic(WI[w.status] || '•')}<div class="mid"><b>#${Number(w.id)} · ${esc(w.net_usdt)} MINER</b><small>${badge(BC[w.status] || 'warn', w.status)}${w.reject_reason ? ' ' + esc(w.reject_reason) : ''}${w.tx_hash ? ' · ' + esc(short(w.tx_hash)) : ''}</small></div>${w.status === 'pending' ? btn('Cancel', 'cancelW', `data-id="${Number(w.id)}"`, 'btn sm ghost', 'Cancel withdrawal ' + Number(w.id)) : ''}</div>`).join('') || empty('No withdrawals yet'));
+  setHtml('wlist', r.items.map((w) => `<div class="card row">${ic(WI[w.status] || '•')}<div class="mid"><b>#${Number(w.id)} · ${esc(w.net_usdt)} MINER${esc(withUsd(w.net_usdt))}</b><small>${badge(BC[w.status] || 'warn', w.status)}${w.reject_reason ? ' ' + esc(w.reject_reason) : ''}${w.tx_hash ? ' · ' + esc(short(w.tx_hash)) : ''}</small></div>${w.status === 'pending' ? btn('Cancel', 'cancelW', `data-id="${Number(w.id)}"`, 'btn sm ghost', 'Cancel withdrawal ' + Number(w.id)) : ''}</div>`).join('') || empty('No withdrawals yet'));
 }
 async function loadDeposit() {
   const f = await getFin(), d = f.deposit;
   if (!d.enabled) { $('depinfo').textContent = 'Deposits are not enabled yet.'; $('depform').hidden = true; }
-  else { $('depform').hidden = false; setHtml('depinfo', 'Send USDT on <b>BSC (BEP-20)</b> only, to:<br><span class="accent wrap">' + esc(d.wallet) + '</span><br>Minimum ' + esc(d.min) + ' MINER · ' + esc(d.confirmations) + ' confirmations needed.'); }
+  else { $('depform').hidden = false; setHtml('depinfo', 'Send USDT on <b>BSC (BEP-20)</b> only, to:<br><span class="accent wrap">' + esc(d.wallet) + '</span><br>Minimum ' + esc(d.min) + ' USDT · 1 USDT = ' + N(d.pointsPerUsdt) + ' MINER · ' + esc(d.confirmations) + ' confirmations needed.'); }
   const r = await api('depositList');
   setHtml('deplist', r.items.map((x) => `<div class="card row">${ic(DI[x.status] || '•')}<div class="mid"><b>${x.amount_usdt ? esc(x.amount_usdt) + ' USDT' : 'Deposit #' + Number(x.id)}</b><small>${badge(BC[x.status] || 'warn', x.status)}${x.reject_reason ? ' ' + esc(RS[x.reject_reason] || x.reject_reason) : ''} · ${esc(short(x.tx_hash))}</small></div>${x.status === 'pending' ? btn('Recheck', 'recheckD', `data-id="${Number(x.id)}"`, 'btn sm', 'Recheck deposit ' + Number(x.id)) : ''}</div>`).join('') || empty('No deposits yet'));
 }
@@ -223,7 +230,7 @@ let rankPage = 1;
 async function loadRank(page) {
   const want = page || rankPage; if (!$('ranklist').children.length) setHtml('ranklist', skel());
   const r = await api('leaderboard', { page: want }); rankPage = r.page;
-  setHtml('rankme', r.me ? `<div class="card"><b>Your rank: #${N(r.me.rank)}</b> <span class="muted">of ${N(r.total)} miners · ${N(r.me.points)} MINER</span>${r.me.rank > 200 ? '<small>Only the top 200 are listed.</small>' : ''}</div>` : '');
+  setHtml('rankme', r.me ? `<div class="card"><b>Your rank: #${N(r.me.rank)}</b> <span class="muted">of ${N(r.total)} miners · ${N(r.me.points)} MINER${esc(withUsd(r.me.points))}</span>${r.me.rank > 200 ? '<small>Only the top 200 are listed.</small>' : ''}</div>` : '');
   setHtml('ranklist', r.items.map((u) => `<div class="card rk${u.me ? ' me' : ''}"><span class="n" role="img" aria-label="Rank ${u.rank}">${u.rank <= 3 ? ['🥇', '🥈', '🥉'][u.rank - 1] : u.rank}</span><span class="nm">${esc(u.name)}${u.me ? ' (you)' : ''}</span><span class="pt">${N(u.points)}</span></div>`).join('') || empty('No miners yet'));
   $('rankpager').hidden = r.pages <= 1; $('rankinfo').textContent = 'Page ' + r.page + ' of ' + r.pages;
   $('rankprev').disabled = r.page <= 1; $('ranknext').disabled = !r.hasMore;
@@ -248,7 +255,7 @@ function campCard(c) {
 async function loadAds() {
   setHtml('camplist', skel(2)); ads = await api('campaignList'); const i = ads.info;
   $('adform').hidden = !i.enabled;
-  $('adinfo').textContent = i.enabled ? 'Minimum ' + N(i.minReward) + ' MINER per user and ' + N(i.minTarget) + ' completions. You have ' + N(i.points) + ' MINER. Up to ' + i.maxPending + ' campaigns can wait for review.' : 'Advertising is paused right now. Your existing campaigns are not affected.';
+  $('adinfo').textContent = i.enabled ? 'Minimum ' + N(i.minReward) + ' MINER per user and ' + N(i.minTarget) + ' completions. You have ' + N(i.points) + ' MINER' + withUsd(i.points) + '. Up to ' + i.maxPending + ' campaigns can wait for review.' : 'Advertising is paused right now. Your existing campaigns are not affected.';
   adcalc(); setHtml('camplist', ads.items.map(campCard).join('') || empty('No campaigns yet'));
 }
 
@@ -271,8 +278,8 @@ async function loadProof(more) {
   const r = await api('proofList', more ? { before: proofNext } : {});
   proofChannel = r.channel; $('proofch').hidden = !r.channel; $('proofch').dataset.url = r.channel || '';
   if (!r.enabled) { setHtml('prooflist', empty('Payment proof is not available right now.')); $('moreProof').hidden = true; return; }
-  if (r.stats) setHtml('proofstats', `<div class="stats"><div class="card"><small>Paid out</small><b>${esc(r.stats.paid_usdt)} MINER</b></div><div class="card"><small>Payouts</small><b>${N(r.stats.payouts)}</b></div><div class="card"><small>Members</small><b>${N(r.stats.members)}</b></div></div>`);
-  const h = r.items.map((p) => `<div class="card row">${ic('✅')}<div class="mid"><b>${esc(p.amount)} MINER</b><small>${esc(p.name)} · ${esc(dt(p.paid_at))}</small><small>${esc(short(p.tx))}</small></div>${p.url ? btn('View ›', 'openUrl', `data-url="${esc(p.url)}"`, 'btn sm', 'View payout transaction on BscScan, ' + p.amount + ' MINER') : ''}</div>`).join('');
+  if (r.stats) setHtml('proofstats', `<div class="stats"><div class="card"><small>Paid out</small><b>${esc(r.stats.paid_usdt)} MINER${esc(withUsd(r.stats.paid_usdt))}</b></div><div class="card"><small>Payouts</small><b>${N(r.stats.payouts)}</b></div><div class="card"><small>Members</small><b>${N(r.stats.members)}</b></div></div>`);
+  const h = r.items.map((p) => `<div class="card row">${ic('✅')}<div class="mid"><b>${esc(p.amount)} MINER${esc(withUsd(p.amount))}</b><small>${esc(p.name)} · ${esc(dt(p.paid_at))}</small><small>${esc(short(p.tx))}</small></div>${p.url ? btn('View ›', 'openUrl', `data-url="${esc(p.url)}"`, 'btn sm', 'View payout transaction on BscScan, ' + p.amount + ' MINER') : ''}</div>`).join('');
   if (more) $('prooflist').insertAdjacentHTML('beforeend', h); else setHtml('prooflist', h || empty('No payouts to show yet'));
   proofNext = r.next; $('moreProof').hidden = !proofNext;
 }
@@ -306,7 +313,7 @@ async function loadHow() {
 let gamesData = null, playing = false;
 const reduceMotion = () => { try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; } };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const costText = (g) => (g.plays_left === 0 ? 'No plays left today' : g.next_fee === 0 ? 'Free play' : 'Costs ' + N(g.next_fee) + ' MINER') + ' · ' + g.plays_left + ' left today';
+const costText = (g) => (g.plays_left === 0 ? 'No plays left today' : g.next_fee === 0 ? 'Free play' : 'Costs ' + N(g.next_fee) + ' MINER' + withUsd(g.next_fee)) + ' · ' + g.plays_left + ' left today';
 function oddsList(g) { return `<details class="odds"><summary>Prizes &amp; odds</summary><ul>${g.prizes.map((p) => `<li><span>${esc(p.label)}</span><b>${p.pct}%</b></li>`).join('')}</ul><small>Max prize per day: ${N(g.win_cap)} MINER (${N(g.win_left)} left today)</small></details>`; }
 function gameCard(g) {
   const head = `<div class="row flat">${ic(g.icon)}<div class="mid"><b>${esc(g.name)}</b><small>${esc(g.help)}</small></div></div>`;
@@ -321,7 +328,7 @@ function gameCard(g) {
 function boostCardHtml(b) {
   if (b.active) return `<div class="row flat">${ic('⚡')}<div class="mid"><b>Booster ${esc(b.active.label)} active</b><small>${leftText(b.active.seconds_left)} left · your daily reward is multiplied</small></div></div>`;
   if (!b.enabled) return '<div class="empty">Boosters are not available right now.</div>';
-  return `<div class="row flat">${ic('⚡')}<div class="mid"><b>Daily reward ${esc(b.label)} for ${b.hours}h</b><small>Costs ${N(b.cost)} MINER · one booster at a time · whole MINER, rounded down</small></div></div><button class="btn" data-act="boost">Buy booster ›</button>`;
+  return `<div class="row flat">${ic('⚡')}<div class="mid"><b>Daily reward ${esc(b.label)} for ${b.hours}h</b><small>Costs ${N(b.cost)} MINER${esc(withUsd(b.cost))} · one booster at a time · whole MINER, rounded down</small></div></div><button class="btn" data-act="boost">Buy booster ›</button>`;
 }
 function drawCardHtml(d) {
   const last = d.last ? `<small class="muted">Last draw: ${esc(d.last.winner)}${d.last.you_won ? ' (you!) 🎉' : ''} won ${N(d.last.prize)} MINER · ${N(d.last.tickets)} tickets</small>` : '';
@@ -334,19 +341,19 @@ function drawCardHtml(d) {
 }
 function renderGames() {
   const g = gamesData; if (!g) return;
-  $('gamebalv').textContent = N(g.balance);
+  $('gamebalv').textContent = N(g.balance); $('gamebalusd').textContent = 'Your MINER' + (minerPrice() ? ' · ' + usd(g.balance) : '');
   const note = $('gamenote'); note.hidden = g.enabled; note.innerHTML = g.enabled ? '' : '<b>Games are not open yet</b><small class="muted">Follow the official channel to hear when they start. Boosters and the Lucky Draw may still be available below.</small>';
   setHtml('gamelist', g.enabled ? g.games.map(gameCard).join('') : '');
   setHtml('boostcard', boostCardHtml(g.booster)); setHtml('drawcard', drawCardHtml(g.draw));
   const GI = { spin: '🎡', scratch: '🎟️', box: '🎁' };
-  setHtml('playlist', g.recent.map((r) => `<div class="card row">${ic(GI[r.game] || '🎮')}<div class="mid"><b>${r.prize > 0 ? '+' + N(r.prize) + ' MINER' : 'No prize'}</b><small>${esc(r.game)} · ${esc(dt(r.at))}${r.fee > 0 ? ' · entry ' + N(r.fee) : ''}</small></div></div>`).join('') || empty('No plays yet'));
+  setHtml('playlist', g.recent.map((r) => `<div class="card row">${ic(GI[r.game] || '🎮')}<div class="mid"><b>${r.prize > 0 ? '+' + N(r.prize) + ' MINER' + withUsd(r.prize) : 'No prize'}</b><small>${esc(r.game)} · ${esc(dt(r.at))}${r.fee > 0 ? ' · entry ' + N(r.fee) : ''}</small></div></div>`).join('') || empty('No plays yet'));
 }
 async function loadGames() { gamesData = await api('games'); renderGames(); }
 function showResult(r) {
   const el = $('gameresult'); el.hidden = false;
   const win = r.prize > 0;
   el.className = 'card result ' + (win ? 'win' : 'lose');
-  el.innerHTML = `<b>${win ? '🎉 You won +' + N(r.prize) + ' MINER' : '😅 No prize this time'}</b>`
+  el.innerHTML = `<b>${win ? '🎉 You won +' + N(r.prize) + ' MINER' + withUsd(r.prize) : '😅 No prize this time'}</b>`
     + `<small>${esc(r.label)}${r.capped ? ' · prize cut to today’s limit (' + N(r.prize_drawn) + ' drawn)' : ''}${r.fee > 0 ? ' · entry fee −' + N(r.fee) : ''} · balance ${N(r.balance)}</small>`;
 }
 async function animateSpin(index) {
@@ -447,7 +454,7 @@ async function load(id) {
     if (id === 'deposit') await loadDeposit();
     if (id === 'history' && !$('txlist').children.length) renderTx(data.transactions || [], false);
     if (id === 'ref') {
-      const r = await api('referral'); refLink = r.link; $('refurl').textContent = r.link; $('refreward').textContent = N(r.reward); $('refcount').textContent = 'Qualified: ' + r.qualified + ' · Pending: ' + r.pending;
+      const r = await api('referral'); refLink = r.link; $('refurl').textContent = r.link; $('refreward').textContent = N(r.reward); $('refusd').textContent = withUsd(r.reward); $('refcount').textContent = 'Qualified: ' + r.qualified + ' · Pending: ' + r.pending;
       await loadRefs(true);
       api('engagement').then((e) => renderMilestonesBrief(e.milestones)).catch(() => {}); // optional extra, never blocks the list
     }
@@ -521,7 +528,7 @@ async function renderAdTile() {
   const paint = () => {
     const cd = Math.max(0, Math.ceil((until - Date.now()) / 1000));
     if (cd > 0) { sub.textContent = '\u23f3 Next ad in ' + mmss(cd) + ' \u00b7 ' + i.left + ' left today'; btn.disabled = true; btn.textContent = mmss(cd); }
-    else { clearInterval(adTimer); sub.textContent = '+' + N(i.reward) + ' MINER per ad \u00b7 ' + i.left + ' left today'; btn.disabled = false; btn.textContent = 'Watch \u203a'; }
+    else { clearInterval(adTimer); sub.textContent = '+' + N(i.reward) + ' MINER' + withUsd(i.reward) + ' per ad \u00b7 ' + i.left + ' left today'; btn.disabled = false; btn.textContent = 'Watch \u203a'; }
   };
   paint();
   if (until > Date.now()) adTimer = setInterval(paint, 1000);
@@ -550,7 +557,7 @@ async function watchAd(el) {
     if (res === 'none') { say('No ad available right now. Please try again in a little while.'); return; }
     const wait = st.min_seconds * 1000 - (Date.now() - t0) + 300; if (wait > 0) await new Promise((r) => setTimeout(r, wait));
     const r = await api('adWatchClaim', { token: st.token });
-    say('\ud83d\udcfa +' + N(r.reward) + ' MINER \u00b7 ' + r.left + ' ads left today');
+    say('\ud83d\udcfa +' + N(r.reward) + ' MINER' + withUsd(r.reward) + ' \u00b7 ' + r.left + ' ads left today');
     await boot();
   } finally { adWatching = false; renderAdTile(); }
 }
@@ -641,8 +648,8 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden && ga
 async function boot() {
   try {
     data = await api('bootstrap'); status('');
-    $('points').textContent = N(data.user.points);
-    const s = data.settings || {}; $('rate').textContent = '1 Point = 1 MINER';
+    $('points').textContent = N(data.user.points); renderUsdBalance();
+    const s = data.settings || {}; { const mp = minerPrice(); $('rate').textContent = mp ? '1 MINER ≈ ' + fmtUsd(mp) + ' USDT' : '1 Point = 1 MINER'; }
     const bn = $('banner'); bn.textContent = s.announcement || ''; bn.hidden = !s.announcement;
     $('promotile').hidden = s.promo_enabled !== true;
     await syncLang();
@@ -670,7 +677,7 @@ function showGate() { $('gate').hidden = false; $('main').hidden = true; $('nav'
 
 /* ---------------- actions ---------------- */
 const ACT = {
-  async daily() { const r = await api('daily'); say(T('toast.claimed', { n: N(r.reward) }, '🎁 Claimed {n} MINER') + (r.streak > 1 ? T('toast.streak', { n: r.streak }, ' · 🔥 {n}-day streak') : '')); await boot(); },
+  async daily() { const r = await api('daily'); say(T('toast.claimed', { n: N(r.reward) }, '🎁 Claimed {n} MINER') + withUsd(r.reward) + (r.streak > 1 ? T('toast.streak', { n: r.streak }, ' · 🔥 {n}-day streak') : '')); await boot(); },
   async refFilter(d) {
     refFilter = d.f; document.querySelectorAll('[data-act=refFilter]').forEach((b) => { const on = b.dataset.f === d.f; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); });
     await loadRefs(true);
@@ -679,9 +686,9 @@ const ACT = {
   async watchAd(d, el) { await watchAd(el); },
   async promo() {
     const code = $('promo').value.trim(); if (!code) { say('Enter a promo code first'); return; }
-    const r = await api('promoRedeem', { code }); $('promo').value = ''; say('🎟️ +' + N(r.reward) + ' MINER added'); await boot(); await loadRewards();
+    const r = await api('promoRedeem', { code }); $('promo').value = ''; say('🎟️ +' + N(r.reward) + ' MINER' + withUsd(r.reward) + ' added'); await boot(); await loadRewards();
   },
-  async complete(d) { const r = await api('taskComplete', { taskId: Number(d.id) }); delete opened[d.id]; say('✅ Earned ' + N(r.reward) + ' MINER'); await boot(); },
+  async complete(d) { const r = await api('taskComplete', { taskId: Number(d.id) }); delete opened[d.id]; say('✅ Earned ' + N(r.reward) + ' MINER' + withUsd(r.reward)); await boot(); },
   openTaskLink(d, el) { const t = (data.tasks || []).find((x) => Number(x.id) === Number(d.id)); if (t) openUrl(t.link); },
   async openTask(d) {
     const id = Number(d.id), t = (data.tasks || []).find((x) => Number(x.id) === id); if (!t) return;
@@ -731,7 +738,7 @@ const ACT = {
     await api('taskProofSubmit', { taskId: Number(proofTask.id), proof: txt }); proofTask = null; say('🧾 Proof sent — an admin will check it'); await boot(); go('tasks');
   },
   goRef() { go('ref'); },
-  async missionClaim(d) { const r = await api('missionClaim', { mission: d.m }); say('🎯 +' + N(r.reward) + ' MINER'); await boot(); await loadMissions(); },
+  async missionClaim(d) { const r = await api('missionClaim', { mission: d.m }); say('🎯 +' + N(r.reward) + ' MINER' + withUsd(r.reward)); await boot(); await loadMissions(); },
   async termsAccept() { await api('termsAccept'); say('Thank you ✅'); await loadTerms(); if (termsFrom) { const f = termsFrom; termsFrom = null; go(f); } },
   async moreProof() { await loadProof(true); },
   async play(d) { await playGame(d); },
