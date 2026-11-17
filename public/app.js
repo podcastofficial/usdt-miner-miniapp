@@ -463,6 +463,10 @@ function amTick() {
   amSet('[data-amready]', total.toFixed(2));
   amSet('[data-amreadyusd]', withUsd(total));
   amSet('[data-amrate]', N(hour));
+  // the big balance counts up too: server balance + what the miners hold right now (shown with decimals; it becomes real only on Claim)
+  const shown = a.balance + total, fmt = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
+  const pt = $('points'); if (pt) pt.textContent = shown.toLocaleString(undefined, fmt);
+  const pu = $('pointsusd'); if (pu) { const u = usd(shown); pu.textContent = u; pu.hidden = !u; }
   document.querySelectorAll('[data-amclaim]').forEach((b) => { b.disabled = claim < 1; b.textContent = claim >= 1 ? 'Claim ' + N(claim) + ' MINER ›' : 'Nothing to claim yet'; });
   if (t >= 60) amFetch(); // re-sync with the server about once a minute
 }
