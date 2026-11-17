@@ -52,6 +52,7 @@
       <button class="btn ghost" data-go="withdraw" data-i18n="nav.withdraw">Withdraw</button>
     </div>
   </div>
+  <div id="amhome" hidden><button class="card hub" data-go="automine"><span class="ic" aria-hidden="true">🤖</span><span><b>Auto-Miner</b><small>Machines mine MINER while you are away</small></span><span class="chev" aria-hidden="true">›</span></button></div>
   <div id="streakbox" class="card" hidden>
     <h3><span aria-hidden="true">🔥</span> <span id="streaktitle">Daily streak</span></h3>
     <div id="ladder" class="ladder" role="list" aria-label="7-day streak ladder" hidden></div>
@@ -193,6 +194,7 @@
   <button class="card hub" data-go="games"><span class="ic" aria-hidden="true">🎮</span><span><b data-i18n="hub.games.t">Games</b><small data-i18n="hub.games.s">Spin, scratch, lucky draw, boosters</small></span><span class="chev" aria-hidden="true">›</span></button>
   <button class="card hub" data-go="contests"><span class="ic" aria-hidden="true">🏁</span><span><b data-i18n="hub.contests.t">Contests</b><small data-i18n="hub.contests.s">Invite friends and win prizes</small></span><span class="chev" aria-hidden="true">›</span></button>
   <button class="card hub" data-go="missions"><span class="ic" aria-hidden="true">🎯</span><span><b data-i18n="hub.missions.t">Weekly Missions</b><small data-i18n="hub.missions.s">Finish goals, earn bonus MINER</small></span><span class="chev" aria-hidden="true">›</span></button>
+  <button class="card hub" data-go="automine"><span class="ic" aria-hidden="true">🤖</span><span><b>Auto-Miner</b><small>Machines that mine MINER for you</small></span><span class="chev" aria-hidden="true">›</span></button>
   <button class="card hub" data-go="history"><span class="ic" aria-hidden="true">📜</span><span><b data-i18n="hub.history.t">History</b><small data-i18n="hub.history.s">Your MINER transactions</small></span><span class="chev" aria-hidden="true">›</span></button>
   <button class="card hub" data-go="prefs"><span class="ic" aria-hidden="true">⚙️</span><span><b data-i18n="hub.prefs.t">Settings</b><small data-i18n="hub.prefs.s">Language and light / dark theme</small></span><span class="chev" aria-hidden="true">›</span></button>
   <button class="card hub" data-go="terms"><span class="ic" aria-hidden="true">📜</span><span><b data-i18n="hub.terms.t">Terms &amp; Privacy</b><small data-i18n="hub.terms.s">Rules and how we use your data</small></span><span class="chev" aria-hidden="true">›</span></button>
@@ -267,6 +269,19 @@
 </section>
 
 <!-- ============ TASK PROOF (Phase 2 / Part 4) ============ -->
+<section id="automine" aria-labelledby="h-automine">
+  <h2 id="h-automine">🤖 Auto-Miner<small>Machines that mine MINER while you are away</small></h2>
+  <div class="card" id="amnote" hidden></div>
+  <div id="amtop"><div class="empty">Loading…</div></div>
+  <h3 class="sec">⛏️ Your miners</h3>
+  <div id="amminers"></div>
+  <h3 class="sec">🛒 Shop</h3>
+  <div id="amshop"></div>
+  <h3 class="sec">Recent claims</h3>
+  <div id="amclaims"></div>
+  <p class="hint">A machine stores its earnings for a limited time, then pauses until you claim. Buying and claiming are instant, and you always get whole MINER, rounded down.</p>
+</section>
+
 <section id="taskproof" aria-labelledby="h-taskproof">
   <h2 id="h-taskproof">🧾 Send proof<small>An admin checks it, then you get your MINER</small></h2>
   <div class="card">

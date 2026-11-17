@@ -431,9 +431,43 @@ async function loadTerms() {
   $('termsbtn').hidden = !!t.accepted;
 }
 
+/* ---------------- Auto-Miner (Part 17.3): screen + home card ----------------
+   Machines mine MINER over time; the server computes everything. Buying and claiming are one request each. */
+let amData = null;
+function renderAutoHome() { const w = $('amhome'); if (w) w.hidden = !(data.auto_miner && data.auto_miner.enabled); }
+function renderAutoMiner() {
+  const a = amData; if (!a) return;
+  const note = $('amnote'); note.hidden = !!a.enabled;
+  if (!a.enabled) {
+    note.innerHTML = '<b>Auto-Miner is not open yet</b><small class="muted">Follow the official channel to hear when it starts.</small>';
+    ['amtop', 'amminers', 'amshop', 'amclaims'].forEach((id) => setHtml(id, ''));
+    return;
+  }
+  note.innerHTML = '';
+  setHtml('amtop', `<div class="card"><div class="row flat">${ic('⛏️')}<div class="mid"><b>${N(a.pending_total)} MINER ready to claim${esc(withUsd(a.pending_total))}</b><small>Mining ${N(a.per_hour)} MINER per hour · storage ${N(a.storage_hours)} h per machine</small></div></div>`
+    + `<small class="muted">Balance: ${N(a.balance)} MINER${esc(withUsd(a.balance))} · claimed so far ${N(a.claimed_total)}</small>`
+    + `<button class="btn" data-act="amClaim"${a.can_claim ? '' : ' disabled'}>${a.can_claim ? 'Claim ' + N(a.pending_total) + ' MINER ›' : 'Nothing to claim yet'}</button></div>`);
+  setHtml('amminers', a.miners.map((m) => {
+    const time = m.status === 'running' ? leftText(m.seconds_left) + ' left' : 'finished';
+    const full = m.full ? ' · storage full, claim to keep mining' : (m.status === 'running' ? ' · storage full in ' + leftText(m.full_in_seconds) : '');
+    return `<div class="card"><div class="row flat">${ic('⛏️')}<div class="mid"><b>${esc(m.name)}</b><small>${N(m.rate_per_hour)} MINER/h · ${esc(time)}</small></div></div>`
+      + `<small>Ready: <b>${N(m.pending)}</b> MINER${esc(withUsd(m.pending))}${esc(full)}</small></div>`;
+  }).join('') || empty('You have no miners yet. Buy one below.'));
+  setHtml('amshop', a.plans.map((p) => {
+    const price = p.price > 0 ? N(p.price) + ' MINER' + esc(withUsd(p.price)) : 'Free';
+    const can = p.can_buy && (p.price === 0 || a.balance >= p.price);
+    const act = !p.can_buy ? '<button class="btn sm done" disabled>Owned max</button>'
+      : `<button class="btn sm" data-act="amBuy" data-id="${String(Number(p.id))}"${can ? '' : ' disabled'}>${can ? 'Buy ›' : 'Not enough MINER'}</button>`;
+    return `<div class="card"><div class="row flat">${ic('🤖')}<div class="mid"><b>${esc(p.name)}</b><small>${N(p.rate_per_hour)} MINER/h · runs ${N(p.duration_days)} days · ${N(p.rate_per_hour * 24)} MINER/day</small></div></div>`
+      + `<small>Price: ${price} · you own ${N(p.owned)} of ${N(p.max_per_user)}</small><div class="acts">${act}</div></div>`;
+  }).join('') || empty('No miners in the shop right now'));
+  setHtml('amclaims', a.claims.map((c) => `<div class="card row">${ic('⛏️')}<div class="mid"><b>+${N(c.points)} MINER${esc(withUsd(c.points))}</b><small>${N(c.miners)} miner(s) · ${esc(dt(c.at))}</small></div></div>`).join('') || empty('No claims yet'));
+}
+async function loadAutoMiner() { setHtml('amtop', skel(1)); amData = await api('autoMiner'); renderAutoMiner(); }
+
 /* ---------------- navigation ---------------- */
-const PARENT = { deposit: 'withdraw', rewards: 'more', rank: 'more', ads: 'more', channel: 'more', proof: 'more', howto: 'more', games: 'more', contests: 'more', missions: 'more', terms: 'more', taskproof: 'tasks', history: 'more', prefs: 'more' };
-const NAVOF = { deposit: 'withdraw', rewards: 'more', rank: 'more', ads: 'more', channel: 'more', proof: 'more', howto: 'more', games: 'more', contests: 'more', missions: 'more', terms: 'more', taskproof: 'tasks', history: 'more', prefs: 'more' };
+const PARENT = { automine: 'more', deposit: 'withdraw', rewards: 'more', rank: 'more', ads: 'more', channel: 'more', proof: 'more', howto: 'more', games: 'more', contests: 'more', missions: 'more', terms: 'more', taskproof: 'tasks', history: 'more', prefs: 'more' };
+const NAVOF = { automine: 'more', deposit: 'withdraw', rewards: 'more', rank: 'more', ads: 'more', channel: 'more', proof: 'more', howto: 'more', games: 'more', contests: 'more', missions: 'more', terms: 'more', taskproof: 'tasks', history: 'more', prefs: 'more' };
 let cur = 'home', backBound = false;
 function go(id) {
   if (!$(id)) return; cur = id;
@@ -465,6 +499,7 @@ async function load(id) {
     if (id === 'proof') await loadProof(false);
     if (id === 'howto') await loadHow();
     if (id === 'games') await loadGames();
+    if (id === 'automine') await loadAutoMiner();
     if (id === 'contests') await loadContests();
     if (id === 'missions') await loadMissions();
     if (id === 'terms') await loadTerms();
@@ -653,7 +688,7 @@ async function boot() {
     const bn = $('banner'); bn.textContent = s.announcement || ''; bn.hidden = !s.announcement;
     $('promotile').hidden = s.promo_enabled !== true;
     await syncLang();
-    initTimers(); renderDaily(); renderVerify(); renderTasks(); renderTx(data.transactions || [], false);
+    initTimers(); renderDaily(); renderVerify(); renderAutoHome(); renderTasks(); renderTx(data.transactions || [], false);
     if (data.admin) initAdmin();
     autoVerify();
     autoGift(); preloadPopupSdk(); renderAdTile();
@@ -746,6 +781,15 @@ const ACT = {
     const b = gamesData && gamesData.booster; if (!b) return;
     if (!(await confirmAsk('Buy a ' + b.label + ' booster for ' + N(b.cost) + ' MINER? It lasts ' + b.hours + ' hours.'))) return;
     await api('boosterBuy'); say('⚡ Booster active'); await boot(); await loadGames();
+  },
+  async amClaim() {
+    const r = await api('autoMinerClaim'); say('⛏️ +' + N(r.points) + ' MINER' + withUsd(r.points)); await boot(); await loadAutoMiner();
+  },
+  async amBuy(d) {
+    const p = amData && amData.plans && amData.plans.find((x) => Number(x.id) === Number(d.id)); if (!p) return;
+    const cost = p.price > 0 ? N(p.price) + ' MINER' : 'free';
+    if (!(await confirmAsk('Buy ' + p.name + ' for ' + cost + '? It mines ' + N(p.rate_per_hour) + ' MINER per hour for ' + N(p.duration_days) + ' days.'))) return;
+    const r = await api('autoMinerBuy', { plan_id: Number(d.id) }); say('🤖 ' + r.name + ' is mining'); await boot(); await loadAutoMiner();
   },
   async drawBuy(d) {
     const o = gamesData && gamesData.draw && gamesData.draw.open; if (!o) return;

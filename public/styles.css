@@ -193,6 +193,7 @@ progress::-moz-progress-bar{background:linear-gradient(90deg,var(--btn-a),var(--
 #refmilestones{margin-top:10px}#refmilestones b,#refmilestones small{display:block}
 
 /* Phase 2 / Part 3: games, booster, lucky draw (reuses the contrast-checked tokens; no inline styles, CSP-safe) */
+.acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.acts .btn{width:auto}
 .gcard{text-align:center}.gcard .row{text-align:left}.gcard .btn{width:100%;margin-top:10px}.gcard>small{display:block;margin-top:8px}
 .wheel{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:12px 0 2px}
 .seg{min-height:52px;padding:6px 2px;border-radius:12px;border:1.5px dashed #4a3623;background:var(--field);display:flex;flex-direction:column;justify-content:center;text-align:center}
