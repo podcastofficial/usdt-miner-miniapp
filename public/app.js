@@ -431,28 +431,73 @@ async function loadTerms() {
   $('termsbtn').hidden = !!t.accepted;
 }
 
-/* ---------------- Auto-Miner (Part 17.3): screen + home card ----------------
-   Machines mine MINER over time; the server computes everything. Buying and claiming are one request each. */
-let amData = null;
-function renderAutoHome() { const w = $('amhome'); if (w) w.hidden = !(data.auto_miner && data.auto_miner.enabled); }
+/* ---------------- Auto-Miner: live on Home + on the Auto-Miner screen ----------------
+   The server sends the state once (autoMiner). The page then counts it up every second for display only.
+   Nothing is paid from here: claims are always made on the server, which rounds each machine down to whole MINER. */
+let amData = null, amAt = 0, amTimer = null, amBusy = false;
+const amCap = (m) => m.rate_per_hour * amData.storage_hours;   // a machine holds at most rate x storage hours
+const amEst = (m, t) => Math.min(amCap(m), m.pending + m.rate_per_hour * Math.max(0, Math.min(t, m.seconds_left)) / 3600);
+const amRunning = (m, t) => m.status === 'running' && m.seconds_left - t > 0;
+const amSet = (sel, txt) => document.querySelectorAll(sel).forEach((el) => { el.textContent = txt; });
+
+function amTopHtml() {
+  return `<div class="card"><div class="row flat">${ic('⛏️')}<div class="mid"><b><span data-amready>0.00</span> MINER ready to claim<span data-amreadyusd></span></b><small>Mining <span data-amrate>0</span> MINER per hour · storage ${N(amData.storage_hours)} h per machine</small></div></div>`
+    + `<small class="muted">Balance: ${N(amData.balance)} MINER${esc(withUsd(amData.balance))} · claimed so far ${N(amData.claimed_total)}</small>`
+    + `<button class="btn" data-act="amClaim" data-amclaim disabled>Nothing to claim yet</button></div>`;
+}
+const amMinerHtml = (m, i) => `<div class="card"><div class="row flat">${ic('⛏️')}<div class="mid"><b>${esc(m.name)}</b><small>${N(m.rate_per_hour)} MINER/h · <span data-amt="${i}"></span></small></div></div>`
+  + `<small>Ready: <b data-amp="${i}">0.00</b> MINER<span data-amf="${i}"></span></small></div>`;
+
+/* one tick = one second: recount every machine from the last server state */
+function amTick() {
+  const a = amData; if (!a || !a.enabled) return;
+  const t = (Date.now() - amAt) / 1000;
+  let total = 0, claim = 0, hour = 0;
+  a.miners.forEach((m, i) => {
+    const v = amEst(m, t), run = amRunning(m, t), full = v >= amCap(m) - 1e-9;
+    total += v; claim += Math.floor(v); if (run) hour += m.rate_per_hour;
+    const timeTxt = run ? leftText(Math.max(0, m.seconds_left - t)) + ' left' : 'finished';
+    const fullTxt = full ? ' · storage full, claim to keep mining' : (run ? ' · storage full in ' + leftText(Math.max(0, m.full_in_seconds - t)) : '');
+    amSet(`[data-amp="${i}"]`, v.toFixed(2)); amSet(`[data-amt="${i}"]`, timeTxt); amSet(`[data-amf="${i}"]`, fullTxt);
+  });
+  amSet('[data-amready]', total.toFixed(2));
+  amSet('[data-amreadyusd]', withUsd(total));
+  amSet('[data-amrate]', N(hour));
+  document.querySelectorAll('[data-amclaim]').forEach((b) => { b.disabled = claim < 1; b.textContent = claim >= 1 ? 'Claim ' + N(claim) + ' MINER ›' : 'Nothing to claim yet'; });
+  if (t >= 60) amFetch(); // re-sync with the server about once a minute
+}
+
+/* fetch the state from the server (one request at a time) */
+async function amFetch() {
+  if (amBusy) return; amBusy = true;
+  try {
+    amData = await api('autoMiner'); amAt = Date.now();
+    renderAutoMiner();
+    if (amData.enabled && !amTimer) amTimer = setInterval(amTick, 1000);
+  } catch (e) { /* keep the last numbers on screen */ }
+  finally { amBusy = false; }
+}
+
+/* Home: shows the live miners whenever Auto-Miner is ON */
+function renderAutoHome() {
+  if (data.auto_miner && data.auto_miner.enabled) amFetch();
+  else { const w = $('amhome'); if (w) w.hidden = true; }
+}
+
 function renderAutoMiner() {
   const a = amData; if (!a) return;
-  const note = $('amnote'); note.hidden = !!a.enabled;
+  $('amhome').hidden = !a.enabled;
+  $('amnote').hidden = !!a.enabled;
   if (!a.enabled) {
-    note.innerHTML = '<b>Auto-Miner is not open yet</b><small class="muted">Follow the official channel to hear when it starts.</small>';
-    ['amtop', 'amminers', 'amshop', 'amclaims'].forEach((id) => setHtml(id, ''));
+    $('amnote').innerHTML = '<b>Auto-Miner is not open yet</b><small class="muted">Follow the official channel to hear when it starts.</small>';
+    ['amtop', 'amminers', 'amshop', 'amclaims', 'amhometop', 'amhomeminers'].forEach((id) => setHtml(id, ''));
     return;
   }
-  note.innerHTML = '';
-  setHtml('amtop', `<div class="card"><div class="row flat">${ic('⛏️')}<div class="mid"><b>${N(a.pending_total)} MINER ready to claim${esc(withUsd(a.pending_total))}</b><small>Mining ${N(a.per_hour)} MINER per hour · storage ${N(a.storage_hours)} h per machine</small></div></div>`
-    + `<small class="muted">Balance: ${N(a.balance)} MINER${esc(withUsd(a.balance))} · claimed so far ${N(a.claimed_total)}</small>`
-    + `<button class="btn" data-act="amClaim"${a.can_claim ? '' : ' disabled'}>${a.can_claim ? 'Claim ' + N(a.pending_total) + ' MINER ›' : 'Nothing to claim yet'}</button></div>`);
-  setHtml('amminers', a.miners.map((m) => {
-    const time = m.status === 'running' ? leftText(m.seconds_left) + ' left' : 'finished';
-    const full = m.full ? ' · storage full, claim to keep mining' : (m.status === 'running' ? ' · storage full in ' + leftText(m.full_in_seconds) : '');
-    return `<div class="card"><div class="row flat">${ic('⛏️')}<div class="mid"><b>${esc(m.name)}</b><small>${N(m.rate_per_hour)} MINER/h · ${esc(time)}</small></div></div>`
-      + `<small>Ready: <b>${N(m.pending)}</b> MINER${esc(withUsd(m.pending))}${esc(full)}</small></div>`;
-  }).join('') || empty('You have no miners yet. Buy one below.'));
+  $('amnote').innerHTML = '';
+  const top = amTopHtml();
+  const miners = a.miners.map(amMinerHtml).join('') || empty('You have no miners yet. Buy one in the shop.');
+  setHtml('amhometop', top); setHtml('amhomeminers', miners);
+  setHtml('amtop', top); setHtml('amminers', miners);
   setHtml('amshop', a.plans.map((p) => {
     const price = p.price > 0 ? N(p.price) + ' MINER' + esc(withUsd(p.price)) : 'Free';
     const can = p.can_buy && (p.price === 0 || a.balance >= p.price);
@@ -462,8 +507,9 @@ function renderAutoMiner() {
       + `<small>Price: ${price} · you own ${N(p.owned)} of ${N(p.max_per_user)}</small><div class="acts">${act}</div></div>`;
   }).join('') || empty('No miners in the shop right now'));
   setHtml('amclaims', a.claims.map((c) => `<div class="card row">${ic('⛏️')}<div class="mid"><b>+${N(c.points)} MINER${esc(withUsd(c.points))}</b><small>${N(c.miners)} miner(s) · ${esc(dt(c.at))}</small></div></div>`).join('') || empty('No claims yet'));
+  amTick();
 }
-async function loadAutoMiner() { setHtml('amtop', skel(1)); amData = await api('autoMiner'); renderAutoMiner(); }
+async function loadAutoMiner() { await amFetch(); }
 
 /* ---------------- navigation ---------------- */
 const PARENT = { automine: 'more', deposit: 'withdraw', rewards: 'more', rank: 'more', ads: 'more', channel: 'more', proof: 'more', howto: 'more', games: 'more', contests: 'more', missions: 'more', terms: 'more', taskproof: 'tasks', history: 'more', prefs: 'more' };
