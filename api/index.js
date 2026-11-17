@@ -21,6 +21,7 @@ import * as cts from "../lib/actions/contests.js";
 import * as saf from "../lib/actions/safety.js";
 import * as mis from "../lib/actions/missions.js";
 import * as trm from "../lib/actions/terms.js";
+import * as amn from "../lib/actions/autominer.js";
 import { roleOf, can } from "../lib/roles.js";
 import { reportApiError } from "../lib/health.js";
 import { adsgramReward } from "../lib/adsgram.js";
@@ -128,6 +129,13 @@ const ACTIONS = {
   missionClaim: { fn: mis.missionClaim, write: true },
   terms: { fn: trm.terms },
   termsAccept: { fn: trm.termsAccept, write: true },
+  // Part 17.2: Auto-Miner
+  autoMiner: { fn: amn.autoMiner },
+  autoMinerBuy: { fn: amn.autoMinerBuy, write: true },
+  autoMinerClaim: { fn: amn.autoMinerClaim, write: true },
+  adminAutoMinerOverview: { fn: amn.adminAutoMinerOverview, admin: true },
+  adminAutoMinerPlanSave: { fn: amn.adminAutoMinerPlanSave, admin: true, write: true },
+  adminAutoMinerPlanSetActive: { fn: amn.adminAutoMinerPlanSetActive, admin: true, write: true },
 };
 
 const query_action = (req) => String((req.query && req.query.action) || (req.body && req.body.action) || "bootstrap");

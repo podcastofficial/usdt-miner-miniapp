@@ -105,3 +105,8 @@ Rule for every part: new options live in Admin > Settings (default OFF where mon
 - Terms & Privacy screen with admin-editable texts; optional acceptance before the first withdrawal (**OFF** until enabled)
 - Run `012_languages.sql` then `013_missions_terms_wallets.sql` BEFORE redeploying. Details: `CHANGELOG_PART14.md`
 - New API actions: `missions`, `missionClaim`, `terms`, `termsAccept`
+
+### Part 17.2 (v1.18.0) - Auto-Miner backend
+- Passive mining machines bought with Points, claimed in one tap. Backend + API only (screen in 17.3). **OFF** until you enable it.
+- Run `db/migrations/016_auto_miner.sql` BEFORE redeploying. New API actions: `autoMiner`, `autoMinerBuy`, `autoMinerClaim`, `adminAutoMinerOverview`, `adminAutoMinerPlanSave`, `adminAutoMinerPlanSetActive`. Details: `CHANGELOG_PART17.md`
+

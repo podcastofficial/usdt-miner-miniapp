@@ -88,7 +88,7 @@ function taskIcon(type, link, title) {
   return type === 'channel' ? '✈️' : type === 'bot' ? '🤖' : type === 'website' ? '🌐' : '🎯';
 }
 /* Ledger type -> icon (History). Unknown types fall back to green / red dot. */
-const TX_ICONS = { 'Task Reward': '✅', 'Daily Reward': '📅', 'Referral Reward': '👥', 'Milestone Reward': '🏅', 'Promo Code': '🎟️', 'Mission Reward': '🎯', 'Ad Reward': '📺', 'Campaign Budget': '📢', 'Campaign Refund': '↩️', 'Withdrawal': '💸', 'Withdrawal Refund': '↩️', 'Deposit': '⬇️', 'Game Entry': '🎮', 'Game Prize': '🏆', 'Lucky Draw Ticket': '🎫', 'Lucky Draw Win': '🎉', 'Lucky Draw Refund': '↩️', 'Booster Purchase': '⚡', 'Contest Prize': '🏁', 'Admin Adjustment': '🛠️' };
+const TX_ICONS = { 'Task Reward': '✅', 'Daily Reward': '📅', 'Referral Reward': '👥', 'Milestone Reward': '🏅', 'Promo Code': '🎟️', 'Mission Reward': '🎯', 'Ad Reward': '📺', 'Campaign Budget': '📢', 'Campaign Refund': '↩️', 'Withdrawal': '💸', 'Withdrawal Refund': '↩️', 'Deposit': '⬇️', 'Game Entry': '🎮', 'Game Prize': '🏆', 'Lucky Draw Ticket': '🎫', 'Lucky Draw Win': '🎉', 'Lucky Draw Refund': '↩️', 'Booster Purchase': '⚡', 'Auto-Miner Purchase': '🤖', 'Auto-Miner Reward': '⛏️', 'Contest Prize': '🏁', 'Admin Adjustment': '🛠️' };
 const txIcon = (t) => TX_ICONS[t.type] || (t.points_change >= 0 ? '🟢' : '🔴');
 function taskBtn(t) {
   const a = `data-id="${Number(t.id)}"`, nm = ' — ' + t.title;

@@ -84,3 +84,9 @@ Vercel → Deployments → previous deployment → **Promote to Production**. Da
 6. **Language / theme**: users pick them in More → Settings. Dark stays the default.
 7. Run rows 67-90 of `docs/TEST_MATRIX.md` with tiny numbers first.
 
+## 15. Auto-Miner backend (v1.18.0, Part 17.2)
+1. Neon SQL Editor: run `db/migrations/016_auto_miner.sql` (safe to run twice). **Do this BEFORE redeploying.** No new Vercel env variables. Redeploy.
+2. Nothing is visible to users yet: the Auto-Miner screen arrives in 17.3. **Admin > Settings > Auto-Miner** starts **OFF** (`auto_miner_enabled`); `auto_miner_storage_hours` is 24.
+3. Review the 4 starter machines (Starter free / Bronze / Silver / Gold) through the admin API `adminAutoMinerOverview`: ROI per plan, Points spent vs paid, and the most that can still be paid out. Every Point paid is created by the app (1 Point = 1 MINER).
+4. Do not switch the feature ON before 17.3 (no screen) and before you tested buy + claim with a tiny plan on your own account.
+
