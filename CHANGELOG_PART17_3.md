@@ -25,3 +25,9 @@ Backend (`api/index.js`, `lib/actions/autominer.js`, `lib/autominer.js`), the SQ
 
 ## Before switching it ON
 Check the ROI column in Admin > Auto-Miner. A machine pays Points that the app creates, so keep Admin > Safety fraud scan ON (free machines are an abuse target). Test one purchase and one claim with tiny numbers first.
+
+## Update: live counting + Home
+- The **miners now show on the Home page** (under the balance card, while Auto-Miner is ON): ready-to-claim total, Claim button, and each machine with its time left and storage status. "Shop & details ›" opens the full screen.
+- Earnings **count up every second** on Home and on the screen. This is display only: the page estimates from the last server state, and it re-syncs with the server about once a minute and after every claim or purchase.
+- The estimate is capped at each machine's storage (rate x storage hours). Claims are still whole MINER, rounded down by the server, so the amount paid can be slightly lower than the shown decimals.
+- Changed: `public/index.html`, `public/app.js`, `tests/part17b.test.js`, `CHANGELOG_PART17_3.md`.
