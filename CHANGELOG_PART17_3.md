@@ -31,3 +31,5 @@ Check the ROI column in Admin > Auto-Miner. A machine pays Points that the app c
 - Earnings **count up every second** on Home and on the screen. This is display only: the page estimates from the last server state, and it re-syncs with the server about once a minute and after every claim or purchase.
 - The estimate is capped at each machine's storage (rate x storage hours). Claims are still whole MINER, rounded down by the server, so the amount paid can be slightly lower than the shown decimals.
 - Changed: `public/index.html`, `public/app.js`, `tests/part17b.test.js`, `CHANGELOG_PART17_3.md`.
+
+- The big **Your MINER** balance on Home also counts up every second: server balance + the live ready amount, shown with 2 decimals and the ≈ USDT line follows. The server still credits only on Claim, so the extra decimals are not paid until you claim.
