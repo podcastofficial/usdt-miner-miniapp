@@ -31,6 +31,14 @@ test("admin Auto-Miner tab: uses the rewards permission and only methods that ex
   assert.match(adm, /BOOL=new Set\(\['amOn'/);
 });
 
+test("Home shows the live miners; the screen counts them up every second (display only, claims stay on the server)", () => {
+  assert.match(html, /<div id="amhome" hidden>/);
+  for (const id of ["amhometop", "amhomeminers"]) assert.match(html, new RegExp(`id="${id}"`), id);
+  assert.match(app, /setInterval\(amTick, 1000\)/);
+  assert.match(app, /data-amclaim disabled/);
+  assert.match(app, /data-amp="\$\{i\}"/);
+});
+
 test("strict CSP: no inline styles or handlers in the new code", () => {
   for (const [name, src] of [["index.html", html], ["app.js", app], ["admin.js", adm]]) {
     assert.doesNotMatch(src, /\sstyle\s*=\s*["']/i, name + " inline style");
