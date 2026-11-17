@@ -12,7 +12,7 @@ const HASH = "0x" + "ab".repeat(32);
 test("escapeHtml neutralises Telegram HTML", () => assert.equal(escapeHtml(`<b>&"x"</b>`), "&lt;b&gt;&amp;\"x\"&lt;/b&gt;"));
 
 test("withdrawal messages: amount to 2 decimals, BscScan link only for a valid hash, reason is escaped", () => {
-  assert.match(withdrawalMessage("approved", { id: 7, net: "13.5" }), /#7 approved[\s\S]*13\.50 USDT/);
+  assert.match(withdrawalMessage("approved", { id: 7, net: "13.5" }), /#7 approved[\s\S]*13\.50 MINER/);
   const paid = withdrawalMessage("paid", { id: 7, net: "13.5", txHash: HASH });
   assert.ok(paid.includes(`https://bscscan.com/tx/${HASH}`));
   assert.ok(!withdrawalMessage("paid", { id: 7, net: "13.5", txHash: "javascript:alert(1)" }).includes("<a "));
@@ -30,7 +30,7 @@ test("referral + reminder messages never contain raw user HTML", () => {
 test("proof message masks the name and links the transaction", () => {
   const m = proofMessage({ net: "20", firstName: "Rahul", username: "rahul99", txHash: HASH });
   assert.ok(m.includes("Ra***") && !m.includes("Rahul") && !m.includes("rahul99"));
-  assert.ok(m.includes("20.00 USDT") && m.includes(HASH));
+  assert.ok(m.includes("20.00 MINER") && m.includes(HASH));
 });
 
 test("broadcast validation: length, segment, control chars, escaping", () => {

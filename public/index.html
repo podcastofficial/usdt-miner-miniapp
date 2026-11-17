@@ -17,7 +17,7 @@
 
 <header class="top">
   <img class="logo" src="/logo.png" width="48" height="48" alt="" aria-hidden="true" decoding="async">
-  <div><h1>USDT Miner</h1><small data-i18n="app.sub">Mine Points &amp; Earn USDT</small></div>
+  <div><h1>USDT Miner</h1><small data-i18n="app.sub">Mine MINER Tokens</small></div>
 </header>
 <div id="banner" role="note" hidden></div>
 <p id="status" class="muted" role="status">Connecting to Telegram…</p>
@@ -41,10 +41,10 @@
   <div class="card balance">
     <div class="bal-top">
       <div>
-        <div class="l"><span aria-hidden="true">🪙</span> <span data-i18n="home.points">Your Points</span></div>
+        <div class="l"><span aria-hidden="true">🪙</span> <span data-i18n="home.points">Your MINER</span></div>
         <div id="points" class="big">—</div>
       </div>
-      <div id="rate" class="rate">10,000 Points = 1 USDT</div>
+      <div id="rate" class="rate">1 Point = 1 MINER</div>
     </div>
     <div class="qa">
       <button class="btn" id="dailybtn" data-act="daily">Claim ›</button>
@@ -67,19 +67,19 @@
     <button class="btn" data-act="verify">Verify ›</button>
   </div>
   <div class="grid">
-    <article class="card tile feat"><span class="ic ib" aria-hidden="true">⛏️</span><div class="tt"><h3 data-i18n="tile.miner.t">Points Miner</h3><small data-i18n="tile.miner.s">Mine &amp; earn Points</small></div><button class="btn" data-go="tasks" data-i18n="tile.miner.b">Tasks ›</button></article>
+    <article class="card tile feat"><span class="ic ib" aria-hidden="true">⛏️</span><div class="tt"><h3 data-i18n="tile.miner.t">MINER Miner</h3><small data-i18n="tile.miner.s">Mine &amp; earn MINER</small></div><button class="btn" data-go="tasks" data-i18n="tile.miner.b">Tasks ›</button></article>
     <article class="card tile"><span class="ic ib" aria-hidden="true">👥</span><h3 data-i18n="tile.ref.t">Referral</h3><small data-i18n="tile.ref.s">Invite &amp; earn more</small><button class="btn" data-go="ref" data-i18n="tile.ref.b">Invite ›</button></article>
     <article class="card tile"><span class="ic ib" aria-hidden="true">🏆</span><h3 data-i18n="tile.rank.t">Leaderboard</h3><small data-i18n="tile.rank.s">Top miners ranking</small><button class="btn" data-go="rank" data-i18n="tile.rank.b">View ›</button></article>
     <article class="card tile"><span class="ic ib" aria-hidden="true">🏅</span><h3 data-i18n="tile.rewards.t">Rewards</h3><small data-i18n="tile.rewards.s">Level, badges &amp; bonuses</small><button class="btn" data-go="rewards" data-i18n="tile.rewards.b">Open ›</button></article>
     <article class="card tile"><span class="ic ib" aria-hidden="true">📢</span><h3 data-i18n="tile.ads.t">Advertise</h3><small data-i18n="tile.ads.s">Promote &amp; get joins</small><button class="btn" data-go="ads" data-i18n="tile.ads.b">Promote ›</button></article>
     <article class="card tile wide" id="promotile" hidden><span class="ic ib" aria-hidden="true">🎟️</span><div class="tt"><h3 data-i18n="tile.promo.t">Promo Code</h3><small data-i18n="tile.promo.s">Redeem a code</small></div><button class="btn" data-go="rewards" data-i18n="tile.promo.b">Redeem ›</button></article>
-    <article class="card tile wide" id="adtile" hidden><span class="ic ib" aria-hidden="true">📺</span><div class="tt"><h3>Watch &amp; Earn</h3><small id="adtilesub">Watch an ad, get Points</small></div><button class="btn" data-act="watchAd" id="adtilebtn">Watch ›</button></article>
+    <article class="card tile wide" id="adtile" hidden><span class="ic ib" aria-hidden="true">📺</span><div class="tt"><h3>Watch &amp; Earn</h3><small id="adtilesub">Watch an ad, get MINER</small></div><button class="btn" data-act="watchAd" id="adtilebtn">Watch ›</button></article>
   </div>
 </section>
 
 <!-- ============ TASKS ============ -->
 <section id="tasks" aria-labelledby="h-tasks">
-  <h2 id="h-tasks"><span data-i18n="tasks.title">⛏️ Points Miner</span><small data-i18n="tasks.sub">Complete tasks and earn Points</small></h2>
+  <h2 id="h-tasks"><span data-i18n="tasks.title">⛏️ MINER Miner</span><small data-i18n="tasks.sub">Complete tasks and earn MINER</small></h2>
   <div class="tabs" role="tablist" aria-label="Task type">
     <button class="tab" role="tab" id="tab-all" aria-selected="true" aria-controls="tasklist" data-act="tab" data-f="all">⛏️ Mining</button>
     <button class="tab" role="tab" id="tab-social" aria-selected="false" aria-controls="tasklist" tabindex="-1" data-act="tab" data-f="social">👥 Social</button>
@@ -97,7 +97,7 @@
     <button class="btn" data-act="copyRef">Copy link</button>
     <button class="btn" data-act="shareRef">Share ›</button>
     <p id="refcount" class="muted"></p>
-    <small>You earn <span id="refreward">1,000</span> Points when your invited friend joins and verifies the required channels.</small>
+    <small>You earn <span id="refreward">1,000</span> MINER when your invited friend joins and verifies the required channels.</small>
   </div>
   <div class="card" id="refmilestones" hidden></div>
   <h3 class="sec" id="h-myref">My referrals</h3>
@@ -129,7 +129,7 @@
 
 <!-- ============ LEADERBOARD (Part 6) ============ -->
 <section id="rank" aria-labelledby="h-rank">
-  <h2 id="h-rank"><span data-i18n="rank.title">🏆 Leaderboard</span><small data-i18n="rank.sub">Top 200 miners by Points</small></h2>
+  <h2 id="h-rank"><span data-i18n="rank.title">🏆 Leaderboard</span><small data-i18n="rank.sub">Top 200 miners by MINER</small></h2>
   <div id="rankme"></div>
   <div id="ranklist"></div>
   <div class="pager" id="rankpager" hidden>
@@ -143,8 +143,8 @@
 <section id="withdraw" aria-labelledby="h-withdraw">
   <h2 id="h-withdraw" data-i18n="withdraw.title">💸 Withdraw</h2>
   <div class="card">
-    <label for="amount">USDT amount</label>
-    <input id="amount" type="text" inputmode="decimal" autocomplete="off" placeholder="USDT amount (min 15)" data-input="quote">
+    <label for="amount">MINER amount</label>
+    <input id="amount" type="text" inputmode="decimal" autocomplete="off" placeholder="MINER amount (min 1000)" data-input="quote">
     <label for="wallet">BEP-20 wallet address</label>
     <input id="wallet" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="0x…">
     <p id="wquote" class="hint" role="status"></p>
@@ -190,15 +190,15 @@
   <button class="card hub" data-go="howto"><span class="ic" aria-hidden="true">📖</span><span><b data-i18n="hub.howto.t">How to Use</b><small data-i18n="hub.howto.s">Step by step guide and FAQ</small></span><span class="chev" aria-hidden="true">›</span></button>
   <button class="card hub" data-go="games"><span class="ic" aria-hidden="true">🎮</span><span><b data-i18n="hub.games.t">Games</b><small data-i18n="hub.games.s">Spin, scratch, lucky draw, boosters</small></span><span class="chev" aria-hidden="true">›</span></button>
   <button class="card hub" data-go="contests"><span class="ic" aria-hidden="true">🏁</span><span><b data-i18n="hub.contests.t">Contests</b><small data-i18n="hub.contests.s">Invite friends and win prizes</small></span><span class="chev" aria-hidden="true">›</span></button>
-  <button class="card hub" data-go="missions"><span class="ic" aria-hidden="true">🎯</span><span><b data-i18n="hub.missions.t">Weekly Missions</b><small data-i18n="hub.missions.s">Finish goals, earn bonus Points</small></span><span class="chev" aria-hidden="true">›</span></button>
-  <button class="card hub" data-go="history"><span class="ic" aria-hidden="true">📜</span><span><b data-i18n="hub.history.t">History</b><small data-i18n="hub.history.s">Your Points transactions</small></span><span class="chev" aria-hidden="true">›</span></button>
+  <button class="card hub" data-go="missions"><span class="ic" aria-hidden="true">🎯</span><span><b data-i18n="hub.missions.t">Weekly Missions</b><small data-i18n="hub.missions.s">Finish goals, earn bonus MINER</small></span><span class="chev" aria-hidden="true">›</span></button>
+  <button class="card hub" data-go="history"><span class="ic" aria-hidden="true">📜</span><span><b data-i18n="hub.history.t">History</b><small data-i18n="hub.history.s">Your MINER transactions</small></span><span class="chev" aria-hidden="true">›</span></button>
   <button class="card hub" data-go="prefs"><span class="ic" aria-hidden="true">⚙️</span><span><b data-i18n="hub.prefs.t">Settings</b><small data-i18n="hub.prefs.s">Language and light / dark theme</small></span><span class="chev" aria-hidden="true">›</span></button>
   <button class="card hub" data-go="terms"><span class="ic" aria-hidden="true">📜</span><span><b data-i18n="hub.terms.t">Terms &amp; Privacy</b><small data-i18n="hub.terms.s">Rules and how we use your data</small></span><span class="chev" aria-hidden="true">›</span></button>
 </section>
 
 <!-- ============ ADVERTISE (Part 6) ============ -->
 <section id="ads" aria-labelledby="h-ads">
-  <h2 id="h-ads">📢 Advertise<small>Pay with Points, get real joins</small></h2>
+  <h2 id="h-ads">📢 Advertise<small>Pay with MINER, get real joins</small></h2>
   <div class="card">
     <p id="adinfo" class="muted"></p>
     <div id="adform">
@@ -214,7 +214,7 @@
         <button class="btn sm ghost" type="button" data-act="botCheck">✅ Check ›</button>
         <p id="c_botmsg" class="hint" role="status"></p>
       </div>
-      <label for="c_reward">Points paid to each user</label>
+      <label for="c_reward">MINER paid to each user</label>
       <input id="c_reward" type="text" inputmode="numeric" autocomplete="off" placeholder="e.g. 50" data-input="adcalc">
       <label for="c_target">Number of completions wanted</label>
       <input id="c_target" type="text" inputmode="numeric" autocomplete="off" placeholder="e.g. 100" data-input="adcalc">
@@ -250,9 +250,9 @@
 
 <!-- ============ GAMES & BOOSTERS (Phase 2 / Part 3) ============ -->
 <section id="games" aria-labelledby="h-games">
-  <h2 id="h-games">🎮 Games<small>Spin, scratch and win Points</small></h2>
+  <h2 id="h-games">🎮 Games<small>Spin, scratch and win MINER</small></h2>
   <div class="card" id="gamenote" hidden></div>
-  <div class="card row" id="gamebal"><span class="ic" aria-hidden="true">🪙</span><div class="mid"><b id="gamebalv">—</b><small>Your Points</small></div></div>
+  <div class="card row" id="gamebal"><span class="ic" aria-hidden="true">🪙</span><div class="mid"><b id="gamebalv">—</b><small>Your MINER</small></div></div>
   <div class="card result" id="gameresult" role="status" aria-live="polite" hidden></div>
   <div id="gamelist"></div>
   <h3 class="sec">⚡ Mining Booster</h3>
@@ -261,12 +261,12 @@
   <div class="card" id="drawcard"><div class="empty">Loading…</div></div>
   <h3 class="sec">Your recent plays</h3>
   <div id="playlist"></div>
-  <p class="hint">Games use Points only, never real money. Every result is decided by the server before you see it, and the odds are shown on each game. Daily limits and prize caps apply. Play for fun.</p>
+  <p class="hint">Games use MINER only, never real money. Every result is decided by the server before you see it, and the odds are shown on each game. Daily limits and prize caps apply. Play for fun.</p>
 </section>
 
 <!-- ============ TASK PROOF (Phase 2 / Part 4) ============ -->
 <section id="taskproof" aria-labelledby="h-taskproof">
-  <h2 id="h-taskproof">🧾 Send proof<small>An admin checks it, then you get your Points</small></h2>
+  <h2 id="h-taskproof">🧾 Send proof<small>An admin checks it, then you get your MINER</small></h2>
   <div class="card">
     <b id="pf_title"></b>
     <p id="pf_hint" class="muted"></p>
@@ -281,14 +281,14 @@
 
 <!-- ============ CONTESTS (Phase 2 / Part 4) ============ -->
 <section id="contests" aria-labelledby="h-contests">
-  <h2 id="h-contests">🏁 Contests<small>Invite friends and win Points</small></h2>
+  <h2 id="h-contests">🏁 Contests<small>Invite friends and win MINER</small></h2>
   <div id="ctlist"><div class="empty">Loading…</div></div>
   <p class="hint">Only friends who join and verify the required channels count. Rankings are live; prizes are paid by the admin after the contest ends. Ties go to whoever reached the number first.</p>
 </section>
 
 <!-- ============ WEEKLY MISSIONS (Part 14) ============ -->
 <section id="missions" aria-labelledby="h-missions">
-  <h2 id="h-missions">🎯 Weekly Missions<small>Finish the goals before Monday and earn Points</small></h2>
+  <h2 id="h-missions">🎯 Weekly Missions<small>Finish the goals before Monday and earn MINER</small></h2>
   <div id="mslist"><div class="empty">Loading…</div></div>
   <p class="hint">Progress counts from Monday 00:00. Each reward can be claimed once per week.</p>
 </section>
