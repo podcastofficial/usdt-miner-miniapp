@@ -174,7 +174,7 @@ export default async function handler(req, res) {
     if (def.admin && !isAdmin) throw new HttpError(403, "admin_only", "Admin only");
     if (def.admin && !can(role, action)) throw new HttpError(403, "forbidden_role", "Your admin role cannot do this"); // fail closed: an action with no entry in ACTION_PERMS is denied to everyone
 
-    await rateLimit(id, action);
+    await rateLimit(id, action, { memory: !def.write && !def.admin }); // reads: in-memory counter, writes/admin: Postgres counter
     return send(res, 200, await def.fn({ id, row, isAdmin, role, body, query, startParam: tg.startParam, host: req.headers["x-forwarded-host"] || req.headers.host }));
   } catch (e) {
     if (e instanceof AuthError) return send(res, e.code === "server_misconfigured" ? 500 : 401, { error: e.message, code: e.code });

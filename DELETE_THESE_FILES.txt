@@ -1,3 +1,0 @@
-GitHub se ye 2 files delete karo (zip se delete nahi ho sakti):
-  public/i18n/hinglish.json
-  DELETE_THIS.txt

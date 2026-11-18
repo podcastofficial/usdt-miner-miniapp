@@ -468,7 +468,11 @@ function amTick() {
   const pt = $('points'); if (pt) pt.textContent = shown.toLocaleString(undefined, fmt);
   const pu = $('pointsusd'); if (pu) { const u = usd(shown); pu.textContent = u; pu.hidden = !u; }
   document.querySelectorAll('[data-amclaim]').forEach((b) => { b.disabled = claim < 1; b.textContent = claim >= 1 ? 'Claim ' + N(claim) + ' MINER ›' : 'Nothing to claim yet'; });
+<<<<<<< HEAD
   if (t >= 60) amFetch(); // re-sync with the server about once a minute
+=======
+  if (t >= 300 && !document.hidden) amFetch(); // re-sync about every 5 min, never while the app is in the background (the counter runs locally)
+>>>>>>> ae1d812 (Apply USDT miner CPU fixes)
 }
 
 /* fetch the state from the server (one request at a time) */
@@ -482,6 +486,12 @@ async function amFetch() {
   finally { amBusy = false; }
 }
 
+<<<<<<< HEAD
+=======
+// coming back to the app after a while: sync once
+document.addEventListener('visibilitychange', () => { if (!document.hidden && amData && amData.enabled && (Date.now() - amAt) / 1000 >= 60) amFetch(); });
+
+>>>>>>> ae1d812 (Apply USDT miner CPU fixes)
 /* Home: shows the live miners whenever Auto-Miner is ON */
 function renderAutoHome() {
   if (data.auto_miner && data.auto_miner.enabled) amFetch();

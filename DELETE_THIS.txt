@@ -1,1 +1,0 @@
-public/i18n/hinglish.json ko delete kar do
