@@ -22,6 +22,9 @@ import * as saf from "../lib/actions/safety.js";
 import * as mis from "../lib/actions/missions.js";
 import * as trm from "../lib/actions/terms.js";
 import * as amn from "../lib/actions/autominer.js";
+import * as p19 from "../lib/actions/parts19.js";
+import * as p20 from "../lib/actions/parts20.js";
+import * as p21 from "../lib/actions/parts21.js";
 import { roleOf, can } from "../lib/roles.js";
 import { reportApiError } from "../lib/health.js";
 import { adsgramReward } from "../lib/adsgram.js";
@@ -84,6 +87,15 @@ const ACTIONS = {
   adminBroadcastCreate: { fn: ntf.adminBroadcastCreate, admin: true, write: true },
   adminBroadcastCancel: { fn: ntf.adminBroadcastCancel, admin: true, write: true },
   engagement: { fn: eng.engagement },
+  checkinCalendar: { fn: p19.checkinCalendar },
+  mysteryBoxInfo: { fn: p19.mysteryBoxInfo },
+  mysteryBoxClaim: { fn: p19.mysteryBoxClaim, write: true },
+  vipInfo: { fn: p20.vipInfo },
+  shareCardInfo: { fn: p21.shareCardInfo },
+  supportTicketCreate: { fn: p21.supportTicketCreate, write: true },
+  supportTicketList: { fn: p21.supportTicketList },
+  achievementsInfo: { fn: p21.achievementsInfo },
+  seasonPassInfo: { fn: p21.seasonPassInfo },
   referralList: { fn: eng.referralList },
   promoRedeem: { fn: eng.promoRedeem, write: true },
   adWatchInfo: { fn: adw.adWatchInfo },
