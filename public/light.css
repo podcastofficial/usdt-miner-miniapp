@@ -49,3 +49,4 @@ html[data-theme="light"] .tile .ib{box-shadow:0 4px 0 #b35300,0 8px 12px rgba(21
 html[data-theme="light"] .row .ic,html[data-theme="light"] .hub .ic{border-color:rgba(194,78,0,.4);background:linear-gradient(160deg,#ffe3bd,#ffc98a);box-shadow:inset 0 1px 0 #fff}
 html[data-theme="light"] .btn.ghost{border-color:rgba(194,78,0,.5)}
 html[data-theme="light"] nav#nav button[aria-current=page]{background:linear-gradient(180deg,rgba(255,176,46,.35),rgba(255,122,0,.15));box-shadow:inset 0 0 0 1px rgba(194,78,0,.45)}
+html[data-theme="light"] .mini .ic{box-shadow:0 3px 0 #b35300,0 5px 8px rgba(217,104,0,.3),inset 0 1px 0 rgba(255,255,255,.7)}

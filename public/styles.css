@@ -266,3 +266,13 @@ progress.bar::-moz-progress-bar{background:linear-gradient(90deg,var(--or1),var(
 .ctclock-wrap{margin:10px 0 4px;padding:10px;border-radius:14px;text-align:center;background:var(--field);border:1px solid var(--line)}
 .ctclock-wrap small{display:block}
 #ctclock{display:block;font-size:1.5rem;font-weight:800;letter-spacing:.5px;color:var(--or1);font-variant-numeric:tabular-nums}
+
+/* Home quick menu: compact shortcuts to every More screen */
+.quick{margin-top:18px}
+.mini-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mini-grid>.mini{display:flex;align-items:center;gap:9px;width:100%;min-height:54px;margin:0;padding:8px 10px;text-align:left;transition:transform .15s}
+.mini:active{transform:scale(.97)}
+.mini .ic{flex:0 0 auto;display:grid;place-items:center;width:34px;height:34px;font-size:1.1rem;border-radius:11px;background:linear-gradient(160deg,#ffd36b,#ff9a12 55%,#c24e00);box-shadow:0 2px 0 #6b2c00,0 4px 8px rgba(255,122,0,.3),inset 0 1px 0 rgba(255,255,255,.5)}
+.mini b{flex:1;min-width:0;font-size:.82rem;line-height:1.15}
+.mini .chev{flex:0 0 auto;color:var(--or1);font-size:1.15rem}
+@media (max-width:340px){.mini-grid{grid-template-columns:1fr}}
