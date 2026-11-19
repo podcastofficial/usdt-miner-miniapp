@@ -113,3 +113,13 @@ Rule for every part: new options live in Admin > Settings (default OFF where mon
 - Passive mining machines bought with Points, claimed in one tap. Backend + API only (screen in 17.3). **OFF** until you enable it.
 - Run `db/migrations/016_auto_miner.sql` BEFORE redeploying. New API actions: `autoMiner`, `autoMinerBuy`, `autoMinerClaim`, `adminAutoMinerOverview`, `adminAutoMinerPlanSave`, `adminAutoMinerPlanSetActive`. Details: `CHANGELOG_PART17.md`
 
+
+## Roadmap: growth & retention features (Part 18 onwards)
+Built in small parts so each one can be tested before the next. Every new feature ships OFF (or hidden until it has real data) and is switched on from Admin > Settings.
+
+- **Part 18 = A (done, v1.20.0, frontend only):** Home contest banner (live countdown, top 3, your rank), live Payment Proof strip, withdraw progress bar. See `CHANGELOG_PART18.md`.
+- **Part 19 = B (next):** bot reminders ("daily claim ready", "Auto-Miner full", "contest ends in 2 hours"), 30-day check-in calendar (bigger bonus on day 7 / 15 / 30), Mystery box (1 free per day + 1 more after an ad). Needs a new migration, backend actions and cron changes.
+- **Part 20 = C (money logic, needs the most testing):** lifetime referral commission (small % of a friend's earnings, % and rules decided before building) and VIP levels (higher level = bigger daily reward or lower withdraw fee). Changes the ledger, so it gets its own tests and admin settings.
+- **Part 21 = D:** share card (one tap image of your earnings / referral, shared to Telegram), in-app support ticket form with admin reply, achievements and season pass (special reward when a season ends).
+
+Order can change. Part C is the riskiest, so it stays after A and B.
