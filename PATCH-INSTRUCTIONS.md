@@ -28,3 +28,9 @@ Run these migrations in the Neon SQL Editor in this exact order, before deployin
 - Part 21 Season Pass remains a status-only foundation; there is no reward claim flow.
 - Frontend screens are not included in this patch. These are backend/API additions and must be connected to the app UI before users can operate the features in-app.
 - Run `npm test` and `npm run check` after merging. Test against a staging database before production.
+
+## Optional separate frontend pages (Parts 22–27)
+
+The separate frontend patch adds `public/parts-admin.html`, `public/parts-admin.js`, `public/parts-user.html`, `public/parts-user.js`, and `public/parts-ui.css`. It does **not** modify `public/index.html`.
+
+After copying these five files into the matching `public/` folder and deploying, open `/parts-admin.html` (admin tools) or `/parts-user.html` (user dashboard) inside the Telegram Mini App. Both pages use Telegram WebApp `initData` and the existing `/api?action=...` routes. The server remains responsible for authentication and role permissions. The user page displays premium, mining history, and referral challenges; the admin page displays notes, segments, risk scoring, premium tier management, mining reports, challenges, and analytics.
