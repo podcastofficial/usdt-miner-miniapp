@@ -744,9 +744,61 @@ async function boot() {
     initTimers(); renderDaily(); renderVerify(); renderAutoHome(); renderTasks(); renderTx(data.transactions || [], false);
     if (data.admin) initAdmin();
     autoVerify();
-    autoGift(); preloadPopupSdk(); renderAdTile();
+    autoGift(); preloadPopupSdk(); renderAdTile(); renderHomeExtras();
   } catch (e) { status(e.message); say(e.message); }
 }
+/* ---------------- Home extras (Part A): withdraw progress, payment-proof strip, contest banner ----------------
+   Frontend only. Uses the existing actions financeInfo, proofList and contests; nothing new is stored or created.
+   Each block stays hidden when its feature is OFF or has no real data (no fake payouts are ever shown). */
+const homeX = { proofAt: 0, ctAt: 0, ct: null };
+let ctbTimer = null;
+async function renderWithdrawProgress() {
+  const box = $('wprog'); if (!box) return;
+  try {
+    const f = await getFin(), w = f.withdraw || {}, min = Number(w.min), pts = Number((data.user || {}).points);
+    if (!w.enabled || !(min > 0) || !Number.isFinite(pts)) { box.hidden = true; return; }
+    const pct = Math.max(0, Math.min(100, Math.floor((pts / min) * 100)));
+    box.hidden = false;
+    $('wptext').textContent = pct >= 100 ? '🎉 You can withdraw now' : 'Minimum withdraw: ' + N(Math.floor(pts)) + ' / ' + N(min) + ' MINER';
+    $('wppct').textContent = pct + '%';
+    $('wpfill').style.width = pct + '%';
+    $('wpfill').parentElement.setAttribute('aria-valuenow', String(pct));
+    box.classList.toggle('done', pct >= 100);
+  } catch (e) { box.hidden = true; }
+}
+async function renderProofStrip() {
+  const box = $('proofstrip'); if (!box) return;
+  if (Date.now() - homeX.proofAt < 60000 && homeX.proofHtml !== undefined) { box.hidden = !homeX.proofHtml; return; } // 1 min cache: boot() runs after every action
+  try {
+    const r = await api('proofList', {});
+    homeX.proofAt = Date.now();
+    const items = r.enabled && Array.isArray(r.items) ? r.items.slice(0, 10) : [];
+    const one = items.map((p) => `<span class="ps-item"><b>${esc(p.name)}</b> withdrew <b>${esc(p.amount)} MINER</b></span>`).join('');
+    homeX.proofHtml = one ? one + one : ''; // twice, so the scroll loops without a gap
+    $('pstrack').innerHTML = homeX.proofHtml; $('pstrack').classList.toggle('still', items.length < 2);
+    box.hidden = !homeX.proofHtml;
+  } catch (e) { box.hidden = true; }
+}
+function paintCtBanner() {
+  const b = $('ctbanner'), c = homeX.ct; if (!b) return;
+  if (ctbTimer) { clearInterval(ctbTimer); ctbTimer = null; }
+  if (!c || !c.enabled || !c.current || c.current.over) { b.hidden = true; return; }
+  const k = c.current, me = k.me || {}, end = homeX.ctAt + Number(k.seconds_left) * 1000;
+  const top = (k.top || []).slice(0, 3).map((r) => `<span class="ctb-r${r.me ? ' me' : ''}">${esc(medal(r.rank))} ${esc(r.name)} · ${N(r.referrals)}</span>`).join('') || '<span class="ctb-r">Be the first to qualify!</span>';
+  b.hidden = false;
+  b.setAttribute('aria-label', 'Open contest: ' + k.title);
+  b.innerHTML = `<div class="ctb-top"><b>🏁 ${esc(k.title)}</b><span class="ctb-clock">⏳ <span id="ctbclock">${esc(fmtClock(k.seconds_left))}</span></span></div>`
+    + `<div class="ctb-rows">${top}</div>`
+    + `<div class="ctb-me">${me.rank ? 'Your rank: <b>#' + N(me.rank) + '</b> · ' : 'Not ranked yet · '}<b>${N(me.referrals || 0)}</b> referral${me.referrals === 1 ? '' : 's'}<span class="chev" aria-hidden="true"> ›</span></div>`;
+  const tick = () => { const el = document.getElementById('ctbclock'); if (!el) { clearInterval(ctbTimer); ctbTimer = null; return; } const left = (end - Date.now()) / 1000; if (left <= 0) { b.hidden = true; clearInterval(ctbTimer); ctbTimer = null; return; } el.textContent = fmtClock(left); };
+  tick(); ctbTimer = setInterval(tick, 1000);
+}
+async function renderContestBanner() {
+  if (homeX.ct && Date.now() - homeX.ctAt < 30000) { paintCtBanner(); return; }
+  try { homeX.ct = await api('contests', {}); homeX.ctAt = Date.now(); paintCtBanner(); }
+  catch (e) { const b = $('ctbanner'); if (b) b.hidden = true; }
+}
+function renderHomeExtras() { renderWithdrawProgress(); renderProofStrip(); renderContestBanner(); } // not awaited: Home must never wait for these
 /* Gift link: t.me/<bot>/<app>?startapp=gift_CODE opens the app and redeems the code once, by itself. */
 let giftTried = false;
 async function autoGift() {

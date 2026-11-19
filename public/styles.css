@@ -276,3 +276,25 @@ progress.bar::-moz-progress-bar{background:linear-gradient(90deg,var(--or1),var(
 .mini b{flex:1;min-width:0;font-size:.82rem;line-height:1.15}
 .mini .chev{flex:0 0 auto;color:var(--or1);font-size:1.15rem}
 @media (max-width:340px){.mini-grid{grid-template-columns:1fr}}
+
+/* Part A: Home extras */
+.wprog{margin-top:12px}
+.wp-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:6px}
+.wp-top small{color:var(--txt);opacity:.85}.wp-top b{color:var(--or1)}
+.wp-bar{height:10px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,176,46,.3);overflow:hidden}
+.wp-bar span{display:block;height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,var(--btn-a),var(--btn-b),var(--btn-c));transition:width .6s ease}
+.wprog.done .wp-bar span{background:linear-gradient(90deg,#3fe0b0,#1fb98c)}
+.pstrip{display:flex;align-items:center;gap:10px;margin:10px 0;padding:9px 12px;border-radius:14px;border:1.5px solid var(--line);background:rgba(63,224,176,.07)}
+.ps-ic{flex:none}.ps-win{overflow:hidden;flex:1;min-width:0;-webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
+.ps-track{display:inline-flex;white-space:nowrap;width:max-content;animation:psroll 28s linear infinite}
+.ps-track.still{animation:none}
+.ps-item{padding-right:34px;font-size:.88rem;color:var(--txt)}.ps-item b{color:var(--green)}
+@keyframes psroll{to{transform:translateX(-50%)}}
+@media (prefers-reduced-motion:reduce){.ps-track{animation:none}.ps-win{overflow-x:auto}}
+.ctb{display:block;width:100%;text-align:left;font:inherit;color:var(--txt);cursor:pointer;border-color:var(--or2);background:linear-gradient(150deg,#3a1a00,var(--card-a) 50%,var(--card-b));box-shadow:0 0 22px rgba(255,122,0,.3)}
+.ctb-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.ctb-clock{font-size:.85rem;color:var(--or1);font-weight:700;white-space:nowrap}
+.ctb-rows{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.ctb-r{padding:4px 10px;border-radius:999px;background:rgba(255,176,46,.12);border:1px solid rgba(255,176,46,.35);font-size:.82rem}
+.ctb-r.me{border-color:var(--green);color:var(--green)}
+.ctb-me{font-size:.9rem;color:var(--mut)}.ctb-me b{color:var(--or1)}.ctb-me .chev{float:right}

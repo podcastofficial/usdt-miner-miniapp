@@ -51,7 +51,16 @@
       <button class="btn" id="dailybtn" data-act="daily">Claim ›</button>
       <button class="btn ghost" data-go="withdraw" data-i18n="nav.withdraw">Withdraw</button>
     </div>
+    <div id="wprog" class="wprog" hidden>
+      <div class="wp-top"><small id="wptext"></small><b id="wppct"></b></div>
+      <div class="wp-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-labelledby="wptext"><span id="wpfill"></span></div>
+    </div>
   </div>
+  <div id="proofstrip" class="pstrip" hidden role="region" aria-label="Recent withdrawals">
+    <span class="ps-ic" aria-hidden="true">✅</span>
+    <div class="ps-win"><div id="pstrack" class="ps-track"></div></div>
+  </div>
+  <button id="ctbanner" class="card ctb" data-go="contests" hidden></button>
   <div id="amhome" hidden>
     <h3 class="sec">🤖 Auto-Miner</h3>
     <div id="amhometop"></div>
