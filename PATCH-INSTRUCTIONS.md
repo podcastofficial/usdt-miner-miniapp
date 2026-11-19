@@ -1,16 +1,30 @@
-# USDT Miner Parts 19–21 — Correct Folder Patch
+# USDT Miner Parts 19–27 — Cumulative changed-files patch
 
-Extract this ZIP into the existing project directory and choose **merge/overwrite** if asked.
+This ZIP is laid out from the project root. Extract it into the existing `usdt-miner-miniapp-main` folder and merge/overwrite when prompted.
 
-The archive already uses the project's actual folder structure:
-- `api/index.js` — replace the existing API router
-- `lib/actions/` — add the three new action modules
-- `db/migrations/` — add migrations 017, 018, 019
-- `tests/` — add the new test file
-- project root — add the three changelogs
+## Database order
 
-IMPORTANT:
-1. Do not upload `index.js` to the project root. It is placed at `api/index.js` in this archive.
-2. Run migrations 017, 018, then 019 in the Neon SQL editor before deploying.
-3. Keep a backup of the existing project first.
-4. Features remain disabled by default. The 1% referral commission accrual is only a foundation and is not automatically paid.
+Run these migrations in the Neon SQL Editor in this exact order, before deploying:
+
+1. `db/migrations/017_part19_retention.sql`
+2. `db/migrations/018_part20_vip.sql`
+3. `db/migrations/019_part21_support_season.sql`
+4. `db/migrations/020_part22_admin_ops.sql`
+5. `db/migrations/021_part23_risk_scores.sql`
+6. `db/migrations/022_part24_premium.sql`
+7. `db/migrations/023_part25_mining_reports.sql`
+8. `db/migrations/024_part26_referral_challenges.sql`
+9. `db/migrations/025_part27_analytics_reports.sql`
+
+## Important
+
+- `api/index.js` is the API router and must replace the existing `api/index.js`.
+- The settings registry and role permissions are updated in `lib/settingsDefs.js` and `lib/roles.js`.
+- Keep a backup before replacing files.
+- Mystery Box, referral commission accrual, Season Pass, Premium, and Referral Challenges default OFF. Part 20's 1% referral commission remains a ledger foundation only; this patch does not accrue or pay commissions.
+- Part 23 uses explainable rules, not an AI model. It never auto-blocks accounts.
+- Part 24 Premium purchases use in-app Points only. No external payment provider or recurring billing is included.
+- Part 25 adds reporting only; mining and booster payout calculations are unchanged.
+- Part 21 Season Pass remains a status-only foundation; there is no reward claim flow.
+- Frontend screens are not included in this patch. These are backend/API additions and must be connected to the app UI before users can operate the features in-app.
+- Run `npm test` and `npm run check` after merging. Test against a staging database before production.

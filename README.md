@@ -123,3 +123,12 @@ Built in small parts so each one can be tested before the next. Every new featur
 - **Part 21 = D:** share card (one tap image of your earnings / referral, shared to Telegram), in-app support ticket form with admin reply, achievements and season pass (special reward when a season ends).
 
 Order can change. Part C is the riskiest, so it stays after A and B.
+
+
+## Parts 19–27 — Growth & Operations extensions
+
+- Parts 19–21: 30-day check-in calendar, Mystery Box foundation, VIP status / commission ledger foundation, share-card data, support tickets, achievements, and Season Pass status. See `CHANGELOG_PART19.md` through `CHANGELOG_PART21.md`.
+- Parts 22–27: admin notes and saved segments, explainable risk scoring, Points-funded Premium foundation, mining/booster reports, referral challenges, and date-range analytics. See `README_PART22_27.md` and the six new changelogs.
+- Run migrations `017_part19_retention.sql` through `025_part27_analytics_reports.sql` in numeric order before deploying the replacement `api/index.js`.
+- Premium and referral challenges default OFF. Mystery Box and Season Pass default OFF. Referral commission accrual remains unimplemented and OFF. Risk scoring is rule-based and never auto-blocks.
+- These releases add backend/API foundations only; frontend screens still need integration before the new features appear in the Mini App.
