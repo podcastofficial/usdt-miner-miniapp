@@ -25,6 +25,12 @@ import * as amn from "../lib/actions/autominer.js";
 import * as p19 from "../lib/actions/parts19.js";
 import * as p20 from "../lib/actions/parts20.js";
 import * as p21 from "../lib/actions/parts21.js";
+import * as p22 from "../lib/actions/parts22.js";
+import * as p23 from "../lib/actions/parts23.js";
+import * as p24 from "../lib/actions/parts24.js";
+import * as p25 from "../lib/actions/parts25.js";
+import * as p26 from "../lib/actions/parts26.js";
+import * as p27 from "../lib/actions/parts27.js";
 import { roleOf, can } from "../lib/roles.js";
 import { reportApiError } from "../lib/health.js";
 import { adsgramReward } from "../lib/adsgram.js";
@@ -87,6 +93,7 @@ const ACTIONS = {
   adminBroadcastCreate: { fn: ntf.adminBroadcastCreate, admin: true, write: true },
   adminBroadcastCancel: { fn: ntf.adminBroadcastCancel, admin: true, write: true },
   engagement: { fn: eng.engagement },
+  // Parts 19-21 (cumulative compatibility routes).
   checkinCalendar: { fn: p19.checkinCalendar },
   mysteryBoxInfo: { fn: p19.mysteryBoxInfo },
   mysteryBoxClaim: { fn: p19.mysteryBoxClaim, write: true },
@@ -96,6 +103,8 @@ const ACTIONS = {
   supportTicketList: { fn: p21.supportTicketList },
   achievementsInfo: { fn: p21.achievementsInfo },
   seasonPassInfo: { fn: p21.seasonPassInfo },
+  adminSupportTickets: { fn: p21.adminSupportTickets, admin: true },
+  adminSupportTicketReply: { fn: p21.adminSupportTicketReply, admin: true, write: true },
   referralList: { fn: eng.referralList },
   promoRedeem: { fn: eng.promoRedeem, write: true },
   adWatchInfo: { fn: adw.adWatchInfo },
@@ -148,6 +157,27 @@ const ACTIONS = {
   adminAutoMinerOverview: { fn: amn.adminAutoMinerOverview, admin: true },
   adminAutoMinerPlanSave: { fn: amn.adminAutoMinerPlanSave, admin: true, write: true },
   adminAutoMinerPlanSetActive: { fn: amn.adminAutoMinerPlanSetActive, admin: true, write: true },
+  // Parts 22-27: operations, risk scoring, premium, mining reports, referral challenges, analytics.
+  adminUserNotes: { fn: p22.adminUserNotes, admin: true },
+  adminUserNoteAdd: { fn: p22.adminUserNoteAdd, admin: true, write: true },
+  adminSegments: { fn: p22.adminSegments, admin: true },
+  adminSegmentUsers: { fn: p22.adminSegmentUsers, admin: true },
+  adminSegmentSave: { fn: p22.adminSegmentSave, admin: true, write: true },
+  adminSegmentDelete: { fn: p22.adminSegmentDelete, admin: true, write: true },
+  adminRiskOverview: { fn: p23.adminRiskOverview, admin: true },
+  adminRiskRecalculate: { fn: p23.adminRiskRecalculate, admin: true, write: true },
+  premiumInfo: { fn: p24.premiumInfo },
+  premiumBuy: { fn: p24.premiumBuy, write: true },
+  adminPremiumTiers: { fn: p24.adminPremiumTiers, admin: true },
+  adminPremiumTierSave: { fn: p24.adminPremiumTierSave, admin: true, write: true },
+  miningInsights: { fn: p25.miningInsights },
+  adminMiningReport: { fn: p25.adminMiningReport, admin: true, write: true },
+  referralChallenges: { fn: p26.referralChallenges },
+  referralChallengeClaim: { fn: p26.referralChallengeClaim, write: true },
+  adminReferralChallenges: { fn: p26.adminReferralChallenges, admin: true },
+  adminReferralChallengeSave: { fn: p26.adminReferralChallengeSave, admin: true, write: true },
+  adminAnalyticsRange: { fn: p27.adminAnalyticsRange, admin: true, write: true },
+  adminAnalyticsReportList: { fn: p27.adminAnalyticsReportList, admin: true },
 };
 
 const query_action = (req) => String((req.query && req.query.action) || (req.body && req.body.action) || "bootstrap");
