@@ -621,7 +621,15 @@ async function loadAutoMiner() { await amFetch(); }
 const PARENT = { automine: 'more', roiplans: 'more', deposit: 'withdraw', rewards: 'more', rank: 'more', ads: 'more', channel: 'more', proof: 'more', howto: 'more', games: 'more', contests: 'more', missions: 'more', terms: 'more', taskproof: 'tasks', history: 'more', prefs: 'more' };
 const NAVOF = { automine: 'more', roiplans: 'more', deposit: 'withdraw', rewards: 'more', rank: 'more', ads: 'more', channel: 'more', proof: 'more', howto: 'more', games: 'more', contests: 'more', missions: 'more', terms: 'more', taskproof: 'tasks', history: 'more', prefs: 'more' };
 let cur = 'home', backBound = false;
+// Admin switch (Admin > Settings > ROI Plans): hides every ROI Plans entry point while it is OFF.
+function roiOn() { return Boolean(data && data.roi && data.roi.enabled); }
+function applyRoiVisibility() {
+  const on = roiOn();
+  document.querySelectorAll('[data-go=roiplans]').forEach((el) => { (el.closest('article.tile') || el).hidden = !on; });
+  if (!on && cur === 'roiplans') go('home');
+}
 function go(id) {
+  if (id === 'roiplans' && !roiOn()) return;
   if (!$(id)) return; cur = id;
   document.querySelectorAll('main>section').forEach((s) => s.classList.remove('on')); $(id).classList.add('on');
   const on = NAVOF[id] || id;
@@ -839,6 +847,7 @@ async function boot() {
     const s = data.settings || {}; { const mp = minerPrice(); $('rate').textContent = mp ? '1 MINER ≈ ' + fmtUsd(mp) + ' USDT' : '1 Point = 1 MINER'; }
     const bn = $('banner'); bn.textContent = s.announcement || ''; bn.hidden = !s.announcement;
     $('promotile').hidden = s.promo_enabled !== true;
+    applyRoiVisibility();
     await syncLang();
     initTimers(); renderDaily(); renderVerify(); renderAutoHome(); renderTasks(); renderTx(data.transactions || [], false);
     if (data.admin) initAdmin();
