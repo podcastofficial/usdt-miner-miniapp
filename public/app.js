@@ -215,11 +215,25 @@ async function loadWithdraw() {
   setHtml('wlist', r.items.map((w) => `<div class="card row">${ic(WI[w.status] || '•')}<div class="mid"><b>#${Number(w.id)} · ${esc(w.net_usdt)} MINER${esc(withUsd(w.net_usdt))}</b><small>${badge(BC[w.status] || 'warn', w.status)}${w.reject_reason ? ' ' + esc(w.reject_reason) : ''}${w.tx_hash ? ' · ' + esc(short(w.tx_hash)) : ''}</small></div>${w.status === 'pending' ? btn('Cancel', 'cancelW', `data-id="${Number(w.id)}"`, 'btn sm ghost', 'Cancel withdrawal ' + Number(w.id)) : ''}</div>`).join('') || empty('No withdrawals yet'));
 }
 async function loadDeposit() {
-  const f = await getFin(), d = f.deposit;
-  if (!d.enabled) { $('depinfo').textContent = 'Deposits are not enabled yet.'; $('depform').hidden = true; }
-  else { $('depform').hidden = false; setHtml('depinfo', 'Send USDT on <b>BSC (BEP-20)</b> only, to:<br><span class="accent wrap">' + esc(d.wallet) + '</span><br>Minimum ' + esc(d.min) + ' USDT · 1 USDT = ' + N(d.pointsPerUsdt) + ' MINER · ' + esc(d.confirmations) + ' confirmations needed.'); }
+  const f = await getFin(), d = f.deposit, methods = d.methods || [];
+  const legacy = d.enabled && d.wallet ? [{id:'legacy-bep20',asset:'USDT',network:'BEP20',address:d.wallet,min:d.min,enabled:true,qr:''}] : [];
+  const available = d.enabled ? methods.filter(x => x.enabled).concat(methods.length ? [] : legacy) : [];
+  if (!available.length) { $('depinfo').textContent = 'Deposits are not enabled yet.'; $('depform').hidden = true; }
+  else {
+    $('depform').hidden = false;
+    setHtml('depmethod', available.map(x => `<option value="${esc(x.id)}">${esc(x.asset)} · ${esc(x.network)}</option>`).join(''));
+    window.depositMethods = available; updateDepositMethod();
+    $('depinfo').textContent = 'Choose the exact asset and blockchain you used. Send only on the selected network.';
+  }
   const r = await api('depositList');
-  setHtml('deplist', r.items.map((x) => `<div class="card row">${ic(DI[x.status] || '•')}<div class="mid"><b>${x.amount_usdt ? esc(x.amount_usdt) + ' USDT' : 'Deposit #' + Number(x.id)}</b><small>${badge(BC[x.status] || 'warn', x.status)}${x.reject_reason ? ' ' + esc(RS[x.reject_reason] || x.reject_reason) : ''} · ${esc(short(x.tx_hash))}</small></div>${x.status === 'pending' ? btn('Recheck', 'recheckD', `data-id="${Number(x.id)}"`, 'btn sm', 'Recheck deposit ' + Number(x.id)) : ''}</div>`).join('') || empty('No deposits yet'));
+  setHtml('deplist', r.items.map((x) => `<div class="card row">${ic(DI[x.status] || '•')}<div class="mid"><b>${x.amount_native ? esc(x.amount_native)+' '+esc(x.asset||'') : 'Deposit #' + Number(x.id)}</b><small>${badge(BC[x.status] || 'warn', x.status)} · ${esc(x.network||'')} · ${esc(short(x.tx_hash))}${x.reject_reason ? ' · '+esc(x.reject_reason) : ''}</small></div></div>`).join('') || empty('No deposits yet'));
+}
+function updateDepositMethod() {
+  const m = (window.depositMethods || []).find(x => x.id === $('depmethod')?.value) || (window.depositMethods || [])[0];
+  if (!m || !$('depaddress')) return;
+  $('depaddress').innerHTML = `<b>${esc(m.asset)} · ${esc(m.network)}</b><p class="wrap accent">${esc(m.address)}</p><small>Minimum: ${esc(m.min)} ${esc(m.asset)}</small>${m.qr ? `<p><img src="${esc(m.qr)}" alt="Deposit QR" style="max-width:180px;width:100%"></p>` : ''}`;
+  $('depamount').min = String(m.min);
+  $('depamount').placeholder = `Minimum ${m.min} ${m.asset}`;
 }
 
 /* ---------------- community info (Part 6) ---------------- */
@@ -854,9 +868,9 @@ const ACT = {
   async moreTx() { const r = await api('history', { before: txNext }); renderTx(r.items, true); txNext = r.next; $('moreTx').hidden = !txNext; },
   async withdraw() { let r; try { r = await api('withdraw', { amount: $('amount').value, wallet: $('wallet').value }); } catch (e) { if (e.code === 'terms_required') { termsFrom = 'withdraw'; say(e.message); go('terms'); return; } throw e; } say('Withdrawal request #' + r.id + ' submitted - ' + r.net + ' MINER after fee'); $('amount').value = ''; $('wquote').textContent = ''; await boot(); await loadWithdraw(); },
   async cancelW(d) { if (!(await confirmAsk('Cancel this withdrawal? MINER will be refunded.'))) return; await api('withdrawCancel', { id: Number(d.id) }); say('Cancelled - MINER refunded'); await boot(); await loadWithdraw(); },
-  async deposit() { const r = await api('depositSubmit', { txHash: $('txhash').value.trim(), from: $('depfrom').value.trim() }); say(DS(r)); $('txhash').value = ''; await boot(); await loadDeposit(); },
+  async deposit() { const r = await api('depositSubmit', { methodId: $('depmethod').value, amount: $('depamount').value, txHash: $('txhash').value.trim(), from: $('depfrom').value.trim() }); say('Deposit #'+r.id+' submitted for admin review'); $('txhash').value = ''; $('depamount').value = ''; await loadDeposit(); },
   async recheckD(d) { const r = await api('depositRecheck', { id: Number(d.id) }); say(DS(r)); await boot(); await loadDeposit(); },
-  async copyDep() { try { await navigator.clipboard.writeText(fin.deposit.wallet); say('Address copied ✅'); } catch (e) { say('Copy failed'); } },
+  async copyDep() { const m=(window.depositMethods||[]).find(x=>x.id===$('depmethod').value); if(!m)return; try { await navigator.clipboard.writeText(m.address); say('Address copied ✅'); } catch (e) { say('Copy failed'); } },
   async rankPage(d) { await loadRank(rankPage + Number(d.d)); window.scrollTo(0, 0); },
   botAdd() { waitBot = true; openUrl(data.bot_add_url); }, // Telegram's own "add bot as administrator" screen
   async botCheck() { const r = await api('channelBotCheck', { link: $('c_link').value }); if ($('c_botmsg')) $('c_botmsg').textContent = r.message; say(r.message); },
@@ -903,7 +917,7 @@ const ACT = {
     const r = await api('drawBuy', { tickets: n }); say('🎫 You now hold ' + r.tickets + ' ticket(s)'); await boot(); await loadGames();
   },
 };
-const INPUT = { quote: quoteW, adcalc: adcalc, prefs: () => { savePrefs().catch((e) => say(e.message)); } };
+const INPUT = { quote: quoteW, adcalc: adcalc, depositMethod: updateDepositMethod, prefs: () => { savePrefs().catch((e) => say(e.message)); } };
 
 /* ---------------- delegated events ---------------- */
 document.addEventListener('click', (e) => {
