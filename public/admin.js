@@ -28,6 +28,32 @@ const stat=(l,v)=>`<div class="card stat"><small>${l}</small><b>${E(v)}</b></div
 
 function shell(){$('adm').innerHTML=`<div id="admtabs">${TABS().map(t=>`<button class="tab${t[0]===tab?' on':''}"${t[0]===tab?' aria-current="true"':''} data-adm="go" data-p0="${t[0]}">${t[1]} ${t[2]}</button>`).join('')}</div><div id="admnote"></div><div id="admbody"></div>`}
 async function show(){shell();const b=$('admbody');b.innerHTML=empty('Loading…');await run(async()=>{b.innerHTML=await VIEWS[tab]()})}
+const DEPOSIT_PRESETS=[
+ ['USDT','TRC20','usdt-trc20'],['USDT','BEP20','usdt-bep20'],['USDT','ERC20','usdt-erc20'],
+ ['USDT','Polygon','usdt-polygon'],['USDT','Solana','usdt-solana'],['USDT','TON','usdt-ton'],['USDT','Avalanche C-Chain','usdt-avalanche'],['USDT','Arbitrum One','usdt-arbitrum'],['USDT','Optimism','usdt-optimism'],['USDT','Base','usdt-base'],['USDT','Aptos','usdt-aptos'],['USDT','Sui','usdt-sui'],
+ ['TRX','TRON','trx-tron'],['BNB','BNB Smart Chain','bnb-bsc'],['ETH','Ethereum','eth-ethereum'],
+ ['POL','Polygon','pol-polygon'],['SOL','Solana','sol-solana'],['TON','TON','ton-ton'],
+ ['BTC','Bitcoin','btc-bitcoin'],['AVAX','Avalanche C-Chain','avax-avalanche'],['XRP','XRP Ledger','xrp-xrpledger'],['DOGE','Dogecoin','doge-dogecoin'],['LTC','Litecoin','ltc-litecoin'],['BCH','Bitcoin Cash','bch-bitcoincash'],['ADA','Cardano','ada-cardano'],['DOT','Polkadot','dot-polkadot'],['ATOM','Cosmos Hub','atom-cosmos'],['NEAR','NEAR Protocol','near-near'],['SUI','Sui','sui-sui'],['APT','Aptos','apt-aptos'],['XLM','Stellar','xlm-stellar'],['XTZ','Tezos','xtz-tezos'],['ALGO','Algorand','algo-algorand'],['CUSTOM','Other / custom network','custom-other']
+];
+function depositMethodsEditor(items){
+ const rows=(items||[]).map((m,i)=>`<div class="card" data-depmethod="${i}" data-depmethod-id="${E(m.id||'')}">
+  <div class="row"><b>${E(m.asset||'COIN')} · ${E(m.network||'Network')}</b><button class="btn sm ghost" data-adm="removeDepositMethod" data-p0="${i}">Remove</button></div>
+  <label for="dm_asset_${i}">Coin / token</label><input id="dm_asset_${i}" data-dmf="asset" value="${E(m.asset||'')}" maxlength="12" placeholder="USDT, TRX, BNB...">
+  <label for="dm_network_${i}">Blockchain / network</label><input id="dm_network_${i}" data-dmf="network" value="${E(m.network||'')}" maxlength="40" placeholder="TRC20, BEP20, Ethereum...">
+  <label for="dm_address_${i}">Deposit address</label><input id="dm_address_${i}" data-dmf="address" value="${E(m.address||'')}" maxlength="180" placeholder="Receiving wallet address">
+  <label for="dm_min_${i}">Minimum deposit (in this coin)</label><input id="dm_min_${i}" data-dmf="min" type="number" min="0.00000001" step="any" value="${E(m.min??'')}" placeholder="e.g. 5">
+  <label for="dm_qr_${i}">QR image URL (optional)</label><input id="dm_qr_${i}" data-dmf="qr" value="${E(m.qr||'')}" maxlength="500" placeholder="https://...">
+  <label for="dm_enabled_${i}">Availability</label><select id="dm_enabled_${i}" data-dmf="enabled"><option value="true"${m.enabled?' selected':''}>Enabled – show to users</option><option value="false"${m.enabled?'':' selected'}>Disabled – hide from users</option></select>
+ </div>`).join('');
+ return `${rows||'<small class="muted">No deposit addresses added yet.</small>'}
+ <div class="card"><b>Add deposit method</b><label for="depositPreset">Coin / blockchain</label><select id="depositPreset">${DEPOSIT_PRESETS.map((p,i)=>`<option value="${i}">${E(p[0])} · ${E(p[1])}</option>`).join('')}</select><button class="btn sm" data-adm="addDepositMethod">＋ Add selected method</button><small class="muted">You can add multiple networks for the same coin. Only enabled methods appear to users.</small></div>`;
+}
+function readDepositMethods(){
+ return [...document.querySelectorAll('[data-depmethod]')].map(card=>{
+  const val=k=>card.querySelector(`[data-dmf="${k}"]`)?.value??'';
+  return {id:card.dataset.depmethodId||String(val('asset')+'-'+val('network')).toLowerCase().replace(/[^a-z0-9_-]+/g,'-').replace(/^-|-$/g,'').slice(0,32),asset:val('asset').trim().toUpperCase(),network:val('network').trim(),address:val('address').trim(),min:Number(val('min')),qr:val('qr').trim(),enabled:val('enabled')==='true'};
+ });
+}
 const VIEWS={
  async home(){const d=await A('adminDashboard');return `<div class="grid">${[
   ['Users',d.users],['New (24h)',d.new_24h],['Active (24h)',d.active_24h],['Blocked',d.blocked],
@@ -107,14 +133,17 @@ const VIEWS={
   const form=`<div class="card"><h2 id="amfh">New miner</h2><input type="hidden" id="am_id"><label class="sr" for="am_name">Name</label><input id="am_name" maxlength="30" placeholder="Name (e.g. Starter)"><label class="sr" for="am_price">Price</label><input id="am_price" type="number" placeholder="Price in MINER (0 = free)"><label class="sr" for="am_rate">MINER per hour</label><input id="am_rate" type="number" placeholder="MINER per hour"><label class="sr" for="am_days">Lifetime</label><input id="am_days" type="number" placeholder="Lifetime in days"><label class="sr" for="am_max">Max per user</label><input id="am_max" type="number" placeholder="Max per user (lifetime)"><div class="acts"><button class="btn sm" data-adm="amSave">Save miner</button><button class="btn sm ghost" data-adm="go" data-p0="am">Reset</button></div><small class="muted">Changes apply to future purchases only. Machines already running keep the price and rate they were bought with.</small></div>`;
   const plans=r.plans.map(p=>`<div class="card"><h2>${E(p.name)} <small class="inl">(${p.active?'in shop':'hidden'})</small></h2><small>Price ${P(p.price)} · ${P(p.rate_per_hour)} MINER/h · ${P(p.duration_days)} days · max ${P(p.max_per_user)} per user</small><small>Per day ${P(p.per_day)} · total ${P(p.total_return)} · profit ${(p.profit>0?'+':'')+P(p.profit)} · ${p.roi_pct===null?'free machine':'pays back '+E(p.roi_pct)+'% of price'} · payback ${E(p.payback_days)} days</small>${p.pays_more_than_price?'<small><b>⚠️ Pays back more than its price: every MINER it pays is created by the app.</b></small>':''}<small>Sold ${P(p.sold)} · running ${P(p.running)}</small><div class="acts"><button class="btn sm ghost" data-adm="amEdit" data-p0="${N(p.id)}">Edit</button><button class="btn sm ghost" data-adm="amOn" data-p0="${N(p.id)}" data-p1="${!p.active}">${p.active?'Hide':'Show'}</button></div></div>`).join('')||empty('No miners yet');
   return head+form+'<h2>Miners</h2>'+plans},
- async set(){const r=await A('adminSettings');cur.setItems=r.items;const groups=[...new Set(r.items.map(i=>i.group))];
+ async set(){const r=await A('adminSettings');cur.setItems=r.items;const groups=[...new Set(r.items.map(i=>i.group))];cur.depositMethods=Array.isArray(r.items.find(i=>i.key==='deposit_methods')?.value)?r.items.find(i=>i.key==='deposit_methods').value.map(x=>({...x})):[];
   return groups.map(g=>`<div class="card"><h2>${E(g)}</h2>${r.items.filter(i=>i.group===g).map(i=>{const id='st_'+i.key,v=i.value;
-   const ctl=i.type==='bool'?`<select id="${id}"><option value="true"${v?' selected':''}>ON</option><option value="false"${v?'':' selected'}>OFF</option></select>`
+   const ctl=i.key==='deposit_methods'?`<div id="depositMethodEditor">${depositMethodsEditor(cur.depositMethods)}</div><textarea id="${id}" hidden>${E(JSON.stringify(cur.depositMethods))}</textarea>`
+    :i.type==='bool'?`<select id="${id}"><option value="true"${v?' selected':''}>ON</option><option value="false"${v?'':' selected'}>OFF</option></select>`
     :i.type==='list'?`<textarea id="${id}">${E((v||[]).join('\n'))}</textarea>`
      :i.type==='longtext'?`<textarea id="${id}" rows="10">${E(v)}</textarea>`
     :i.type==='json'?`<textarea id="${id}" rows="10" spellcheck="false">${E(JSON.stringify(v||[],null,2))}</textarea>`
     :`<input id="${id}" type="${i.type==='text'?'text':'number'}" step="any" value="${E(v)}">`;
-   return `<small><b>${E(i.label)}</b>${i.custom?'':' (default)'}${i.help?' — '+E(i.help):''}</small>${ctl}`}).join('')}</div>`).join('')+
+   const label=i.key==='deposit_methods'?'Deposit addresses & networks':i.label;
+   const help=i.key==='deposit_methods'?'Add each coin/network below. Set its receiving address, minimum amount, optional QR image URL, and availability.':i.help;
+   return `<small><b>${E(label)}</b>${i.custom?'':' (default)'}${help?' — '+E(help):''}</small>${ctl}`}).join('')}</div>`).join('')+
   `<button class="btn" data-adm="saveSettings">Save settings ›</button><div class="card"><small>Secrets stay in Vercel env: ${Object.entries(r.env).map(([k,v])=>E(k)+(v?' ✅':' ❌')).join(' · ')}</small></div>`},
  async prf(){const r=await A('adminProofList');cur.prfNext=r.next;return `<small class="muted">Paid withdrawals shown on the public Payment Proof screen. Hide any you do not want shown.</small><div id="prfl">${prfRows(r.items)}</div>`+(r.next?`<button class="btn" id="prfmore" data-adm="prfMore">Load more</button>`:'')},
  async aud(){const f=cur.f.audf||'';const r=await A('adminAudit',{action:f==='all'?'':f});cur.audNext=r.next;
@@ -166,9 +195,12 @@ window.Admin={
  async saveTask(){await run(async()=>{const v=k=>$('tf_'+k).value,b={title:v('title'),description:v('desc'),link:v('link'),reward:v('reward'),target:v('target')||0,timerSeconds:v('timer')||30,telegramChannel:v('chan'),proofRequired:v('proof')==='yes',proofHint:v('hint')};
   if(v('id')){await A('adminUpdateTask',{taskId:v('id'),...b});note('Task updated')}else{await A('adminCreateTask',{type:v('type'),...b});note('Task created')}await show()})},
  async taskOn(id,active){await run(async()=>{await A('adminSetTaskActive',{taskId:id,active});await show()})},
- async saveSettings(){const changes={};for(const i of cur.setItems){const el=$('st_'+i.key);if(!el)continue;let v=el.value;
+ addDepositMethod(){const s=$('depositPreset');if(!s)return;const p=DEPOSIT_PRESETS[Number(s.value)]||DEPOSIT_PRESETS[0];let id=p[2];if(cur.depositMethods.some(x=>x.id===id)){if(p[0]!=='CUSTOM'){note('This coin/network is already added.');return}let n=2;while(cur.depositMethods.some(x=>x.id===id+'-'+n))n++;id=id+'-'+n}cur.depositMethods.push({id,asset:p[0],network:p[1],address:'',min:1,enabled:true,qr:''});$('depositMethodEditor').innerHTML=depositMethodsEditor(cur.depositMethods)},
+ removeDepositMethod(index){cur.depositMethods.splice(Number(index),1);$('depositMethodEditor').innerHTML=depositMethodsEditor(cur.depositMethods)},
+ async saveSettings(){const changes={};const depEl=$('st_deposit_methods');if(depEl)depEl.value=JSON.stringify(readDepositMethods());for(const i of cur.setItems){const el=$('st_'+i.key);if(!el)continue;let v=el.value;
    if(i.type==='bool')v=v==='true';else if(i.type==='int'||i.type==='dec')v=Number(v);else if(i.type==='json'){try{v=JSON.parse(v)}catch{note('Invalid JSON in '+i.label);return}}else if(i.type==='list'){v=v.split(/[\s,]+/).filter(Boolean);if((i.value||[]).every(x=>typeof x==='number'))v=v.map(Number)}
    if(JSON.stringify(v)!==JSON.stringify(i.value))changes[i.key]=v}
+  if(changes.deposit_methods){const ms=changes.deposit_methods;if(ms.some(m=>!m.asset||!m.network||!m.address||!Number.isFinite(m.min)||m.min<=0)){note('For every deposit method, enter coin, network, wallet address and a minimum amount greater than 0.');return}if(new Set(ms.map(m=>m.id)).size!==ms.length){note('Duplicate deposit method ID. Check coin and network names.');return}}
   if(!Object.keys(changes).length){note('No changes');return}
   await run(async()=>{const r=await A('adminSettingsUpdate',{changes});note('Saved '+r.changed.length+' setting(s)'+(r.warnings.length?' ⚠️ '+r.warnings.join(' '):''));await show()})},
 
