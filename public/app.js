@@ -533,8 +533,8 @@ function renderAutoMiner() {
 async function loadAutoMiner() { await amFetch(); }
 
 /* ---------------- navigation ---------------- */
-const PARENT = { automine: 'more', deposit: 'withdraw', rewards: 'more', rank: 'more', ads: 'more', channel: 'more', proof: 'more', howto: 'more', games: 'more', contests: 'more', missions: 'more', terms: 'more', taskproof: 'tasks', history: 'more', prefs: 'more' };
-const NAVOF = { automine: 'more', deposit: 'withdraw', rewards: 'more', rank: 'more', ads: 'more', channel: 'more', proof: 'more', howto: 'more', games: 'more', contests: 'more', missions: 'more', terms: 'more', taskproof: 'tasks', history: 'more', prefs: 'more' };
+const PARENT = { automine: 'more', roiplans: 'more', deposit: 'withdraw', rewards: 'more', rank: 'more', ads: 'more', channel: 'more', proof: 'more', howto: 'more', games: 'more', contests: 'more', missions: 'more', terms: 'more', taskproof: 'tasks', history: 'more', prefs: 'more' };
+const NAVOF = { automine: 'more', roiplans: 'more', deposit: 'withdraw', rewards: 'more', rank: 'more', ads: 'more', channel: 'more', proof: 'more', howto: 'more', games: 'more', contests: 'more', missions: 'more', terms: 'more', taskproof: 'tasks', history: 'more', prefs: 'more' };
 let cur = 'home', backBound = false;
 function go(id) {
   if (!$(id)) return; cur = id;
