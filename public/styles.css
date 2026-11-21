@@ -298,3 +298,5 @@ progress.bar::-moz-progress-bar{background:linear-gradient(90deg,var(--or1),var(
 .ctb-r{padding:4px 10px;border-radius:999px;background:rgba(255,176,46,.12);border:1px solid rgba(255,176,46,.35);font-size:.82rem}
 .ctb-r.me{border-color:var(--green);color:var(--green)}
 .ctb-me{font-size:.9rem;color:var(--mut)}.ctb-me b{color:var(--or1)}.ctb-me .chev{float:right}
+
+.depqr{display:flex;justify-content:center;margin:12px 0}.depqr-img{width:180px;height:180px;box-sizing:content-box;padding:10px;background:#fff;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.18);image-rendering:pixelated}.depqr-img[hidden]{display:none}

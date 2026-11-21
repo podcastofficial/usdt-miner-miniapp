@@ -230,10 +230,17 @@ async function loadDeposit() {
   const r = await api('depositList');
   setHtml('deplist', r.items.map((x) => `<div class="card row">${ic(DI[x.status] || '•')}<div class="mid"><b>${x.amount_native ? esc(x.amount_native)+' '+esc(x.asset||'') : 'Deposit #' + Number(x.id)}</b><small>${badge(BC[x.status] || 'warn', x.status)} · ${esc(x.network||'')} · ${esc(short(x.tx_hash))}${x.reject_reason ? ' · '+esc(x.reject_reason) : ''}</small></div></div>`).join('') || empty('No deposits yet'));
 }
+// Auto QR for the selected deposit address (an admin-set QR image URL still wins). Generated locally by /qr.js, nothing leaves the device.
+function renderDepositQr(address) {
+  const img = document.getElementById('depqrimg'); if (!img || !address || typeof window.makeQrDataUri !== 'function') return;
+  const uri = window.makeQrDataUri(address);
+  if (uri) { img.src = uri; img.hidden = false; }
+}
 function updateDepositMethod() {
   const m = (window.depositMethods || []).find(x => x.id === $('depmethod')?.value) || (window.depositMethods || [])[0];
   if (!m || !$('depaddress')) return;
-  $('depaddress').innerHTML = `<b>${esc(m.asset)} · ${esc(m.network)}</b><p class="wrap accent">${esc(m.address)}</p><small>Minimum: ${esc(m.min)} ${esc(m.asset)}</small>${m.qr ? `<p><img src="${esc(m.qr)}" alt="Deposit QR" style="max-width:180px;width:100%"></p>` : ''}`;
+  $('depaddress').innerHTML = `<b>${esc(m.asset)} · ${esc(m.network)}</b><p class="wrap accent">${esc(m.address)}</p><small>Minimum: ${esc(m.min)} ${esc(m.asset)}</small><div class="depqr">${m.qr ? `<img class="depqr-img" src="${esc(m.qr)}" alt="Deposit QR">` : '<img class="depqr-img" id="depqrimg" alt="Deposit QR" hidden>'}</div>`;
+  if (!m.qr) renderDepositQr(m.address);
   $('depamount').min = String(m.min);
   $('depamount').placeholder = `Minimum ${m.min} ${m.asset}`;
 }
