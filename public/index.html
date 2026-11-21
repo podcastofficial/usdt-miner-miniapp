@@ -191,6 +191,7 @@
   <h2 id="h-deposit" data-i18n="deposit.title">⬇️ Deposit</h2>
   <div class="card">
     <p id="depinfo" class="muted"></p>
+    <p id="roiDepositContext" class="hint" hidden></p>
     <div id="depform">
       <label for="depmethod">Choose asset / blockchain</label>
       <select id="depmethod" data-input="depositMethod"></select>
@@ -243,6 +244,7 @@
     <p>Daily rate: <b>3%</b> · Duration: <b>100 days</b></p>
     <p>Total projected payout: <b>300% (principal included)</b></p>
     <small>Example calculation: 1 USDT × 300% = 3 USDT total.</small>
+    <button class="btn" data-act="roiDeposit" data-plan="Basic" data-min="1">Deposit for Basic Plan ›</button>
   </div>
   <div class="card">
     <h3>⚪ Silver Plan</h3>
@@ -250,6 +252,7 @@
     <p>Daily rate: <b>4%</b> · Duration: <b>70 days</b></p>
     <p>Total projected payout: <b>280% (principal included)</b></p>
     <small>Example calculation: 10 USDT × 280% = 28 USDT total.</small>
+    <button class="btn" data-act="roiDeposit" data-plan="Silver" data-min="10">Deposit for Silver Plan ›</button>
   </div>
   <div class="card">
     <h3>🟡 Gold Plan</h3>
@@ -257,6 +260,7 @@
     <p>Daily rate: <b>5%</b> · Duration: <b>50 days</b></p>
     <p>Total projected payout: <b>250% (principal included)</b></p>
     <small>Example calculation: 25 USDT × 250% = 62.50 USDT total.</small>
+    <button class="btn" data-act="roiDeposit" data-plan="Gold" data-min="25">Deposit for Gold Plan ›</button>
   </div>
   <div class="card">
     <h3>👥 Referral level schedule</h3>

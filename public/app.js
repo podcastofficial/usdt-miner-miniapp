@@ -18,7 +18,7 @@ function applyTheme(pref) {
 }
 applyTheme(getTheme());
 if (window.I18N) { const early = I18N.stored() || I18N.guess(tg?.initDataUnsafe?.user?.language_code); if (early !== 'en') I18N.set(early); }
-let data = {}, filter = 'all', opened = {}, community = null, fin = null;
+let data = {}, filter = 'all', opened = {}, community = null, fin = null, selectedRoiDeposit = null;
 
 const $ = (id) => document.getElementById(id);
 const T = (k, v, d) => (window.I18N ? I18N.t(k, v, d) : d !== undefined ? String(d).replace(/\{(\w+)\}/g, (m, n) => (v && n in v ? v[n] : m)) : k);
@@ -215,6 +215,8 @@ async function loadWithdraw() {
   setHtml('wlist', r.items.map((w) => `<div class="card row">${ic(WI[w.status] || '•')}<div class="mid"><b>#${Number(w.id)} · ${esc(w.net_usdt)} MINER${esc(withUsd(w.net_usdt))}</b><small>${badge(BC[w.status] || 'warn', w.status)}${w.reject_reason ? ' ' + esc(w.reject_reason) : ''}${w.tx_hash ? ' · ' + esc(short(w.tx_hash)) : ''}</small></div>${w.status === 'pending' ? btn('Cancel', 'cancelW', `data-id="${Number(w.id)}"`, 'btn sm ghost', 'Cancel withdrawal ' + Number(w.id)) : ''}</div>`).join('') || empty('No withdrawals yet'));
 }
 async function loadDeposit() {
+  const ctx = $('roiDepositContext');
+  if (ctx) { ctx.hidden = !selectedRoiDeposit; ctx.textContent = selectedRoiDeposit ? `Deposit flow opened from ${selectedRoiDeposit.plan} Plan (minimum plan amount: ${selectedRoiDeposit.min} USDT). Admin review is required; this deposit form does not itself activate an ROI plan.` : ''; }
   const f = await getFin(), d = f.deposit, methods = d.methods || [];
   const legacy = d.enabled && d.wallet ? [{id:'legacy-bep20',asset:'USDT',network:'BEP20',address:d.wallet,min:d.min,enabled:true,qr:''}] : [];
   const available = d.enabled ? methods.filter(x => x.enabled).concat(methods.length ? [] : legacy) : [];
@@ -831,6 +833,13 @@ function showGate() { $('gate').hidden = false; $('main').hidden = true; $('nav'
 
 /* ---------------- actions ---------------- */
 const ACT = {
+  roiDeposit(d) {
+    const plan = String(d.plan || '').trim();
+    const min = Number(d.min);
+    if (!['Basic', 'Silver', 'Gold'].includes(plan) || !Number.isFinite(min) || min <= 0) { say('Invalid plan selection'); return; }
+    selectedRoiDeposit = { plan, min };
+    go('deposit');
+  },
   async daily() { const r = await api('daily'); say(T('toast.claimed', { n: N(r.reward) }, '🎁 Claimed {n} MINER') + withUsd(r.reward) + (r.streak > 1 ? T('toast.streak', { n: r.streak }, ' · 🔥 {n}-day streak') : '')); await boot(); },
   async refFilter(d) {
     refFilter = d.f; document.querySelectorAll('[data-act=refFilter]').forEach((b) => { const on = b.dataset.f === d.f; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); });
