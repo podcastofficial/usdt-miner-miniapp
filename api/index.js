@@ -92,6 +92,9 @@ const ACTIONS = {
   adminWebhookSetup: { fn: ntf.adminWebhookSetup, admin: true, write: true },
   adminBroadcastCreate: { fn: ntf.adminBroadcastCreate, admin: true, write: true },
   adminBroadcastCancel: { fn: ntf.adminBroadcastCancel, admin: true, write: true },
+  adminBcChannelAdd: { fn: ntf.adminBcChannelAdd, admin: true, write: true },
+  adminBcChannelRemove: { fn: ntf.adminBcChannelRemove, admin: true, write: true },
+  adminBcChannelToggle: { fn: ntf.adminBcChannelToggle, admin: true, write: true },
   engagement: { fn: eng.engagement },
   // Parts 19-21 (cumulative compatibility routes).
   checkinCalendar: { fn: p19.checkinCalendar },
