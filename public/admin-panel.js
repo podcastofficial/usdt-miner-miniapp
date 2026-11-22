@@ -35,6 +35,7 @@ let perms = [], tab = 'dash';
 const can = (p) => perms.includes(p);
 const U = { q: '', filter: 'all', sort: 'newest', page: 0 };
 let feedKind = 'all';
+const AD = { days: 14, day: '' };
 
 const KIND = { ledger: ['🪙', 'Points'], join: ['🆕', 'Joined'], withdraw: ['💸', 'Withdraw'], deposit: ['⬇️', 'Deposit'], proof: ['🧾', 'Proof'], support: ['💬', 'Support'], referral: ['👥', 'Referral'] };
 const STATUS_CLS = { paid: 'pos', approved: 'pos', confirmed: 'pos', answered: 'pos', rejected: 'neg', cancelled: 'neg', failed: 'neg' };
@@ -123,6 +124,27 @@ async function feed(more) {
   } catch (e) { say(e.message, 'error'); }
 }
 
+
+// ---------------- Watch & Earn ads ----------------
+async function ads() {
+  const r = await api('adminAdStats', { days: AD.days, day: AD.day || undefined });
+  AD.day = r.day;
+  const t = r.daily.find((x) => x.day === r.today) || { watches: 0, viewers: 0, points: 0 };
+  const stat = ([k, v]) => `<div class="stat"><small>${k}</small><b>${v}</b></div>`;
+  view.innerHTML = `
+    <div class="card"><h2>Watch &amp; Earn ads</h2>
+      <p class="muted">${r.enabled ? 'Feature is ON' : '<span class="neg">Feature is OFF</span>'} · reward ${n(r.reward)} MINER per ad · limit ${n(r.dailyLimit)} ads per user per day${r.network ? ' · network: ' + esc(r.network) : ''}</p>
+      <div class="grid">${[['Ads watched today', n(t.watches)], ['Users today', n(t.viewers)], ['MINER paid today', n(t.points)], ['Ads all time', n(r.totals.watches)], ['Users all time', n(r.totals.viewers)], ['MINER paid all time', n(r.totals.points)]].map(stat).join('')}</div></div>
+    <div class="card"><div class="toolbar" style="grid-template-columns:1fr"><select id="adays">${[7, 14, 30].map((d) => `<option value="${d}"${AD.days === d ? ' selected' : ''}>Last ${d} days</option>`).join('')}</select></div>
+      <div class="tablewrap" style="margin-top:10px"><table><tr><th>Date (UTC)</th><th>Ads watched</th><th>Users</th><th>MINER paid</th></tr>${r.daily.map((d) => `<tr data-adday="${esc(d.day)}" style="cursor:pointer;${d.day === r.day ? 'background:#162842' : ''}"><td>${esc(d.day)}${d.day === r.today ? ' <small>(today)</small>' : ''}</td><td>${n(d.watches)}</td><td>${n(d.viewers)}</td><td>${n(d.points)}</td></tr>`).join('')}</table></div>
+      <p class="muted" style="margin-bottom:0"><small>Tap a date to see who watched on that day.</small></p></div>
+    <div class="card"><h2>Who watched · ${esc(r.day)}</h2>${r.viewers.map((v) => `<div class="urow" data-uid="${esc(v.telegram_id)}" style="margin-bottom:8px"><div><b>${name(v)}</b><span class="meta">${handle(v)} · first ${dt(v.first_at)} · last ${dt(v.last_at)}</span></div><div class="right"><b>${n(v.watches)} ads</b><span class="meta">${n(v.points)} MINER<br>${n(v.all_time)} all time</span></div></div>`).join('') || '<div class="empty">Nobody watched an ad on this day</div>'}
+      ${r.viewers.length >= 200 ? '<p class="muted"><small>Showing the top 200 users.</small></p>' : ''}</div>
+    <p class="muted"><small>Counts only rewarded Watch &amp; Earn ads that were fully watched and paid. Popup ads are not tracked on the server.</small></p>`;
+  $('#adays').onchange = (e) => { AD.days = Number(e.target.value); go('ads'); };
+  view.querySelectorAll('[data-adday]').forEach((row) => { row.onclick = () => { AD.day = row.dataset.adday; go('ads'); }; });
+}
+
 // ---------------- One user ----------------
 async function openUser(id, more) {
   if (!more) { view.innerHTML = '<div class="empty">Loading user…</div>'; tabsEl.hidden = true; openUser.tl = []; openUser.next = null; }
@@ -149,7 +171,7 @@ async function openUser(id, more) {
         ['Booster', u.booster_until && new Date(u.booster_until) > new Date() ? esc(u.booster_pct) + '% until ' + dt(u.booster_until) : 'None'],
       ])}</div>
       <div class="card"><h2>Activity summary</h2><div class="grid">${[
-        ['Tasks done', n(s.tasks_done)], ['Daily claims', n(s.daily_claims)], ['Games played', n(s.games_played)], ['Promo codes used', n(s.promos_used)],
+        ['Tasks done', n(s.tasks_done)], ['Ads watched', n(s.ads_watched)], ['Ads today', n(s.ads_today)], ['Daily claims', n(s.daily_claims)], ['Games played', n(s.games_played)], ['Promo codes used', n(s.promos_used)],
         ['Invited friends', n(s.invited)], ['Qualified referrals', n(s.qualified)], ['Task proofs', n(s.proofs)], ['Support tickets', n(s.tickets)],
         ['Withdrawn (USDT)', usdt(s.withdrawn_usdt)], ['Pending withdraw (USDT)', usdt(s.pending_withdraw_usdt)], ['Withdraw requests', n(s.withdraw_count)],
         ['Deposited (USDT)', usdt(s.deposited_usdt)], ['Deposit requests', n(s.deposit_count)], ['Ledger entries', n(s.tx_count)],
@@ -178,7 +200,7 @@ async function go(t) {
   tab = t;
   tabsEl.querySelectorAll('[data-tab]').forEach((b) => b.classList.toggle('active', b.dataset.tab === t));
   view.innerHTML = '<div class="empty">Loading…</div>';
-  try { if (t === 'dash') await dash(); else if (t === 'users') await users(); else await feed(false); if (t === 'dash') say(''); } catch (e) { view.innerHTML = `<div class="empty">${esc(e.message)}</div>`; say(e.message, 'error'); }
+  try { if (t === 'dash') await dash(); else if (t === 'users') await users(); else if (t === 'ads') await ads(); else await feed(false); if (t === 'dash') say(''); } catch (e) { view.innerHTML = `<div class="empty">${esc(e.message)}</div>`; say(e.message, 'error'); }
 }
 
 // one click handler for every "open this user" / tab shortcut
