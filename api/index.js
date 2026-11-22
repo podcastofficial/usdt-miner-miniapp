@@ -187,6 +187,7 @@ const ACTIONS = {
   adminPanelSummary: { fn: p28.adminPanelSummary, admin: true },
   adminUserFull: { fn: p28.adminUserFull, admin: true },
   adminActivityFeed: { fn: p28.adminActivityFeed, admin: true },
+  adminAdStats: { fn: p28.adminAdStats, admin: true },
 };
 
 const query_action = (req) => String((req.query && req.query.action) || (req.body && req.body.action) || "bootstrap");
