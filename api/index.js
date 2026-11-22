@@ -31,6 +31,7 @@ import * as p24 from "../lib/actions/parts24.js";
 import * as p25 from "../lib/actions/parts25.js";
 import * as p26 from "../lib/actions/parts26.js";
 import * as p27 from "../lib/actions/parts27.js";
+import * as p28 from "../lib/actions/parts28.js";
 import { roleOf, can } from "../lib/roles.js";
 import { reportApiError } from "../lib/health.js";
 import { adsgramReward } from "../lib/adsgram.js";
@@ -181,6 +182,11 @@ const ACTIONS = {
   adminReferralChallengeSave: { fn: p26.adminReferralChallengeSave, admin: true, write: true },
   adminAnalyticsRange: { fn: p27.adminAnalyticsRange, admin: true, write: true },
   adminAnalyticsReportList: { fn: p27.adminAnalyticsReportList, admin: true },
+  // Part 28: dedicated Admin Panel (/admin-panel.html) - all users, full profile, activity.
+  adminUsersDirectory: { fn: p28.adminUsersDirectory, admin: true },
+  adminPanelSummary: { fn: p28.adminPanelSummary, admin: true },
+  adminUserFull: { fn: p28.adminUserFull, admin: true },
+  adminActivityFeed: { fn: p28.adminActivityFeed, admin: true },
 };
 
 const query_action = (req) => String((req.query && req.query.action) || (req.body && req.body.action) || "bootstrap");
