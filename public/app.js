@@ -90,8 +90,18 @@ function taskIcon(type, link, title) {
 /* Ledger type -> icon (History). Unknown types fall back to green / red dot. */
 const TX_ICONS = { 'Task Reward': '✅', 'Daily Reward': '📅', 'Referral Reward': '👥', 'Milestone Reward': '🏅', 'Promo Code': '🎟️', 'Mission Reward': '🎯', 'Ad Reward': '📺', 'Campaign Budget': '📢', 'Campaign Refund': '↩️', 'Withdrawal': '💸', 'Withdrawal Refund': '↩️', 'Deposit': '⬇️', 'Game Entry': '🎮', 'Game Prize': '🏆', 'Lucky Draw Ticket': '🎫', 'Lucky Draw Win': '🎉', 'Lucky Draw Refund': '↩️', 'Booster Purchase': '⚡', 'Auto-Miner Purchase': '🤖', 'Auto-Miner Reward': '⛏️', 'Contest Prize': '🏁', 'Admin Adjustment': '🛠️' };
 const txIcon = (t) => TX_ICONS[t.type] || (t.points_change >= 0 ? '🟢' : '🔴');
+/* Repeating website tasks: "45s", "12 min", "1h 30m", "2 days". */
+function fmtRepeat(sec) {
+  sec = Math.max(0, Math.ceil(Number(sec) || 0));
+  if (sec < 60) return Math.max(1, sec) + 's';
+  const m = Math.ceil(sec / 60);
+  if (m < 60) return m + ' min';
+  if (m < 1440) return Math.floor(m / 60) + 'h' + (m % 60 ? ' ' + (m % 60) + 'm' : '');
+  return Math.round(m / 1440) + ' day' + (Math.round(m / 1440) > 1 ? 's' : '');
+}
 function taskBtn(t) {
   const a = `data-id="${Number(t.id)}"`, nm = ' — ' + t.title;
+  if (t.done && t.repeat_wait > 0) return `<button class="btn sm" disabled aria-label="Available again in ${esc(fmtRepeat(t.repeat_wait))}">⏳ ${esc(fmtRepeat(t.repeat_wait))}</button>`; // repeating task: next round opens later
   if (t.done) return '<button class="btn sm done" disabled>Done ✓</button>';
   if (t.proof_required) {
     if (t.proof_status === 'pending') return '<button class="btn sm" disabled aria-label="Proof is in review">⏳ In review</button>';
@@ -103,13 +113,21 @@ function taskBtn(t) {
 }
 function renderTasks() {
   const list = (data.tasks || []).filter((t) => filter === 'all' || (filter === 'social' && ['channel', 'bot'].includes(t.type)) || (filter === 'other' && !['channel', 'bot'].includes(t.type)));
-  setHtml('tasklist', list.map((t) => `<div class="card row">${ic(taskIcon(t.type, t.link, t.title))}<div class="mid"><b>${esc(t.title)}</b>${t.description ? `<small>${esc(t.description)}</small>` : ''}<span class="pts">🪙 +${N(t.reward)} MINER${esc(withUsd(t.reward))}</span>${t.proof_required && !t.done ? `<small>${t.proof_status === 'rejected' ? 'Rejected' + (t.proof_reason ? ': ' + esc(t.proof_reason) : '') + ' — you can try again' : 'Needs a proof, checked by an admin'}</small>` : ''}${t.type !== 'channel' && !t.proof_required && !t.done ? `<small>Stay ${Number(t.timer_seconds)}s on the task, then claim</small>` : ''}${t.started_at && !t.done && !t.proof_required ? `<small><a href="#" data-act="openTaskLink" data-id="${Number(t.id)}">Open task link again</a></small>` : ''}</div>${taskBtn(t)}</div>`).join('') || empty('No tasks right now'));
+  setHtml('tasklist', list.map((t) => `<div class="card row">${ic(taskIcon(t.type, t.link, t.title))}<div class="mid"><b>${esc(t.title)}</b>${t.description ? `<small>${esc(t.description)}</small>` : ''}<span class="pts">🪙 +${N(t.reward)} MINER${esc(withUsd(t.reward))}</span>${t.proof_required && !t.done ? `<small>${t.proof_status === 'rejected' ? 'Rejected' + (t.proof_reason ? ': ' + esc(t.proof_reason) : '') + ' — you can try again' : 'Needs a proof, checked by an admin'}</small>` : ''}${t.type !== 'channel' && !t.proof_required && !t.done ? `<small>Stay ${Number(t.timer_seconds)}s on the task, then claim</small>` : ''}${t.repeat_minutes > 0 ? `<small>🔁 Repeats every ${esc(fmtRepeat(t.repeat_minutes * 60))} — earn again each time</small>` : ''}${t.started_at && !t.done && !t.proof_required ? `<small><a href="#" data-act="openTaskLink" data-id="${Number(t.id)}">Open task link again</a></small>` : ''}</div>${taskBtn(t)}</div>`).join('') || empty('No tasks right now'));
 }
-const initTimers = () => (data.tasks || []).forEach((t) => { t.deadline = Date.now() + (t.seconds_left || 0) * 1000; });
+const initTimers = () => (data.tasks || []).forEach((t) => { t.deadline = Date.now() + (t.seconds_left || 0) * 1000; t.repeat_deadline = t.repeat_wait > 0 ? Date.now() + t.repeat_wait * 1000 : 0; });
 setInterval(() => {
   if (!$('tasks').classList.contains('on')) return;
   let ch = false;
   (data.tasks || []).forEach((t) => { if (t.started_at && !t.done && t.deadline) { const l = Math.max(0, Math.ceil((t.deadline - Date.now()) / 1000)); if (l !== t.seconds_left) { t.seconds_left = l; ch = true; } } });
+  // repeating tasks: count down to the next round, then open the task again without a reload
+  (data.tasks || []).forEach((t) => {
+    if (!t.repeat_deadline || !(t.repeat_wait > 0)) return;
+    const l = Math.max(0, Math.ceil((t.repeat_deadline - Date.now()) / 1000));
+    if (l === 0) { t.repeat_wait = 0; t.done = false; t.started_at = null; t.seconds_left = null; ch = true; return; }
+    if (fmtRepeat(l) !== fmtRepeat(t.repeat_wait)) ch = true;
+    t.repeat_wait = l;
+  });
   if (ch) renderTasks();
 }, 1000);
 
