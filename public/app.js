@@ -636,7 +636,7 @@ function renderAutoMiner() {
 async function loadAutoMiner() { await amFetch(); }
 
 /* ---------------- navigation ---------------- */
-const PARENT = { automine: 'more', roiplans: 'more', deposit: 'withdraw', rewards: 'more', rank: 'more', ads: 'more', channel: 'more', proof: 'more', howto: 'more', games: 'more', contests: 'more', missions: 'more', terms: 'more', taskproof: 'tasks', history: 'more', prefs: 'more' };
+const PARENT = { automine: 'more', roiplans: 'more', deposit: 'withdraw', rewards: 'more', rank: 'more', ads: 'more', channel: 'more', proof: 'more', howto: 'more', games: 'more', contests: 'more', missions: 'more', terms: 'more', taskproof: 'tasks', history: 'more', prefs: 'more', watch: 'home' };
 const NAVOF = { automine: 'more', roiplans: 'more', deposit: 'withdraw', rewards: 'more', rank: 'more', ads: 'more', channel: 'more', proof: 'more', howto: 'more', games: 'more', contests: 'more', missions: 'more', terms: 'more', taskproof: 'tasks', history: 'more', prefs: 'more' };
 let cur = 'home', backBound = false;
 // Admin switch (Admin > Settings > ROI Plans): hides every ROI Plans entry point while it is OFF.
@@ -670,6 +670,7 @@ async function load(id) {
       await loadRefs(true);
       api('engagement').then((e) => renderMilestonesBrief(e.milestones)).catch(() => {}); // optional extra, never blocks the list
     }
+    if (id === 'watch') { await renderAdTile(); if (!(data && data.watch_ad && data.watch_ad.enabled)) go('home'); }
     if (id === 'rewards') await loadRewards();
     if (id === 'rank') await loadRank(1);
     if (id === 'ads') await loadAds();
@@ -754,32 +755,37 @@ function showOwnPopup(p) {
 let adWatching = false;
 let adTimer = null;
 const mmss = (n) => Math.floor(n / 60) + ':' + String(n % 60).padStart(2, '0');
-/** Watch & Earn card: one button per ad network (each shows its own reward), shared daily limit and live countdown (server enforces the same gap). */
+/** Watch & Earn: Home card (summary) + Watch screen (one equal button per network with its logo and reward) + bottom-nav button.
+ *  Daily limit and gap are shared by all networks; the server enforces them. Logos: public/ads/<network>.svg (replace the files to change a logo). */
 async function renderAdTile() {
-  const w = data && data.watch_ad, tile = $('adtile'); if (!tile) return;
+  const w = data && data.watch_ad, tile = $('adtile'), nav = $('navwatch'); if (!tile) return;
   clearInterval(adTimer);
-  tile.hidden = !(w && w.enabled); if (tile.hidden) return;
-  const sub = $('adtilesub'), btn = $('adtilebtn'), box = $('adnets');
-  let i; try { i = await api('adWatchInfo'); } catch (e) { btn.disabled = false; return; }
-  if (!i.enabled) { tile.hidden = true; return; }
+  const off = !(w && w.enabled); tile.hidden = off; if (nav) nav.hidden = off; if (off) return;
+  const sub = $('adtilesub'), home = $('adtilehome'), box = $('adnets');
+  let i; try { i = await api('adWatchInfo'); } catch (e) { return; }
+  if (!i.enabled) { tile.hidden = true; if (nav) nav.hidden = true; return; }
   const nets = Array.isArray(i.networks) ? i.networks : [];
-  const multi = nets.length > 1;
-  btn.hidden = multi; if (box) { box.hidden = !multi; box.innerHTML = ''; }
-  if (!multi) btn.dataset.net = nets[0] ? nets[0].id : '';
-  const setAll = (off, label) => { btn.disabled = off; if (label != null) btn.textContent = label; if (box) box.querySelectorAll('button').forEach((b) => { b.disabled = off; }); };
-  if (multi && box) nets.forEach((n) => { const b = document.createElement('button'); b.className = 'btn sm'; b.dataset.act = 'watchAd'; b.dataset.net = n.id; b.textContent = (AD_NETS[n.id] ? AD_NETS[n.id].label : n.id) + ' +' + N(n.reward); box.appendChild(b); });
-  if (i.left <= 0) { sub.textContent = 'Daily limit reached \u00b7 come back tomorrow'; setAll(true, 'Done \u2713'); return; }
+  const setAll = (dis) => { if (box) box.querySelectorAll('button').forEach((b) => { b.disabled = dis; }); };
+  if (box) {
+    box.innerHTML = '';
+    nets.forEach((n) => {
+      const b = document.createElement('button'); b.className = 'btn adnet'; b.dataset.act = 'watchAd'; b.dataset.net = n.id;
+      const im = document.createElement('img'); im.className = 'adlogo'; im.src = '/ads/' + n.id + '.svg'; im.alt = ''; im.width = 34; im.height = 34;
+      const t = document.createElement('span'); t.className = 'adn';
+      const nm = document.createElement('b'); nm.textContent = AD_NETS[n.id] ? AD_NETS[n.id].label : n.id;
+      const rw = document.createElement('small'); rw.textContent = '+' + N(n.reward) + ' MINER';
+      t.append(nm, rw); b.append(im, t); box.appendChild(b);
+    });
+  }
+  const r = nets.length ? nets.map((n) => n.reward) : [i.reward], lo = Math.min(...r), hi = Math.max(...r);
+  const range = lo === hi ? '+' + N(lo) : '+' + N(lo) + ' to +' + N(hi);
+  if (i.left <= 0) { const m = 'Daily limit reached \u00b7 come back tomorrow'; sub.textContent = m; home.textContent = m; setAll(true); return; }
+  if (!nets.length) { sub.textContent = 'No ad network is set up yet'; home.textContent = sub.textContent; setAll(true); return; }
   const until = Date.now() + (Number(i.cooldown_left) || 0) * 1000;
   const paint = () => {
     const cd = Math.max(0, Math.ceil((until - Date.now()) / 1000));
-    if (cd > 0) { sub.textContent = '\u23f3 Next ad in ' + mmss(cd) + ' \u00b7 ' + i.left + ' left today'; setAll(true, mmss(cd)); }
-    else {
-      clearInterval(adTimer);
-      const r = nets.length ? nets.map((n) => n.reward) : [i.reward];
-      const lo = Math.min(...r), hi = Math.max(...r);
-      sub.textContent = (multi ? 'Pick an ad \u00b7 ' : '+' + N(i.reward) + ' MINER' + withUsd(i.reward) + ' per ad \u00b7 ') + (lo === hi ? '+' + N(lo) : '+' + N(lo) + ' to +' + N(hi)) + ' MINER \u00b7 ' + i.left + ' left today';
-      setAll(!nets.length, 'Watch \u203a');
-    }
+    if (cd > 0) { const m = '\u23f3 Next ad in ' + mmss(cd) + ' \u00b7 ' + i.left + ' left today'; sub.textContent = m; home.textContent = m; setAll(true); }
+    else { clearInterval(adTimer); sub.textContent = 'Pick an ad \u00b7 ' + range + ' MINER each \u00b7 ' + i.left + ' left today'; home.textContent = range + ' MINER per ad \u00b7 ' + i.left + ' left today'; setAll(false); }
   };
   paint();
   if (until > Date.now()) adTimer = setInterval(paint, 1000);
