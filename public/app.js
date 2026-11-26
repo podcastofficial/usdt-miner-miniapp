@@ -721,7 +721,13 @@ const AD_NETS = {
   gigapub: { label: 'GigaPub', id: (p) => p.gigapub_project_id, valid: (id) => /^[A-Za-z0-9_-]{1,30}$/.test(id || ''),
     play: async (id) => { await loadScriptOnce('gigapub', 'https://ad.gigapub.tech/script?id=' + encodeURIComponent(id)); if (typeof window.showGiga !== 'function') throw new Error('gigapub not ready'); await window.showGiga(); return 'done'; } },
   onclicka: { label: 'OnClickA', id: (p) => p.onclicka_id, valid: (id) => /^[A-Za-z0-9_-]{1,30}$/.test(id || ''),
-    play: async (id) => { await loadScriptOnce('onclicka', 'https://js.onclckvd.com/in-stream-ad-admanager/tma.js'); if (typeof window.initCdTma !== 'function') throw new Error('onclicka not ready'); if (!ONCLICKA[id]) ONCLICKA[id] = await window.initCdTma({ id }); await ONCLICKA[id](); return 'done'; } },
+    play: async (id) => { await loadScriptOnce('onclicka', 'https://js.onclckvd.com/in-stream-ad-admanager/tma.js'); if (typeof window.initCdTma !== 'function') throw new Error('onclicka not ready'); if (typeof ONCLICKA[id] !== 'function') {
+      const r = await window.initCdTma({ id });
+      const f = typeof r === 'function' ? r : (r && typeof r.show === 'function' ? () => r.show() : null);
+      if (!f) throw new Error('OnClickA init gave ' + (r === null ? 'null' : typeof r) + (r && typeof r === 'object' ? ' {' + Object.keys(r).slice(0, 4).join(',') + '}' : '') + ' - check the Spot ID / account approval');
+      ONCLICKA[id] = f; /* only a working show() is kept; a failed init is retried next time */
+    }
+    await ONCLICKA[id](); return 'done'; } },
 };
 const AD_ORDER_ALL = ['adsgram', 'monetag', 'gigapub', 'onclicka'];
 /** which networks a setting value means, in the order they are tried: one name, 'both' (adsgram, monetag) or 'all' */
