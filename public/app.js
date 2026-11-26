@@ -721,7 +721,7 @@ const AD_NETS = {
   gigapub: { label: 'GigaPub', id: (p) => p.gigapub_project_id, valid: (id) => /^[A-Za-z0-9_-]{1,30}$/.test(id || ''),
     play: async (id) => { await loadScriptOnce('gigapub', 'https://ad.gigapub.tech/script?id=' + encodeURIComponent(id)); if (typeof window.showGiga !== 'function') throw new Error('gigapub not ready'); await window.showGiga(); return 'done'; } },
   onclicka: { label: 'OnClickA', id: (p) => p.onclicka_id, valid: (id) => /^[A-Za-z0-9_-]{1,30}$/.test(id || ''),
-    play: async (id) => { await loadScriptOnce('onclicka', 'https://js.onclckmn.com/static/onclicka.js'); if (typeof window.initCdTma !== 'function') throw new Error('onclicka not ready'); if (!ONCLICKA[id]) ONCLICKA[id] = await window.initCdTma({ id }); await ONCLICKA[id](); return 'done'; } },
+    play: async (id) => { await loadScriptOnce('onclicka', 'https://js.onclckvd.com/in-stream-ad-admanager/tma.js'); if (typeof window.initCdTma !== 'function') throw new Error('onclicka not ready'); if (!ONCLICKA[id]) ONCLICKA[id] = await window.initCdTma({ id }); await ONCLICKA[id](); return 'done'; } },
 };
 const AD_ORDER_ALL = ['adsgram', 'monetag', 'gigapub', 'onclicka'];
 /** which networks a setting value means, in the order they are tried: one name, 'both' (adsgram, monetag) or 'all' */
