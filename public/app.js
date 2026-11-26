@@ -754,41 +754,50 @@ function showOwnPopup(p) {
 let adWatching = false;
 let adTimer = null;
 const mmss = (n) => Math.floor(n / 60) + ':' + String(n % 60).padStart(2, '0');
-/** Watch & Earn card: shows reward + ads left today, and a live countdown to the next ad (server enforces the same gap). */
+/** Watch & Earn card: one button per ad network (each shows its own reward), shared daily limit and live countdown (server enforces the same gap). */
 async function renderAdTile() {
   const w = data && data.watch_ad, tile = $('adtile'); if (!tile) return;
   clearInterval(adTimer);
   tile.hidden = !(w && w.enabled); if (tile.hidden) return;
-  const sub = $('adtilesub'), btn = $('adtilebtn');
+  const sub = $('adtilesub'), btn = $('adtilebtn'), box = $('adnets');
   let i; try { i = await api('adWatchInfo'); } catch (e) { btn.disabled = false; return; }
   if (!i.enabled) { tile.hidden = true; return; }
-  if (i.left <= 0) { sub.textContent = 'Daily limit reached \u00b7 come back tomorrow'; btn.disabled = true; btn.textContent = 'Done \u2713'; return; }
+  const nets = Array.isArray(i.networks) ? i.networks : [];
+  const multi = nets.length > 1;
+  btn.hidden = multi; if (box) { box.hidden = !multi; box.innerHTML = ''; }
+  if (!multi) btn.dataset.net = nets[0] ? nets[0].id : '';
+  const setAll = (off, label) => { btn.disabled = off; if (label != null) btn.textContent = label; if (box) box.querySelectorAll('button').forEach((b) => { b.disabled = off; }); };
+  if (multi && box) nets.forEach((n) => { const b = document.createElement('button'); b.className = 'btn sm'; b.dataset.act = 'watchAd'; b.dataset.net = n.id; b.textContent = (AD_NETS[n.id] ? AD_NETS[n.id].label : n.id) + ' +' + N(n.reward); box.appendChild(b); });
+  if (i.left <= 0) { sub.textContent = 'Daily limit reached \u00b7 come back tomorrow'; setAll(true, 'Done \u2713'); return; }
   const until = Date.now() + (Number(i.cooldown_left) || 0) * 1000;
   const paint = () => {
     const cd = Math.max(0, Math.ceil((until - Date.now()) / 1000));
-    if (cd > 0) { sub.textContent = '\u23f3 Next ad in ' + mmss(cd) + ' \u00b7 ' + i.left + ' left today'; btn.disabled = true; btn.textContent = mmss(cd); }
-    else { clearInterval(adTimer); sub.textContent = '+' + N(i.reward) + ' MINER' + withUsd(i.reward) + ' per ad \u00b7 ' + i.left + ' left today'; btn.disabled = false; btn.textContent = 'Watch \u203a'; }
+    if (cd > 0) { sub.textContent = '\u23f3 Next ad in ' + mmss(cd) + ' \u00b7 ' + i.left + ' left today'; setAll(true, mmss(cd)); }
+    else {
+      clearInterval(adTimer);
+      const r = nets.length ? nets.map((n) => n.reward) : [i.reward];
+      const lo = Math.min(...r), hi = Math.max(...r);
+      sub.textContent = (multi ? 'Pick an ad \u00b7 ' : '+' + N(i.reward) + ' MINER' + withUsd(i.reward) + ' per ad \u00b7 ') + (lo === hi ? '+' + N(lo) : '+' + N(lo) + ' to +' + N(hi)) + ' MINER \u00b7 ' + i.left + ' left today';
+      setAll(!nets.length, 'Watch \u203a');
+    }
   };
   paint();
   if (until > Date.now()) adTimer = setInterval(paint, 1000);
 }
-/** Plays a rewarded ad from the configured network(s). -> 'done' | 'skipped' | 'none' */
-async function playRewardAd() {
-  const p = (data && data.popup_ad) || {}, net = (data && data.watch_ad && data.watch_ad.network) || 'monetag';
-  for (const n of adOrder(net)) {
-    const N_ = AD_NETS[n], id = N_.id(p);
-    if (!N_.valid(id)) continue;
-    try { return await N_.play(id); } catch (e) { /* no ad / blocked: try the next network */ }
-  }
-  return 'none';
+/** Plays a rewarded ad of ONE network (the one the user tapped). -> 'done' | 'skipped' | 'none' */
+async function playRewardAd(net) {
+  const p = (data && data.popup_ad) || {}, N_ = AD_NETS[net];
+  if (!N_ || !N_.valid(N_.id(p))) return 'none';
+  try { return await N_.play(N_.id(p)); } catch (e) { return 'none'; }
 }
 async function watchAd(el) {
   if (adWatching) return; adWatching = true; if (el) el.disabled = true;
   try {
-    const st = await api('adWatchStart'), t0 = Date.now();
-    const res = await playRewardAd();
+    const net = (el && el.dataset && el.dataset.net) || '';
+    const st = await api('adWatchStart', { network: net }), t0 = Date.now();
+    const res = await playRewardAd(st.network || net);
     if (res === 'skipped') { say('Watch the full ad to earn MINER'); return; }
-    if (res === 'none') { say('No ad available right now. Please try again in a little while.'); return; }
+    if (res === 'none') { say('No ad from this network right now. Try another one or come back later.'); return; }
     const wait = st.min_seconds * 1000 - (Date.now() - t0) + 300; if (wait > 0) await new Promise((r) => setTimeout(r, wait));
     const r = await api('adWatchClaim', { token: st.token });
     say('\ud83d\udcfa +' + N(r.reward) + ' MINER' + withUsd(r.reward) + ' \u00b7 ' + r.left + ' ads left today');
@@ -798,7 +807,7 @@ async function watchAd(el) {
 /* Monetag preloads its ads when the tag is on the page, so load it early (only when popup ads + a zone are set). */
 function preloadPopupSdk() {
   const p = data && data.popup_ad, w = data && data.watch_ad; if (!p || !(p.enabled || (w && w.enabled))) return;
-  const useM = (w && w.enabled && adOrder(w.network).includes('monetag')) || (p.enabled && adOrder(p.type).includes('monetag'));
+  const useM = (w && w.enabled && adOrder(w.network === 'monetag' || w.network === 'both' || w.network === 'all' ? w.network : '').includes('monetag')) || (p.enabled && adOrder(p.type).includes('monetag'));
   if (useM && AD_NETS.monetag.valid(p.monetag_zone_id)) loadMonetag(p.monetag_zone_id).catch(() => {});
 }
 let cspChecked = false;
@@ -821,12 +830,20 @@ async function showPopupAd(section) {
   const err = (e) => String((e && (e.message || e.description || e.error)) || e || 'no ad').slice(0, 60) + (lastCsp ? ' / blocked: ' + lastCsp : '');
   try {
     let shown = false;
-    for (const n of adOrder(p.type)) {
+    let order = adOrder(p.type), shownBy = '';
+    if (p.type === 'all') { /* take turns: each popup starts with the next network that has an ID, so every network gets its share (the others stay as fallback) */
+      const ready = order.filter((n) => AD_NETS[n].valid(AD_NETS[n].id(p)));
+      let k = 0; try { k = Number(localStorage.getItem('popup_ad_rot')) || 0; } catch (e) { /* storage blocked: start at the first */ }
+      if (ready.length) { const at = k % ready.length; order = ready.slice(at).concat(ready.slice(0, at)); }
+    }
+    for (const n of order) {
       if (shown) break;
       const N_ = AD_NETS[n], id = N_.id(p);
       if (!N_.valid(id)) { why.push(N_.label + ': ID empty'); continue; }
-      try { await N_.play(id); shown = true; } catch (e) { why.push(N_.label + ': ' + err(e)); }
+      try { await N_.play(id); shown = true; shownBy = N_.label; } catch (e) { why.push(N_.label + ': ' + err(e)); }
     }
+    if (shown && p.type === 'all') { try { localStorage.setItem('popup_ad_rot', String((Number(localStorage.getItem('popup_ad_rot')) || 0) + 1)); } catch (e) { /* ignore */ } }
+    if (shown && shownBy && data.admin) say('Popup ad shown by ' + shownBy + ' (admin note)');
     if (!shown && (p.type === 'own' || p.type === 'both' || p.type === 'all')) { shown = await showOwnPopup(p); if (!shown) why.push('Own popup: title/text/image/link all empty'); }
     if (shown) { try { localStorage.setItem('popup_ad_at', String(Date.now())); } catch (e) { /* ignore */ } }
     else if (data.admin && why.length) say('Popup ad not shown (admin note) - ' + why.join(' | '));
