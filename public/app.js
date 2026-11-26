@@ -706,6 +706,26 @@ function loadMonetag(zone) {
   if (!monetagLoading) monetagLoading = new Promise((res, rej) => { const s = document.createElement('script'); s.src = 'https://libtl.com/sdk.js'; s.dataset.zone = zone; s.dataset.sdk = 'show_' + zone; s.onload = res; s.onerror = () => { monetagLoading = null; rej(new Error('monetag blocked')); }; document.head.appendChild(s); });
   return monetagLoading;
 }
+function loadScriptOnce(key, src) {
+  if (!loadScriptOnce.m) loadScriptOnce.m = {};
+  if (!loadScriptOnce.m[key]) loadScriptOnce.m[key] = new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.async = true; s.onload = res; s.onerror = () => { delete loadScriptOnce.m[key]; rej(new Error(key + ' blocked')); }; document.head.appendChild(s); });
+  return loadScriptOnce.m[key];
+}
+/* Ad networks. Each one: label, how to read its ID from popup_ad, and play() that resolves when the ad finished (rejects when there is no ad / error). Add a new network here only. */
+const ONCLICKA = {};
+const AD_NETS = {
+  adsgram: { label: 'Adsgram', id: (p) => p.adsgram_block_id, valid: (id) => !!id,
+    play: async (id) => { await loadAdsgram(); try { await window.Adsgram.init({ blockId: id }).show(); } catch (e) { if (e && e.error === false) return 'skipped'; throw e; } return 'done'; } },
+  monetag: { label: 'Monetag', id: (p) => p.monetag_zone_id, valid: (id) => /^\d{1,15}$/.test(id || ''),
+    play: async (id) => { await loadMonetag(id); await window['show_' + id](); return 'done'; } },
+  gigapub: { label: 'GigaPub', id: (p) => p.gigapub_project_id, valid: (id) => /^[A-Za-z0-9_-]{1,30}$/.test(id || ''),
+    play: async (id) => { await loadScriptOnce('gigapub', 'https://ad.gigapub.tech/script?id=' + encodeURIComponent(id)); if (typeof window.showGiga !== 'function') throw new Error('gigapub not ready'); await window.showGiga(); return 'done'; } },
+  onclicka: { label: 'OnClickA', id: (p) => p.onclicka_id, valid: (id) => /^[A-Za-z0-9_-]{1,30}$/.test(id || ''),
+    play: async (id) => { await loadScriptOnce('onclicka', 'https://js.onclckmn.com/static/onclicka.js'); if (typeof window.initCdTma !== 'function') throw new Error('onclicka not ready'); if (!ONCLICKA[id]) ONCLICKA[id] = await window.initCdTma({ id }); await ONCLICKA[id](); return 'done'; } },
+};
+const AD_ORDER_ALL = ['adsgram', 'monetag', 'gigapub', 'onclicka'];
+/** which networks a setting value means, in the order they are tried: one name, 'both' (adsgram, monetag) or 'all' */
+const adOrder = (v) => (v === 'all' ? AD_ORDER_ALL : v === 'both' ? ['adsgram', 'monetag'] : AD_NETS[v] ? [v] : []);
 function showOwnPopup(p) {
   return new Promise((res) => {
     const box = $('popupad'), img = normUrl(p.image), link = normUrl(p.link);
@@ -749,15 +769,10 @@ async function renderAdTile() {
 /** Plays a rewarded ad from the configured network(s). -> 'done' | 'skipped' | 'none' */
 async function playRewardAd() {
   const p = (data && data.popup_ad) || {}, net = (data && data.watch_ad && data.watch_ad.network) || 'monetag';
-  const order = net === 'adsgram' ? ['adsgram'] : net === 'both' ? ['adsgram', 'monetag'] : ['monetag'];
-  for (const n of order) {
-    if (n === 'adsgram' && p.adsgram_block_id) {
-      try { await loadAdsgram(); await window.Adsgram.init({ blockId: p.adsgram_block_id }).show(); return 'done'; }
-      catch (e) { if (e && e.error === false) return 'skipped'; /* error: try the next network */ }
-    }
-    if (n === 'monetag' && /^\d{1,15}$/.test(p.monetag_zone_id || '')) {
-      try { await loadMonetag(p.monetag_zone_id); await window['show_' + p.monetag_zone_id](); return 'done'; } catch (e) { /* try the next network */ }
-    }
+  for (const n of adOrder(net)) {
+    const N_ = AD_NETS[n], id = N_.id(p);
+    if (!N_.valid(id)) continue;
+    try { return await N_.play(id); } catch (e) { /* no ad / blocked: try the next network */ }
   }
   return 'none';
 }
@@ -777,7 +792,8 @@ async function watchAd(el) {
 /* Monetag preloads its ads when the tag is on the page, so load it early (only when popup ads + a zone are set). */
 function preloadPopupSdk() {
   const p = data && data.popup_ad, w = data && data.watch_ad; if (!p || !(p.enabled || (w && w.enabled))) return;
-  if (((w && w.enabled) || p.type === 'monetag' || p.type === 'both') && /^\d{1,15}$/.test(p.monetag_zone_id || '')) loadMonetag(p.monetag_zone_id).catch(() => {});
+  const useM = (w && w.enabled && adOrder(w.network).includes('monetag')) || (p.enabled && adOrder(p.type).includes('monetag'));
+  if (useM && AD_NETS.monetag.valid(p.monetag_zone_id)) loadMonetag(p.monetag_zone_id).catch(() => {});
 }
 let cspChecked = false;
 /* admin-only debug: read the CSP header the server really sends (shows if the latest vercel.json is live) */
@@ -799,15 +815,13 @@ async function showPopupAd(section) {
   const err = (e) => String((e && (e.message || e.description || e.error)) || e || 'no ad').slice(0, 60) + (lastCsp ? ' / blocked: ' + lastCsp : '');
   try {
     let shown = false;
-    if (p.type === 'adsgram' || p.type === 'both') {
-      if (!p.adsgram_block_id) why.push('Adsgram: block ID empty');
-      else { try { await loadAdsgram(); await window.Adsgram.init({ blockId: p.adsgram_block_id }).show(); shown = true; } catch (e) { if (e && e.error === false) shown = true; /* user skipped a rewarded ad: it was shown, do not stack another */ else why.push('Adsgram: ' + err(e)); } }
+    for (const n of adOrder(p.type)) {
+      if (shown) break;
+      const N_ = AD_NETS[n], id = N_.id(p);
+      if (!N_.valid(id)) { why.push(N_.label + ': ID empty'); continue; }
+      try { await N_.play(id); shown = true; } catch (e) { why.push(N_.label + ': ' + err(e)); }
     }
-    if (!shown && (p.type === 'monetag' || p.type === 'both')) {
-      if (!/^\d{1,15}$/.test(p.monetag_zone_id || '')) why.push('Monetag: zone ID empty');
-      else { try { await loadMonetag(p.monetag_zone_id); await window['show_' + p.monetag_zone_id](); shown = true; } catch (e) { why.push('Monetag: ' + err(e)); } }
-    }
-    if (!shown && (p.type === 'own' || p.type === 'both')) { shown = await showOwnPopup(p); if (!shown) why.push('Own popup: title/text/image/link all empty'); }
+    if (!shown && (p.type === 'own' || p.type === 'both' || p.type === 'all')) { shown = await showOwnPopup(p); if (!shown) why.push('Own popup: title/text/image/link all empty'); }
     if (shown) { try { localStorage.setItem('popup_ad_at', String(Date.now())); } catch (e) { /* ignore */ } }
     else if (data.admin && why.length) say('Popup ad not shown (admin note) - ' + why.join(' | '));
   } finally { popupBusy = false; }
