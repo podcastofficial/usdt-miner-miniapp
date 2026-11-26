@@ -9,5 +9,13 @@ New networks added next to Adsgram and Monetag, for both Popup Ads and Watch & E
 - Existing settings keep working (`own / adsgram / monetag / both` behave as before). No DB migration needed.
 - CSP unchanged (`script-src https:` already allows the new SDK hosts).
 
-NOTE: GigaPub / OnClickA SDK calls (`window.showGiga()`, `window.initCdTma({id})`) were written from their public docs without live testing here.
+NOTE: GigaPub / OnClickA SDK calls (`window.showGiga()`, `window.initCdTma({id})`): OnClickA now uses its official script https://js.onclckvd.com/in-stream-ad-admanager/tma.js (checked against the partner panel snippet). GigaPub is still untested.
 Test each network once inside Telegram before going live (admins see a short "Popup ad not shown" reason on screen if one fails).
+
+## Watch & Earn: one button per network
+- Home card shows one button per configured network (e.g. "Monetag +5", "OnClickA +6"). A network with an empty ID is hidden.
+- Daily limit and gap between ads are shared by all networks (no per-network farming).
+- New settings (Watch Ads): "Points per ad: Monetag / OnClickA / GigaPub / Adsgram" (0 = default Points per ad).
+- The chosen network is signed inside the ad token, so a user cannot start a cheap ad and claim a bigger reward.
+- Ledger note now reads "Watched an ad (monetag)" etc. for per-network stats. No DB migration.
+- `watch_ad_network`: single name = one button, `both` = Adsgram + Monetag, `all` = all four.
